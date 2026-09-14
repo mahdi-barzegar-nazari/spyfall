@@ -70,7 +70,7 @@ This project was built and iterated through **AI-assisted software engineering**
 
 Spyfall PWA is free to play and ad-free, and it's meant to stay that way — it was built for the simple pleasure of a good game night with friends.
 
-If you've enjoyed it and would like to support further development, you're welcome to [buy the developer a coffee ☕](https://www.coffeete.ir/mhd_barzegar) — this is entirely optional and never required to use any feature of the app.
+If you've enjoyed it and would like to support further development, you're welcome to [buy the developer a coffee ☕ (soon...)](https://mahdi-barzegar-nazari.github.io/spyfall/) — this is entirely optional and never required to use any feature of the app.
 
 Found a bug, have a word suggestion for the bank, or an idea for a new feature? Please open an [Issue](https://github.com/mahdi-barzegar-nazari/spyfall/issues) — feedback and contributions are always welcome.
 
