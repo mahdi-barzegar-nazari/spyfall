@@ -1,89 +1,121 @@
-# 🕵️ Spyfall PWA (بازی دورهمی جاسوس)
+<div align="center">
 
-An offline-first, single-device pass-and-play Progressive Web App designed for local gatherings and social deduction gameplay.
+# 🕵️ Spyfall PWA · بازی دورهمی جاسوس
 
-> **Live Demo:** [Launch Web App](https://mahdi-barzegar-nazari.github.io/spyfall/)
+**An offline-first, single-device social-deduction party game. Pass one phone around the room.**
+Persian (RTL) UI · zero runtime dependencies · installable on Android and iOS
 
----
+[![CI](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml)
+[![Deploy](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/github/license/mahdi-barzegar-nazari/spyfall?style=flat-square)](./LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](#offline-first-and-safe-updates)
+[![Vanilla JS](https://img.shields.io/badge/vanilla-ES_modules-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](#architecture)
+[![Dependencies: 0](https://img.shields.io/badge/runtime_dependencies-0-brightgreen?style=flat-square)](./package.json)
 
-## 📖 Overview
+**[▶ Play the live demo](https://mahdi-barzegar-nazari.github.io/spyfall/)**
 
-**Spyfall PWA** is a web-based adaptation of the classic social deduction game, designed to run on a single mobile device passed between players. It eliminates the need for multiple app installations, active internet connections, or room codes during in-person gatherings.
-
-Built with pure vanilla web technologies, the game engine runs entirely on the client side with zero framework dependencies, providing offline availability and standalone display modes on mobile devices.
-
----
-
-## 🌟 Highlights & Key Features
-
-- **Single-Device Pass-and-Play:** Turn progression is managed through privacy-preserving **Handoff Gates**, paired with an emergency double-tap **Cover Mode (حالت پوشش)** to prevent accidental role exposure.
-- **Offline-First Architecture:** Core assets and game logic are cached via a custom Service Worker lifecycle and the Cache API, enabling full offline play after the initial visit. Supports WebAPK installation on Chromium/Android and standalone display mode on iOS Safari.
-- **Dynamic Roles & Modifiers:** Includes modular roles such as Detective (کارآگاه) and Fool (ساده‌لوح), known spy networks, customizable side quests, player wagers, and an interactive SVG tie-breaker wheel.
-- **State Persistence & Interruption Handling:** Match state and the discrete seconds remaining on the discussion timer are persisted to `localStorage`, so the countdown pauses cleanly on reload or when the app is backgrounded, instead of continuing to drain in the background.
-- **Canvas Scorecard Export:** Client-side 9:16 scorecard generation using the HTML5 Canvas API, rendering player statistics and podium standings for direct saving to the device.
-- **In-Browser Audio Synthesis:** Audio feedback and timer cues are generated on demand via the Web Audio API, with no external audio files to download.
-- **Responsive RTL Theming:** 8 selectable themes — from a neon-galaxy default to a black-and-white classic cinema look (سینمای کلاسیک) and a noir palette (نوآر کلاسیک) — with dynamic viewport sizing (`100dvh`) and safe-area inset padding for edge-to-edge screens.
+</div>
 
 ---
 
-## 🎮 How to Play
+## Overview
 
-1. **Set Up the Match:** Choose player count, spy ratio, discussion duration, and toggle optional roles (Detective, Fool, Quests, Wagers).
-2. **Secret Handoff:** Pass the phone sequentially. Each participant confirms their turn via the **Handoff Gate**, reveals their secret role and word (via tap or hold-to-reveal), and closes the card before passing. The floating **Cover Mode** shield can be engaged at any point to block peeking.
-3. **Interrogation Round:** Start the countdown. Players take turns asking targeted questions to identify the spy without revealing the secret location.
-4. **Accusation & Scoring:** Vote on the suspect's identity, resolve ties using the chance wheel, and view the final match standings and podium.
+Spyfall is a social-deduction game: everyone gets the same secret word except the spy, who only gets a hint. Players question each other, then vote on who the spy is. This project runs the whole game on **one phone that is handed around**, so no accounts, room codes, servers, or internet connection are needed once the page has loaded.
 
----
+The game engine runs entirely in the browser with no framework. It ships as native ES modules, a service worker, and plain CSS.
 
-## 📁 Repository Structure
+## Features
 
-| File | Type | Description |
-| :--- | :--- | :--- |
-| `index.html` | Core Application (Production Build) | Bundled and minified single-file production build containing markup, scoped styles, and game logic — optimized for runtime performance, with minification also providing a reasonable layer of obfuscation for the client-side word bank. |
-| `sw.js` | Service Worker | Precaching lifecycle and network-first/cache-fallback handling |
-| `manifest.json` | Web App Manifest | Standalone display settings, portrait lock, and installation metadata |
-| `icon-192.png` | Asset | App icon for standard mobile pixel densities |
-| `icon-512.png` | Asset | High-resolution icon for splash screens and maskable app icons |
+- **Pass-and-play privacy.** A hand-off gate names who should hold the phone before any secret is shown, and a floating **Cover Mode** (حالت پوشش) hides the screen instantly if someone peeks.
+- **Roles and modifiers.** Spies (1 to 5), Detective, Fool, known-spy networks, secret side quests, one-word rounds, a question director, sudden death, and player wagers.
+- **Fair tie-breaking.** Tied votes are settled by a spinning SVG wheel backed by a crypto-random pick, plus a hidden scoring tie-breaker so shared ranks are rare.
+- **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
+- **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
+- **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
+- **543 built-in words** in 8 categories with difficulty ratings, plus a custom word bank you can import and export as JSON.
+- **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 
----
+## Quickstart
 
-## 🛠️ Tech Stack & Environment
+### Just play
 
-- **Core:** Vanilla JavaScript (ES6+), Semantic HTML5, CSS3 Custom Properties
-- **Browser APIs:** Service Worker API, Cache Storage API, Web Audio API, Canvas API
-- **Typography:** RTL Persian system font stack (Tahoma, Segoe UI, system-ui) with a progressive Google Fonts (`Vazirmatn`) enhancement when a connection is available
-- **Dependencies:** None — a fully self-contained client-side application with no build tooling or external packages
+Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Android also shows an install button).
 
----
+### Run locally
 
-## 🧠 Engineering & Workflow Statement
+**Prerequisites:** Node.js 22 or newer. The app itself needs nothing else; ES modules only work over `http://`, not `file://`, so use the bundled dev server.
 
-This project was built and iterated through **AI-assisted software engineering**:
+```bash
+git clone https://github.com/mahdi-barzegar-nazari/spyfall.git
+cd spyfall
 
-- **Product & System Design:** Domain logic, game mechanics, state machine structure, and Persian localization directed by [Mahdi Barzegar Nazari](https://github.com/mahdi-barzegar-nazari).
-- **Implementation:** Built through structured prompting, iterative refactoring, and deterministic constraint enforcement to produce clean, framework-free code.
-- **QA & Mobile Optimization:** Manually tested across mobile Chromium environments (WebAPK), desktop browsers, and a range of responsive viewports to resolve touch-zoom traps, viewport overflow, and timer desynchronization.
+npm run dev            # serves the source tree at http://localhost:8080 (service worker stays inert)
+npm run build          # writes the deployable site to ./dist with a stamped service worker
+npm run preview        # serves ./dist to test real offline caching
+```
 
----
+### Develop and test
 
-## ❤️ Support the Project
+```bash
+npm install            # dev tooling only: ESLint, Prettier, Playwright
+npm test               # 73 unit tests (built-in node:test, no dependencies)
+npx playwright install chromium
+npm run test:e2e       # real-browser smoke test of the production build, including offline mode
+npm run lint
+```
 
-Spyfall PWA is free to play and ad-free, and it's meant to stay that way — it was built for the simple pleasure of a good game night with friends.
+## Architecture
 
-If you've enjoyed it and would like to support further development, you're welcome to [buy the developer a coffee ☕ (soon...)](https://mahdi-barzegar-nazari.github.io/spyfall/) — this is entirely optional and never required to use any feature of the app.
+```text
+.
+├── index.html                 # semantic markup only; loads css/style.css and js/main.js
+├── css/style.css              # design tokens, 8 themes, components, utility classes
+├── js/
+│   ├── main.js                # entry point: wires modules together in start-up order
+│   ├── core/                  # config (rules, scoring), state, storage, dispatch (control flow)
+│   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
+│   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
+│   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
+│   ├── data/                  # word bank, side quests, help texts
+│   └── utils/                 # text and random helpers (pure)
+├── sw.js                      # service worker (versioned app-shell precache)
+├── manifest.json              # PWA manifest
+├── assets/icons/              # 192, 512 and padded maskable icons
+├── scripts/                   # build.mjs (dist + SW stamping), serve.mjs (dev server)
+├── tests/                     # unit (node:test) and e2e (Playwright)
+└── .github/workflows/         # CI and GitHub Pages deployment
+```
 
-Found a bug, have a word suggestion for the bank, or an idea for a new feature? Please open an [Issue](https://github.com/mahdi-barzegar-nazari/spyfall/issues) — feedback and contributions are always welcome.
+State lives in one object (`core/state.js`). Every user action becomes a `dispatch({ type, payload })` call, which mutates state, persists it, and re-renders. A short walkthrough of the modules, the state model, and the known trade-offs is in [`docs/architecture.md`](./docs/architecture.md).
 
----
+### Offline-first and safe updates
 
-## © Copyright & Fair Use
+The service worker precaches every shipped file and serves it cache-first, so the game works with no connection. The classic risk of that strategy is users being stuck on an old version forever, so:
 
-Copyright © 2026 Mahdi Barzegar Nazari. All rights reserved.
+- `scripts/build.mjs` stamps `sw.js` with a **hash of all shipped files**. Any change produces a new worker and a new cache; unchanged sources produce the same version.
+- Precaching bypasses the HTTP cache, so a cache never mixes files from two builds.
+- Old caches are deleted on activate. The app shows a toast when a new version has installed; it applies the next time the app is opened, so a game in progress is never interrupted.
+- In a source checkout (`npm run dev`) the worker caches nothing, so local edits appear immediately.
 
-This project is made publicly available for portfolio and educational purposes.
+## Deployment
 
-- ✅ Personal, non-commercial use and testing of the live application is freely permitted.
-- 🚫 Redistribution or republishing of the source code, in whole or in part, without prior written permission is not permitted.
-- 🚫 Scraping or otherwise extracting the Persian word bank for commercial purposes is not permitted.
+Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests, then build, then publish `dist/` to GitHub Pages. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 
-For licensing inquiries or permission requests, please reach out via [GitHub Issues](https://github.com/mahdi-barzegar-nazari/spyfall/issues) or [Instagram](https://www.instagram.com/mhd.barzegar).
+## Roadmap
+
+- [ ] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
+- [ ] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
+- [ ] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
+- [ ] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
+- [ ] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
+- [ ] English UI translation
+
+## Contributing
+
+Bug reports and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+## License
+
+Released under the [MIT License](./LICENSE). This includes the word bank.
+
+Made by [Mahdi Barzegar Nazari](https://github.com/mahdi-barzegar-nazari).

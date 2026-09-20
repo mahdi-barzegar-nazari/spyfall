@@ -1,0 +1,33 @@
+{
+  "name": "spyfall",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline-first, single-device Spyfall (بازی جاسوس) party game as a dependency-free PWA",
+  "license": "MIT",
+  "author": "Mahdi Barzegar Nazari",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahdi-barzegar-nazari/spyfall.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs . 8080",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs dist 8080",
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "node --test tests/e2e/*.test.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "playwright": "^1.48.0",
+    "prettier": "^3.3.0"
+  }
+}
