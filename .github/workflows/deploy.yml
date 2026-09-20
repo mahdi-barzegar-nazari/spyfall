@@ -28,7 +28,7 @@ jobs:
         run: npm test
       - name: Build (stamps the service worker with a content hash)
         run: npm run build
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
