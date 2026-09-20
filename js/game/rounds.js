@@ -13,7 +13,7 @@ import { normalizeWord } from '../utils/text.js';
 export function initMatchPlayers() {
     let inputs = document.querySelectorAll('#name-inputs-container input');
     
-    gameState.players = Array.from(inputs).map((inp, i) => {
+    gameState.players = Array.from(inputs).map((inp) => {
         let pId = inp.dataset.playerId || generateId();
         let old = gameState.players.find(p => p.id === pId);
 

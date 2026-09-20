@@ -105,7 +105,6 @@ function spinWheel(names, winnerIndex, onDone) {
     const needle = document.getElementById('wheel-needle');
     needle.style.transition = 'none';
     needle.style.transform = 'rotate(0deg)';
-    // eslint-disable-next-line no-unused-expressions -- force reflow so the transition below starts from 0deg
     needle.getBoundingClientRect();
 
     const targetMid = winnerIndex * segAngle + segAngle / 2;
