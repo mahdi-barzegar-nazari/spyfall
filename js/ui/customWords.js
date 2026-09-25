@@ -47,7 +47,7 @@ export function renderCustomWordsList() {
         
         let infoDiv = document.createElement('div');
         infoDiv.className = 'flex-1';
-        infoDiv.innerHTML = `<strong>${escapeHtml(item.word)}</strong> <span class="color-secondary" style="font-size:0.75rem;">(${escapeHtml(item.hint||'')})</span>`;
+        infoDiv.innerHTML = `<strong>${escapeHtml(item.word)}</strong> <span class="color-secondary u-fs-075">(${escapeHtml(item.hint||'')})</span>`;
         
         let delBtn = document.createElement('button');
         delBtn.type = 'button';
