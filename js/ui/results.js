@@ -149,26 +149,26 @@ export function renderAccolades() {
 
     if (topSpies) {
         const names = topSpies.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕵️</div><div><div class="color-rose" style="font-weight:bold;">شبح سیاه: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">زیرک‌ترین جاسوس با بیشترین فرار از شناسایی</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕵️</div><div><div class="color-rose u-bold">شبح سیاه: ${names}</div><div class="color-secondary u-fs-075">زیرک‌ترین جاسوس با بیشترین فرار از شناسایی</div></div></div>`;
     }
     if (topGuessers) {
         const names = topGuessers.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🧠</div><div><div class="color-amber" style="font-weight:bold;">ذهن‌خوان برجسته: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">حدس صحیح کلمه رمز اصلی در نقش جاسوس</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🧠</div><div><div class="color-amber u-bold">ذهن‌خوان برجسته: ${names}</div><div class="color-secondary u-fs-075">حدس صحیح کلمه رمز اصلی در نقش جاسوس</div></div></div>`;
     }
     if (topDetectives) {
         const names = topDetectives.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🔍</div><div><div class="color-emerald" style="font-weight:bold;">شرلوک هلمز: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">بیشترین شکار جاسوس‌ها در جلسات رای‌گیری</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🔍</div><div><div class="color-emerald u-bold">شرلوک هلمز: ${names}</div><div class="color-secondary u-fs-075">بیشترین شکار جاسوس‌ها در جلسات رای‌گیری</div></div></div>`;
     }
     if (topWagerers) {
         const names = topWagerers.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🐺</div><div><div class="color-primary" style="font-weight:bold;">گرگ وال‌استریت: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">کسب بیشترین سود از شرط‌بندی روی مظنونین</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🐺</div><div><div class="color-primary u-bold">گرگ وال‌استریت: ${names}</div><div class="color-secondary u-fs-075">کسب بیشترین سود از شرط‌بندی روی مظنونین</div></div></div>`;
     }
     if (topVictims) {
         const names = topVictims.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕊️</div><div><div style="font-weight:bold; color:#a855f7;">قربانی بی‌گناه: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">مظلوم‌ترین شهروند که بیشترین اتهام اشتباه را خورد</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕊️</div><div><div class="color-violet u-bold">قربانی بی‌گناه: ${names}</div><div class="color-secondary u-fs-075">مظلوم‌ترین شهروند که بیشترین اتهام اشتباه را خورد</div></div></div>`;
     }
     if (topFools) {
         const names = topFools.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🎭</div><div><div class="color-amber" style="font-weight:bold;">بازیگر نقاب‌دار: ${names}</div><div class="color-secondary" style="font-size:0.75rem;">ساده‌لوحی که بدون سوءظن موفق به فرار شد</div></div></div>`;
+        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🎭</div><div><div class="color-amber u-bold">بازیگر نقاب‌دار: ${names}</div><div class="color-secondary u-fs-075">ساده‌لوحی که بدون سوءظن موفق به فرار شد</div></div></div>`;
     }
 }
