@@ -11,6 +11,7 @@ Persian (RTL) UI · zero runtime dependencies · installable on Android and iOS
 [![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](#offline-first-and-safe-updates)
 [![Vanilla JS](https://img.shields.io/badge/vanilla-ES_modules-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](#architecture)
 [![Dependencies: 0](https://img.shields.io/badge/runtime_dependencies-0-brightgreen?style=flat-square)](./package.json)
+[![Support](https://img.shields.io/badge/support-buy_me_a_coffee-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black)](https://www.coffeete.ir/MahdiBN)
 
 **[▶ Play the live demo](https://mahdi-barzegar-nazari.github.io/spyfall/)**
 
@@ -104,15 +105,19 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 ## Roadmap
 
 - [ ] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
-- [ ] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
+- [x] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
 - [ ] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
 - [ ] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
-- [ ] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
+- [x] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
 - [ ] English UI translation
 
 ## Contributing
 
 Bug reports and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+## Support
+
+This is a solo, spare-time project, maintained between classes and other work. If you enjoy the game and want to help keep it going, you can [buy me a coffee ☕](https://www.coffeete.ir/MahdiBN).
 
 ## License
 

@@ -12,8 +12,6 @@
  *    from two different builds.
  *  - Old caches are deleted on activate. This also clears the legacy `spyfall-v1` cache
  *    left behind by the previous, never-invalidated worker.
- *  - Google Fonts (cross-origin) are cached separately, stale-while-revalidate, so the
- *    typeface still renders offline after the first online visit.
  */
 const VERSION = '__BUILD_VERSION__';
 const PRECACHE = /* __PRECACHE__ */ [];
@@ -21,8 +19,6 @@ const PRECACHE = /* __PRECACHE__ */ [];
 const DEV = VERSION.startsWith('__');
 const CACHE_PREFIX = 'spyfall-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${VERSION}`;
-const FONT_CACHE = `${CACHE_PREFIX}fonts-v1`;
-const FONT_HOSTS = new Set(['fonts.googleapis.com', 'fonts.gstatic.com']);
 
 self.addEventListener('install', (event) => {
     if (DEV) {
@@ -38,7 +34,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
     event.waitUntil((async () => {
-        const keep = new Set([SHELL_CACHE, FONT_CACHE]);
+        const keep = new Set([SHELL_CACHE]);
         const keys = await caches.keys();
         await Promise.all(
             keys.filter((key) => key.startsWith(CACHE_PREFIX) && !keep.has(key)).map((key) => caches.delete(key))
@@ -54,8 +50,6 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
     if (url.origin === self.location.origin) {
         event.respondWith(shellFirst(request));
-    } else if (FONT_HOSTS.has(url.hostname)) {
-        event.respondWith(staleWhileRevalidate(request));
     }
 });
 
@@ -74,18 +68,4 @@ async function shellFirst(request) {
         }
         throw error;
     }
-}
-
-/** Return the cached copy immediately and refresh it in the background. */
-async function staleWhileRevalidate(request) {
-    const cache = await caches.open(FONT_CACHE);
-    const cached = await cache.match(request);
-    const refresh = fetch(request)
-        .then((response) => {
-            // Cross-origin <link> stylesheets come back opaque (status 0); those are fine to keep.
-            if (response.ok || response.type === 'opaque') cache.put(request, response.clone());
-            return response;
-        })
-        .catch(() => undefined);
-    return cached || (await refresh) || Response.error();
 }

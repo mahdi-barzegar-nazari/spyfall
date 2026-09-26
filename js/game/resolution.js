@@ -165,7 +165,7 @@ function formatRoundResultHtml(data) {
     }
 
     if (data.tieNote) {
-        htm += `<br><span class="color-secondary" style="font-size:0.8rem;">${escapeHtml(data.tieNote)}</span>`;
+        htm += `<br><span class="color-secondary u-fs-080">${escapeHtml(data.tieNote)}</span>`;
     }
     return htm;
 }

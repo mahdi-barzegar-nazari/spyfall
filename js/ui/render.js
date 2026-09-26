@@ -154,7 +154,7 @@ export function renderUI() {
         let currentWagerer = eligible[gameState.localWagerIndex];
         if (currentWagerer) {
             let d = document.createElement('div'); d.className = 'toggle-item';
-            d.innerHTML = `<div>📱 نوبت <strong>${escapeHtml(currentWagerer.name)}</strong> (موجودی: ${currentWagerer.score})</div><select class="input-control wager-select w-auto" data-player-id="${currentWagerer.id}" style="padding:6px;" aria-label="میزان شرط ${escapeHtml(currentWagerer.name)}">${generateWagerOptionsHtml(currentWagerer.score)}</select>`;
+            d.innerHTML = `<div>📱 نوبت <strong>${escapeHtml(currentWagerer.name)}</strong> (موجودی: ${currentWagerer.score})</div><select class="input-control wager-select w-auto u-p-6" data-player-id="${currentWagerer.id}" aria-label="میزان شرط ${escapeHtml(currentWagerer.name)}">${generateWagerOptionsHtml(currentWagerer.score)}</select>`;
             l.appendChild(d);
             submitBtn.textContent = (gameState.localWagerIndex === eligible.length - 1) ? "ثبت شرط نهایی و رونمایی ✅" : "ثبت و نفر بعدی ➡️";
             submitBtn.classList.remove('hidden');
@@ -181,7 +181,8 @@ export function renderUI() {
             let c = gameState.round.pointsMap[p.id] || 0;
             let tr = document.createElement('tr');
             const signed = c > 0 ? `${c}+` : `${c}`;
-            tr.innerHTML = `<th scope="row">${escapeHtml(p.name)}</th><td style="color:${c>0?'var(--brand-emerald)':(c<0?'var(--brand-rose)':'var(--text-secondary)')}">${signed}</td><td class="color-amber">${Number(p.score) || 0}</td>`;
+            const pointsClass = c > 0 ? 'color-emerald' : (c < 0 ? 'color-rose' : 'color-secondary');
+            tr.innerHTML = `<th scope="row">${escapeHtml(p.name)}</th><td class="${pointsClass}">${signed}</td><td class="color-amber">${Number(p.score) || 0}</td>`;
             tb.appendChild(tr);
         });
     }
