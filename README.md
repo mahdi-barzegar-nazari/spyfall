@@ -107,7 +107,7 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 - [ ] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
 - [x] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
 - [ ] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
-- [ ] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
+- [x] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
 - [x] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
 - [ ] English UI translation
 

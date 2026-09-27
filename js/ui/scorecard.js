@@ -1,10 +1,22 @@
 /**
  * Canvas scorecard image export.
+ *
+ * The geometry (scale, podium/row positions, header/footer sizes) lives in
+ * ./scorecard-layout.js as plain pure functions. This file is only the
+ * rendering half: small ctx.*-drawing functions that read those numbers,
+ * plus exportScorecardImage() to wire it all together and trigger the PNG
+ * download.
  */
 
 import { gameState } from '../core/state.js';
 import { getRankedStandings } from '../game/ranking.js';
 import { toPersianDigits } from '../utils/text.js';
+import {
+    computeScorecardLayout,
+    computeHeaderLayout,
+    computePodiumSlotLayout,
+    computeRestRowLayout
+} from './scorecard-layout.js';
 
 const SCORECARD_THEME_ACCENTS = {
     default: { primary: '#06b6d4', secondary: '#a855f7', bg1: '#111827', bg2: '#020617' },
@@ -75,6 +87,235 @@ function wrapCanvasText(ctx, text, maxWidth, maxLines) {
     return lines.slice(0, maxLines);
 }
 
+function drawBackground(ctx, layout, accent) {
+    const { width, height } = layout;
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0, accent.bg1 || '#111827');
+    bgGrad.addColorStop(1, accent.bg2 || '#020617');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Ambient glow (tasteful, matches in-app lighting)
+    function glow(x, y, r, color) {
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.save();
+    ctx.globalAlpha = 0.26;
+    glow(width * 0.16, 30, 210, accent.primary);
+    glow(width * 0.88, 80, 190, accent.secondary);
+    glow(width * 0.5, height * 0.94, 260, accent.secondary);
+    ctx.restore();
+}
+
+// Sparkle accents — a few in the header band, plus a scattering down the
+// side margins so the taller fixed canvas never looks half-empty when
+// there are only a few players.
+function drawSparkles(ctx, layout, accent) {
+    const { width, contentTop, contentBottom } = layout;
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    [[0.053, 26], [0.932, 42], [0.103, 132], [0.879, 140], [0.488, 16], [0.206, 74], [0.765, 88]]
+        .forEach(([fx, sy], i) => {
+            ctx.fillStyle = i % 2 === 0 ? accent.primary : accent.secondary;
+            ctx.beginPath();
+            ctx.arc(fx * width, sy, 2 + (i % 3), 0, Math.PI * 2);
+            ctx.fill();
+        });
+    ctx.globalAlpha = 0.16;
+    const marginDots = 9;
+    for (let i = 0; i < marginDots; i++) {
+        const dy = contentTop + 20 + (i * (contentBottom - contentTop - 40)) / Math.max(1, marginDots - 1);
+        const sideX = i % 2 === 0 ? 22 : width - 22;
+        ctx.fillStyle = i % 2 === 0 ? accent.secondary : accent.primary;
+        ctx.beginPath();
+        ctx.arc(sideX, dy, 2 + (i % 2), 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+// Header badge, title & meta line (date / round / player count), plus the
+// divider that closes off the header band.
+function drawHeader(ctx, layout, accent, fontFam, { titleText, metaParts }) {
+    const { width } = layout;
+    const h = computeHeaderLayout(layout);
+    const cx = width / 2;
+
+    const badgeGrad = ctx.createLinearGradient(cx - h.badgeR, h.badgeCY - h.badgeR, cx + h.badgeR, h.badgeCY + h.badgeR);
+    badgeGrad.addColorStop(0, accent.primary);
+    badgeGrad.addColorStop(1, accent.secondary);
+    ctx.fillStyle = badgeGrad;
+    ctx.beginPath();
+    ctx.arc(cx, h.badgeCY, h.badgeR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${h.badgeFontPx}px sans-serif`;
+    ctx.fillText('🕵️', cx, h.badgeCY + 3);
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = `800 ${h.titleFontPx}px ${fontFam}`;
+    ctx.fillText(titleText, cx, h.titleY);
+
+    ctx.font = `${h.metaFontPx}px ${fontFam}`;
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(metaParts.join('   ·   '), cx, h.metaY);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(50, h.dividerY);
+    ctx.lineTo(width - 50, h.dividerY);
+    ctx.stroke();
+}
+
+function formatGroupNamesForCanvas(group) {
+    const names = group.players.map(p => p.name);
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} و ${names[1]}`;
+    return `${names[0]} و ${toPersianDigits(names.length - 1)} نفر دیگر`;
+}
+
+// Podium (top 3 ranks — a rank slot may hold more than one tied player).
+function drawPodium(ctx, layout, podiumGroups, fontFam) {
+    if (podiumGroups.length === 0) return;
+    const medalColors = ['#f59e0b', '#cbd5e1', '#d97706'];
+    const medalEmoji = ['🥇', '🥈', '🥉'];
+
+    podiumGroups.forEach(g => {
+        const p = computePodiumSlotLayout(g.rank, layout);
+
+        const pedGrad = ctx.createLinearGradient(0, p.pedTop, 0, p.baseY);
+        pedGrad.addColorStop(0, hexWithAlpha(medalColors[p.rankIdx], 0.28));
+        pedGrad.addColorStop(1, hexWithAlpha(medalColors[p.rankIdx], 0.08));
+        ctx.fillStyle = pedGrad;
+        drawRoundedRectPath(ctx, p.colX - p.pedW / 2, p.pedTop, p.pedW, p.pedH, { tl: 14, tr: 14, br: 4, bl: 4 });
+        ctx.fill();
+        ctx.strokeStyle = hexWithAlpha(medalColors[p.rankIdx], 0.55);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.font = `800 ${p.rankFontPx}px ${fontFam}`;
+        ctx.fillStyle = 'rgba(255,255,255,0.16)';
+        ctx.fillText(toPersianDigits(g.rank), p.colX, p.rankY);
+
+        if (g.rank === 1) {
+            ctx.font = `${p.crownFontPx}px sans-serif`;
+            ctx.fillText('👑', p.colX, p.crownY);
+        }
+        ctx.beginPath();
+        ctx.arc(p.colX, p.avatarY, p.avatarR, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = medalColors[p.rankIdx];
+        ctx.stroke();
+        ctx.font = `${p.medalFontPx}px sans-serif`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(medalEmoji[p.rankIdx], p.colX, p.avatarY + 2);
+        ctx.textBaseline = 'alphabetic';
+
+        ctx.font = `800 ${p.nameFontPx}px ${fontFam}`;
+        ctx.fillStyle = '#f1f5f9';
+        const rawName = formatGroupNamesForCanvas(g);
+        const displayName = g.players.length > 1 ? `${rawName} (مشترک)` : rawName;
+        const nameLines = wrapCanvasText(ctx, displayName, p.pedW - 8, 2);
+        nameLines.forEach((line, li) => {
+            ctx.fillText(`\u2067${line}\u2069`, p.colX, p.nameBaseY + li * p.nameLineH);
+        });
+        const lastNameY = p.nameBaseY + (nameLines.length - 1) * p.nameLineH;
+
+        ctx.font = `800 ${p.scoreFontPx}px ${fontFam}`;
+        ctx.fillStyle = medalColors[p.rankIdx];
+        ctx.fillText(`${toPersianDigits(g.score)} امتیاز`, p.colX, lastNameY + p.scoreYOffset);
+    });
+}
+
+// Remaining players (rank 4 onward — shared ranks stay in sync with the
+// podium). Row step (and, only if truly necessary, font size) compress to
+// guarantee everything fits inside the fixed canvas without clipping.
+function drawRestRows(ctx, layout, restRows, accent, fontFam) {
+    if (restRows.length === 0) return;
+    const { width } = layout;
+    const row = computeRestRowLayout(layout);
+
+    let y = layout.blockTop + layout.podiumH;
+    ctx.textAlign = 'right';
+    ctx.font = `700 13px ${fontFam}`;
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('سایر بازیکنان', width - 40, y + 28);
+    y += layout.restHeaderH;
+
+    restRows.forEach((r) => {
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.75)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        drawRoundedRectPath(ctx, 40, y, width - 80, row.rowHeight, row.cornerR);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(width - 40 - 24, y + row.rowHeight / 2, row.circleR, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fill();
+        ctx.font = `700 ${row.rankFontPx}px ${fontFam}`;
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(toPersianDigits(r.rank), width - 40 - 24, y + row.rowHeight / 2 + 1);
+        ctx.textBaseline = 'alphabetic';
+
+        ctx.textAlign = 'right';
+        ctx.font = `700 ${row.nameFontPx}px ${fontFam}`;
+        ctx.fillStyle = '#e2e8f0';
+        const displayName = r.tied ? `${r.p.name} (مشترک)` : r.p.name;
+        const truncatedName = truncateCanvasText(ctx, displayName, width - 220);
+        ctx.fillText(`\u2067${truncatedName}\u2069`, width - 40 - 48, y + row.rowHeight / 2 + 5);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = accent.primary;
+        ctx.font = `800 ${row.scoreFontPx}px ${fontFam}`;
+        ctx.fillText(`${toPersianDigits(r.p.score)} امتیاز`, 56, y + row.rowHeight / 2 + 5);
+
+        y += layout.restRowStep;
+    });
+}
+
+// If there's still a meaningful gap between the content and the footer
+// (typical with only a few players), fill it with an actual closing line
+// instead of leaving it blank.
+function drawClosingLine(ctx, layout, fontFam) {
+    if (layout.bottomGap <= 90) return;
+    ctx.textAlign = 'center';
+    ctx.font = `700 16px ${fontFam}`;
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
+    ctx.fillText('🎉 امیدوارم از بازی لذت برده باشید', layout.width / 2, layout.blockBottom + layout.bottomGap / 2);
+}
+
+// Footer credit — subtle divider + small, low-opacity, non-bold signature,
+// always pinned to the very bottom of the fixed canvas.
+function drawFooter(ctx, layout, fontFam) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(layout.width / 2 - 60, layout.height - layout.footerH + 16);
+    ctx.lineTo(layout.width / 2 + 60, layout.height - layout.footerH + 16);
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.font = `400 10px ${fontFam}`;
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+    ctx.fillText('ساخته شده توسط مهدی', layout.width / 2, layout.height - 20);
+}
+
 export function exportScorecardImage() {
     const renderCanvas = () => {
         const canvas = document.getElementById('scorecard-canvas');
@@ -93,130 +334,15 @@ export function exportScorecardImage() {
         restGroups.forEach(g => g.players.forEach(p => restRows.push({ p, rank: g.rank, tied: g.players.length > 1 })));
         const totalPlayers = gameState.players.length;
 
-        // --- Fixed 9:16 portrait canvas (mobile "story" ratio). The
-        // export is ALWAYS exactly this ratio, no matter how many
-        // players there are. A single scale factor is applied uniformly
-        // to the header, podium and row list together:
-        //  • few players → scale > 1, so the podium/header/rows are
-        //    genuinely bigger and bolder — not just padding around a
-        //    small fixed design.
-        //  • many players → scale < 1 (never below a safe floor), so
-        //    the list always fits without ever clipping.
-        // Nothing is ever stretched non-uniformly, so nothing distorts.
-        const logicalWidth = 720;
-        const logicalHeight = Math.round(logicalWidth * 16 / 9); // 1280 — exact 9:16
-        const footerH = 54;
-        const HEADER_BASE = 196;
-        const IDEAL_PODIUM_H = 272;
-        const IDEAL_ROW_STEP = 60;
-        const IDEAL_REST_HEADER_H = 46;
-        const MIN_SCALE = 0.62;
-        const MAX_SCALE = 1.7;
-
-        const naturalListH = restRows.length > 0 ? (IDEAL_REST_HEADER_H + restRows.length * IDEAL_ROW_STEP) : 0;
-        const naturalBlockH = (podiumGroups.length > 0 ? IDEAL_PODIUM_H : 0) + naturalListH;
-        const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-
-        // Pass 1: estimate the scale using the base header height.
-        let scale = naturalBlockH > 0 ? clamp((logicalHeight - HEADER_BASE - footerH) / naturalBlockH, MIN_SCALE, MAX_SCALE) : 1;
-        // When there's slack (scale > 1), let the header claim a modest
-        // share of it too, so the title/badge grow a bit and the whole
-        // card reads as one deliberately-scaled composition.
-        const headerBonus = scale > 1 ? Math.min(34, (scale - 1) * 60) : 0;
-        const headerH = HEADER_BASE + headerBonus;
-        const contentTop = headerH;
-        const contentBottom = logicalHeight - footerH;
-        const contentAvailableH = Math.max(0, contentBottom - contentTop);
-        // Pass 2: settle the final scale against the (possibly taller) header.
-        scale = naturalBlockH > 0 ? clamp(contentAvailableH / naturalBlockH, MIN_SCALE, MAX_SCALE) : 1;
-        const headerTextScale = 1 + Math.min(0.25, Math.max(0, scale - 1) * 0.15);
-
-        const podiumH = podiumGroups.length > 0 ? IDEAL_PODIUM_H * scale : 0;
-        const restHeaderH = restRows.length > 0 ? IDEAL_REST_HEADER_H * scale : 0;
-        const restRowStep = IDEAL_ROW_STEP * scale;
-        const podiumScale = scale;
-
-        // Center whatever slack remains after scaling (small by design,
-        // since scaling absorbs most of it) rather than leaving a dead
-        // gap glued to the bottom.
-        const scaledBlockH = podiumH + restHeaderH + restRows.length * restRowStep;
-        const slack = Math.max(0, contentAvailableH - scaledBlockH);
-        const blockTop = contentTop + slack / 2;
-        const blockBottom = blockTop + scaledBlockH;
+        const layout = computeScorecardLayout(podiumGroups.length, restRows.length);
 
         const dpr = Math.max(1, window.devicePixelRatio || 1);
-        canvas.width = logicalWidth * dpr;
-        canvas.height = logicalHeight * dpr;
+        canvas.width = layout.width * dpr;
+        canvas.height = layout.height * dpr;
         ctx.scale(dpr, dpr);
 
-        // Background — reflects the active theme's own palette
-        const bgGrad = ctx.createLinearGradient(0, 0, 0, logicalHeight);
-        bgGrad.addColorStop(0, accent.bg1 || '#111827');
-        bgGrad.addColorStop(1, accent.bg2 || '#020617');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, logicalWidth, logicalHeight);
-
-        // Ambient glow (tasteful, matches in-app lighting)
-        function glow(x, y, r, color) {
-            const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-            g.addColorStop(0, color);
-            g.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = g;
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.save();
-        ctx.globalAlpha = 0.26;
-        glow(logicalWidth * 0.16, 30, 210, accent.primary);
-        glow(logicalWidth * 0.88, 80, 190, accent.secondary);
-        glow(logicalWidth * 0.5, logicalHeight * 0.94, 260, accent.secondary);
-        ctx.restore();
-
-        // Sparkle accents — a few in the header band, plus a scattering
-        // down the side margins so the taller fixed canvas never looks
-        // half-empty when there are only a few players.
-        ctx.save();
-        ctx.globalAlpha = 0.35;
-        [[0.053, 26], [0.932, 42], [0.103, 132], [0.879, 140], [0.488, 16], [0.206, 74], [0.765, 88]]
-            .forEach(([fx, sy], i) => {
-                ctx.fillStyle = i % 2 === 0 ? accent.primary : accent.secondary;
-                ctx.beginPath();
-                ctx.arc(fx * logicalWidth, sy, 2 + (i % 3), 0, Math.PI * 2);
-                ctx.fill();
-            });
-        ctx.globalAlpha = 0.16;
-        const marginDots = 9;
-        for (let i = 0; i < marginDots; i++) {
-            const dy = contentTop + 20 + (i * (contentBottom - contentTop - 40) / Math.max(1, marginDots - 1));
-            const sideX = i % 2 === 0 ? 22 : logicalWidth - 22;
-            ctx.fillStyle = i % 2 === 0 ? accent.secondary : accent.primary;
-            ctx.beginPath();
-            ctx.arc(sideX, dy, 2 + (i % 2), 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-
-        // Header badge
-        const badgeR = 34 * headerTextScale;
-        const badgeCY = 62 + headerBonus * 0.15;
-        const badgeGrad = ctx.createLinearGradient(logicalWidth / 2 - badgeR, badgeCY - badgeR, logicalWidth / 2 + badgeR, badgeCY + badgeR);
-        badgeGrad.addColorStop(0, accent.primary);
-        badgeGrad.addColorStop(1, accent.secondary);
-        ctx.fillStyle = badgeGrad;
-        ctx.beginPath();
-        ctx.arc(logicalWidth / 2, badgeCY, badgeR, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = `${Math.round(34 * headerTextScale)}px sans-serif`;
-        ctx.fillText('🕵️', logicalWidth / 2, badgeCY + 3);
-        ctx.textBaseline = 'alphabetic';
-
-        // Title (names the game once) & meta line
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = `800 ${Math.round(25 * headerTextScale)}px ${fontFam}`;
-        ctx.fillText('کارنامه نهایی بازی جاسوس', logicalWidth / 2, 140 + headerBonus * 0.45);
+        drawBackground(ctx, layout, accent);
+        drawSparkles(ctx, layout, accent);
 
         let dateStr = '';
         try { dateStr = new Date().toLocaleDateString('fa-IR'); } catch(e) {}
@@ -225,171 +351,12 @@ export function exportScorecardImage() {
             `${toPersianDigits(gameState.round.num)} دست`,
             `${toPersianDigits(totalPlayers)} بازیکن`
         ].filter(Boolean);
-        ctx.font = `${Math.round(13 * headerTextScale)}px ${fontFam}`;
-        ctx.fillStyle = '#94a3b8';
-        ctx.fillText(metaParts.join('   ·   '), logicalWidth / 2, 174 + headerBonus * 0.35);
+        drawHeader(ctx, layout, accent, fontFam, { titleText: 'کارنامه نهایی بازی جاسوس', metaParts });
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(50, headerH - 12);
-        ctx.lineTo(logicalWidth - 50, headerH - 12);
-        ctx.stroke();
-
-        // Podium (top 3 ranks — a rank slot may hold more than one tied player)
-        if (podiumGroups.length > 0) {
-            const s = podiumScale;
-            const medalColors = ['#f59e0b', '#cbd5e1', '#d97706'];
-            const medalEmoji = ['🥇', '🥈', '🥉'];
-            const pedestalHeights = [140 * s, 100 * s, 74 * s]; // [رتبه ۱, رتبه ۲, رتبه ۳] — اول باید بلندترین باشد
-            const RANK_TO_SLOT = { 1: 1, 2: 0, 3: 2 }; // silver-left, gold-center, bronze-right
-            const colW = (logicalWidth - 80) / 3;
-            const baseY = blockTop + podiumH - 34 * s;
-
-            function formatGroupNamesForCanvas(group) {
-                const names = group.players.map(p => p.name);
-                if (names.length === 1) return names[0];
-                if (names.length === 2) return `${names[0]} و ${names[1]}`;
-                return `${names[0]} و ${toPersianDigits(names.length - 1)} نفر دیگر`;
-            }
-
-            podiumGroups.forEach(g => {
-                const rankIdx = g.rank - 1; // 0,1,2
-                const slot = RANK_TO_SLOT[g.rank];
-                const colX = 40 + slot * colW + colW / 2;
-                const pedH = pedestalHeights[rankIdx];
-                const pedTop = baseY - pedH;
-                const pedW = colW - 26;
-
-                const pedGrad = ctx.createLinearGradient(0, pedTop, 0, baseY);
-                pedGrad.addColorStop(0, hexWithAlpha(medalColors[rankIdx], 0.28));
-                pedGrad.addColorStop(1, hexWithAlpha(medalColors[rankIdx], 0.08));
-                ctx.fillStyle = pedGrad;
-                drawRoundedRectPath(ctx, colX - pedW / 2, pedTop, pedW, pedH, { tl: 14, tr: 14, br: 4, bl: 4 });
-                ctx.fill();
-                ctx.strokeStyle = hexWithAlpha(medalColors[rankIdx], 0.55);
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.textAlign = 'center';
-                ctx.font = `800 ${Math.round(30 * s)}px ${fontFam}`;
-                ctx.fillStyle = 'rgba(255,255,255,0.16)';
-                ctx.fillText(toPersianDigits(g.rank), colX, baseY - 14 * s);
-
-                const avatarY = pedTop - 40 * s;
-                if (g.rank === 1) {
-                    ctx.font = `${Math.round(22 * s)}px sans-serif`;
-                    ctx.fillText('👑', colX, avatarY - 34 * s);
-                }
-                ctx.beginPath();
-                ctx.arc(colX, avatarY, 28 * s, 0, Math.PI * 2);
-                ctx.fillStyle = '#1e293b';
-                ctx.fill();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = medalColors[rankIdx];
-                ctx.stroke();
-                ctx.font = `${Math.round(24 * s)}px sans-serif`;
-                ctx.textBaseline = 'middle';
-                ctx.fillText(medalEmoji[rankIdx], colX, avatarY + 2);
-                ctx.textBaseline = 'alphabetic';
-
-                ctx.font = `800 ${Math.round(15 * s)}px ${fontFam}`;
-                ctx.fillStyle = '#f1f5f9';
-                const rawName = formatGroupNamesForCanvas(g);
-                const displayName = g.players.length > 1 ? `${rawName} (مشترک)` : rawName;
-                const nameLines = wrapCanvasText(ctx, displayName, pedW - 8, 2);
-                const nameLineH = 15 * s * 1.15;
-                const nameBaseY = avatarY + 46 * s;
-                nameLines.forEach((line, li) => {
-                    ctx.fillText(`\u2067${line}\u2069`, colX, nameBaseY + li * nameLineH);
-                });
-                const lastNameY = nameBaseY + (nameLines.length - 1) * nameLineH;
-
-                ctx.font = `800 ${Math.round(13 * s)}px ${fontFam}`;
-                ctx.fillStyle = medalColors[rankIdx];
-                ctx.fillText(`${toPersianDigits(g.score)} امتیاز`, colX, lastNameY + 20 * s);
-            });
-        }
-
-        // Remaining players (rank 4 onward — shared ranks stay in sync
-        // with the podium/table). Row step (and, only if truly
-        // necessary, font size) compress to guarantee everything fits
-        // inside the fixed canvas without clipping or overlap.
-        if (restRows.length > 0) {
-            let y = blockTop + podiumH;
-            ctx.textAlign = 'right';
-            ctx.font = `700 13px ${fontFam}`;
-            ctx.fillStyle = '#64748b';
-            ctx.fillText('سایر بازیکنان', logicalWidth - 40, y + 28);
-            y += restHeaderH;
-
-            const rowGap = Math.max(3, 9 * scale);
-            const rh = Math.max(20, restRowStep - rowGap);
-            const nameFontPx = Math.round(15 * scale);
-            const scoreFontPx = Math.round(15 * scale);
-            const rankFontPx = Math.round(13 * scale);
-            const circleR = Math.min(16 * scale, rh / 2 - 2);
-            const cornerR = Math.min(14 * scale, rh / 2);
-
-            restRows.forEach((row) => {
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.75)';
-                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-                ctx.lineWidth = 1;
-                drawRoundedRectPath(ctx, 40, y, logicalWidth - 80, rh, cornerR);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(logicalWidth - 40 - 24, y + rh / 2, circleR, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,0.06)';
-                ctx.fill();
-                ctx.font = `700 ${rankFontPx}px ${fontFam}`;
-                ctx.fillStyle = '#94a3b8';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(toPersianDigits(row.rank), logicalWidth - 40 - 24, y + rh / 2 + 1);
-                ctx.textBaseline = 'alphabetic';
-
-                ctx.textAlign = 'right';
-                ctx.font = `700 ${nameFontPx}px ${fontFam}`;
-                ctx.fillStyle = '#e2e8f0';
-                const displayName = row.tied ? `${row.p.name} (مشترک)` : row.p.name;
-                const truncatedName = truncateCanvasText(ctx, displayName, logicalWidth - 220);
-                ctx.fillText(`\u2067${truncatedName}\u2069`, logicalWidth - 40 - 48, y + rh / 2 + 5);
-
-                ctx.textAlign = 'left';
-                ctx.fillStyle = accent.primary;
-                ctx.font = `800 ${scoreFontPx}px ${fontFam}`;
-                ctx.fillText(`${toPersianDigits(row.p.score)} امتیاز`, 56, y + rh / 2 + 5);
-
-                y += restRowStep;
-            });
-        }
-
-        // If there's still a meaningful gap between the content and the
-        // footer (typical with only a few players), fill it with an
-        // actual closing line instead of leaving it blank.
-        const bottomGap = contentBottom - blockBottom;
-        if (bottomGap > 90) {
-            ctx.textAlign = 'center';
-            ctx.font = `700 16px ${fontFam}`;
-            ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
-            ctx.fillText('🎉 امیدوارم از بازی لذت برده باشید', logicalWidth / 2, blockBottom + bottomGap / 2);
-        }
-
-        // Footer credit — subtle divider + small, low-opacity, non-bold
-        // signature, always pinned to the very bottom of the fixed canvas.
-        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(logicalWidth / 2 - 60, logicalHeight - footerH + 16);
-        ctx.lineTo(logicalWidth / 2 + 60, logicalHeight - footerH + 16);
-        ctx.stroke();
-
-        ctx.textAlign = 'center';
-        ctx.font = `400 10px ${fontFam}`;
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
-        ctx.fillText('ساخته شده توسط مهدی', logicalWidth / 2, logicalHeight - 20);
+        drawPodium(ctx, layout, podiumGroups, fontFam);
+        drawRestRows(ctx, layout, restRows, accent, fontFam);
+        drawClosingLine(ctx, layout, fontFam);
+        drawFooter(ctx, layout, fontFam);
 
         const link = document.createElement('a');
         link.download = `SpyGame-Scorecard-${Date.now()}.png`;
