@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Self-host the Vazirmatn font instead of loading it from Google Fonts.
+- Split `ui/scorecard.js` into pure layout calculations and canvas rendering.
+- CI now uses `npm ci` instead of `npm install`.
+
 ## 2.0.0
 
 ### Changed
