@@ -33,7 +33,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
-- **543 built-in words** in 8 categories with difficulty ratings, plus a custom word bank you can import and export as JSON.
+- **741 built-in words** in 8 categories with difficulty ratings, plus a custom word bank you can import and export as JSON.
 - **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 
 ## Quickstart
@@ -104,7 +104,7 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 
 ## Roadmap
 
-- [ ] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
+- [x] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
 - [x] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
 - [ ] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
 - [x] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering

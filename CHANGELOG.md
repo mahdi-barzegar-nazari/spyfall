@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Word bank grew from 543 to 741 built-in words (+198): every category now has at least 16 `hard` and 16 `medium` entries, with the small categories (vehicles, sports, events) growing the most.
+
 ### Changed
 
 - Self-host the Vazirmatn font instead of loading it from Google Fonts.
