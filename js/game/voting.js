@@ -2,7 +2,8 @@
  * Pass-and-play voting and wager collection.
  */
 
-import { commitState, dispatch } from '../core/dispatch.js';
+import { dispatch } from '../core/dispatch.js';
+import { commitState } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { showToast } from '../ui/feedback.js';
 import { runTieBreakerWheel } from '../ui/wheel.js';

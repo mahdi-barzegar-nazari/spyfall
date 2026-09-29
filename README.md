@@ -59,7 +59,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 73 unit tests (built-in node:test, no dependencies)
+npm test               # 102 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser smoke test of the production build, including offline mode
 npm run lint
@@ -73,7 +73,8 @@ npm run lint
 ├── css/style.css              # design tokens, 8 themes, components, utility classes
 ├── js/
 │   ├── main.js                # entry point: wires modules together in start-up order
-│   ├── core/                  # config (rules, scoring), state, storage, dispatch (control flow)
+│   ├── app/                   # composition root: the action handler behind dispatch(), and wireApp()
+│   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
 │   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
@@ -87,7 +88,7 @@ npm run lint
 └── .github/workflows/         # CI and GitHub Pages deployment
 ```
 
-State lives in one object (`core/state.js`). Every user action becomes a `dispatch({ type, payload })` call, which mutates state, persists it, and re-renders. A short walkthrough of the modules, the state model, and the known trade-offs is in [`docs/architecture.md`](./docs/architecture.md).
+State lives in one object (`core/state.js`). Every user action becomes a `dispatch({ type, payload })` call, which mutates state, re-renders, and persists it. Modules call `dispatch` through a small port in `core/dispatch.js`; `app/wire.js` connects the real handler at start-up, so there are no import cycles (a unit test enforces it). A short walkthrough of the modules, the state model, and the known trade-offs is in [`docs/architecture.md`](./docs/architecture.md).
 
 ### Offline-first and safe updates
 
@@ -106,7 +107,7 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 
 - [x] Rebalance the word bank: only 5 of 543 words are rated "hard", so that difficulty setting repeats words quickly
 - [x] Self-host the Vazirmatn font (it currently loads from Google Fonts; the service worker caches it after the first online visit)
-- [ ] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
+- [x] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
 - [x] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
 - [x] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
 - [ ] English UI translation

@@ -3,7 +3,7 @@
  */
 
 import { HIDDEN_TIEBREAK, SCORING, getDifficultyMultiplier } from '../core/config.js';
-import { commitState, setPhase } from '../core/dispatch.js';
+import { commitState, setPhase } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { resumeTimer, stopTimerLoop } from './timer.js';
 import { playVictoryFanfare, stopAudioKeepAlive } from '../platform/audio.js';

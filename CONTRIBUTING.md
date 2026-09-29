@@ -25,7 +25,8 @@ npm run build && npm run test:e2e # needs: npx playwright install chromium
 
 - **No runtime dependencies and no build step for the app itself.** Source files are what the browser runs.
 - **Keep `index.html` free of inline styles, scripts, and event handlers.** A unit test enforces this. Use the utility classes at the end of `css/style.css` or add a class.
-- **Every user action goes through `dispatch()`.** Bind events in `ui/bindings.js`; put game rules in `game/`; keep DOM code out of `utils/`, `core/config.js`, and `game/ranking.js` so they stay unit-testable.
+- **Every user action goes through `dispatch()`.** Bind events in `ui/bindings.js`; put game rules in `game/`; keep DOM code out of `utils/`, `core/config.js`, and `game/ranking.js` so they stay unit-testable. A new action is a new `case` in `handleAction` (`app/actions.js`).
+- **Keep imports acyclic.** Import `dispatch` from `core/dispatch.js` and `setPhase` / `commitState` from `core/phase.js`; never import `app/` from anywhere but `main.js`, and never import `game/` or `ui/` from `core/`. `npm test` fails on a cycle and prints the path.
 - **Adding a file that ships?** Nothing to register: `scripts/build.mjs` discovers files and precaches them automatically. Run `npm run build` to check that every import and HTML reference resolves.
 - **Adding words:** append to the matching category in `js/data/wordPacks.js` with `{ word, foolWord, hint, diff }`. The data tests reject duplicates and malformed entries. Words rated `hard` are especially welcome.
 - **Persian text:** keep UI strings in Persian and use Persian digits for numbers shown to players (`toPersianDigits`).

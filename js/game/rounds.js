@@ -2,7 +2,7 @@
  * Match and round setup: players, word selection, roles, quests, director turns.
  */
 
-import { setPhase } from '../core/dispatch.js';
+import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { getCustomWords } from '../core/storage.js';
 import { sideQuestsPool } from '../data/sideQuests.js';

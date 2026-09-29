@@ -6,8 +6,11 @@
 
 - Word bank grew from 543 to 741 built-in words (+198): every category now has at least 16 `hard` and 16 `medium` entries, with the small categories (vehicles, sports, events) growing the most.
 
+- Unit tests for the module graph (`tests/unit/import-cycles.test.mjs`: no import cycles, no missing imports, `core/` never imports upward) and for the new `core/phase.js` and `core/dispatch.js` seams (`tests/unit/phase.test.mjs`).
+
 ### Changed
 
+- **Broke the import cycles around `dispatch`.** `core/dispatch.js` is now a small port that forwards to a handler; the big action `switch` moved to `app/actions.js`, and `setPhase` / `commitState` moved to `core/phase.js`. `app/wire.js` connects the handler, the screen renderer and the timer's phase-change hook once at start-up (`main.js` calls `wireApp()` first). Game behaviour is unchanged, and `dispatch` and `showInfoModal` are still exported from `core/dispatch.js`. `setPhase` and `commitState` are no longer exported from there; import them from `core/phase.js`.
 - Self-host the Vazirmatn font instead of loading it from Google Fonts.
 - Split `ui/scorecard.js` into pure layout calculations and canvas rendering.
 - CI now uses `npm ci` instead of `npm install`.

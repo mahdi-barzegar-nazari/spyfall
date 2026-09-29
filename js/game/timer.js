@@ -2,7 +2,7 @@
  * Discussion countdown. Owns the interval handle; pausedSec is the single source of truth.
  */
 
-import { setPhase } from '../core/dispatch.js';
+import { setPhase } from '../core/phase.js';
 import { gameState, session } from '../core/state.js';
 import { calcDirectorTurn } from './rounds.js';
 import { keepAudioAlive, playSiren, playTone, stopAudioKeepAlive, vibrate } from '../platform/audio.js';
@@ -22,6 +22,23 @@ export function stopTimerLoop() {
 /** True while a countdown interval is armed. */
 export function isTimerLoopActive() {
     return timerInt !== null;
+}
+
+/**
+ * Installed by app/wire.js as the "before phase change" hook (core/phase.js).
+ *
+ * Defense-in-depth for the "zero background timer loops" guarantee:
+ * any transition away from the live discussion screen immediately
+ * kills the interval, so it can never keep ticking underneath the
+ * home/lobby (or any other) view. This is a no-op whenever the
+ * caller already paused the timer explicitly (pauseTimer() clears
+ * timerInt itself), and only matters as a safety net otherwise.
+ */
+export function stopTimerWhenLeavingTimerPhase(from, to) {
+    if (from === 'timer' && to !== 'timer' && isTimerLoopActive()) {
+        stopTimerLoop();
+        stopAudioKeepAlive();
+    }
 }
 
 export function startTimer() {

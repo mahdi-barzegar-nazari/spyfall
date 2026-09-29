@@ -2,6 +2,7 @@
  * Application entry point: wires every module together in the original start-up order.
  */
 
+import { wireApp } from './app/wire.js';
 import { SAVE_VERSION } from './core/state.js';
 import { initAntiZoom } from './platform/antiZoom.js';
 import { setupAudio } from './platform/audio.js';
@@ -44,6 +45,7 @@ function start() {
     } catch(e){}
 }
 
+wireApp();
 initAntiZoom();
 setupAudio();
 initTheme();
