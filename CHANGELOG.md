@@ -6,6 +6,8 @@
 
 - Word bank grew from 543 to 741 built-in words (+198): every category now has at least 16 `hard` and 16 `medium` entries, with the small categories (vehicles, sports, events) growing the most.
 
+- Unit tests for the game rules that had none: `game/rounds.js`, `game/voting.js`, `game/resolution.js` and `game/timer.js` (156 tests in `tests/unit/{rounds,voting,resolution,timer}.test.mjs`). They pin today's behaviour (roles, hints, word selection, ballots and ties, scoring, wagers, round results, the countdown) using a small fake browser in `tests/unit/helpers/`, with seeded randomness and a manual clock, so nothing waits and no dependency was added.
+
 - Unit tests for the module graph (`tests/unit/import-cycles.test.mjs`: no import cycles, no missing imports, `core/` never imports upward) and for the new `core/phase.js` and `core/dispatch.js` seams (`tests/unit/phase.test.mjs`).
 
 ### Changed
