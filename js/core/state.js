@@ -15,6 +15,7 @@ export const gameState = {
         knownSpies: false, director: false, oneword: false, quests: false,
         wager: false, sudden: false, voteLimitEnabled: false, maxVotes: 2,
         roleRevealConfirm: true, voteConfirm: false, quickVoting: false,
+        spyLastChance: true,
         detectiveUsed: false
     },
     players: [],

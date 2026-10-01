@@ -127,12 +127,14 @@ export function startNextRound() {
 
     let activePlayers = gameState.players.filter(p => !p.isSpectator);
     let shuff = shuffle(activePlayers);
-    for (let i = 0; i < Math.min(gameState.settings.spiesCount, shuff.length - 1); i++) {
+    // Only as many spies as were really assigned: the fool and the detective take the seats after them.
+    const spyCount = Math.min(gameState.settings.spiesCount, shuff.length - 1);
+    for (let i = 0; i < spyCount; i++) {
         shuff[i].role = 'spy';
         shuff[i].team = 'spy';
         shuff[i].stats.timesSpy = (shuff[i].stats.timesSpy || 0) + 1;
     }
-    let cIdx = gameState.settings.spiesCount;
+    let cIdx = spyCount;
     if (gameState.settings.fool && shuff.length > cIdx) {
         shuff[cIdx].role = 'fool';
         shuff[cIdx].team = 'citizen';

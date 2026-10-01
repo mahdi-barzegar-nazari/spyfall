@@ -21,7 +21,7 @@ export function showEliminationReveal(player, wasSpy, note, onDone) {
         icon.textContent = '🕵️';
         badge.className = 'role-badge role-spy';
         badge.textContent = '🕵️ جاسوس بود!';
-        noteEl.textContent = 'حالا نوبت حدس‌زدن کلمه رمز است...';
+        noteEl.textContent = note || 'حالا نوبت حدس‌زدن کلمه رمز است...';
     } else {
         icon.textContent = '😇';
         badge.className = 'role-badge role-citizen';

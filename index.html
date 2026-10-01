@@ -212,6 +212,10 @@
                 <label class="switch"><input type="checkbox" id="toggle-sudden" aria-labelledby="lbl-sudden"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
+                <div class="toggle-label-wrap"><span id="lbl-last-chance">شانس آخر جاسوس</span><button class="info-btn" data-info="spyLastChance" type="button">ℹ️</button></div>
+                <label class="switch"><input type="checkbox" id="toggle-last-chance" checked aria-labelledby="lbl-last-chance"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-item">
                 <div class="toggle-label-wrap"><span id="lbl-limit">سقف زنگ</span><button class="info-btn" data-info="voteLimit" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-limit" aria-labelledby="lbl-limit"><span class="slider"></span></label>
             </div>
@@ -291,10 +295,11 @@
             <span class="color-secondary u-fs-082">نتیجه اعلام شفاهی جاسوس را ثبت کنید:</span>
         </div>
         <div id="guess-verdict-actions" class="flex-row-gap-8 u-stack-10">
-            <button type="button" id="btn-guess-correct" class="btn btn-emerald">✅ حدس درست بود (+۳ امتیاز جاسوس)</button>
-            <button type="button" id="btn-guess-wrong" class="btn btn-rose">❌ حدس اشتباه بود (+۲ امتیاز شهروندان)</button>
-            <button type="button" id="btn-guess-pass" class="btn btn-ghost">⚪ حدس نزد / انصراف داد (+۲ شهروندان)</button>
+            <button type="button" id="btn-guess-correct" class="btn btn-emerald">✅ حدس درست بود</button>
+            <button type="button" id="btn-guess-wrong" class="btn btn-rose">❌ حدس اشتباه بود</button>
+            <button type="button" id="btn-guess-pass" class="btn btn-ghost">⚪ حدس نزد / انصراف داد</button>
         </div>
+        <p class="text-center color-secondary u-fs-075 mt-10">حدس درست: جاسوس‌ها دور را می‌برند. غلط یا انصراف: بازی طبق قانون ادامه پیدا می‌کند.</p>
     </section>
 
     <section id="screen-result" class="screen-view hidden">

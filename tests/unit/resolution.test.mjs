@@ -6,7 +6,12 @@
  */
 import assert from 'node:assert/strict';
 import { after, describe, it } from 'node:test';
-import { HIDDEN_TIEBREAK, SCORING, getDifficultyMultiplier } from '../../js/core/config.js';
+import {
+    HIDDEN_TIEBREAK,
+    SCORING,
+    SPY_GUESS_BY_DIFFICULTY,
+    getDifficultyMultiplier
+} from '../../js/core/config.js';
 import { gameState, hostSecretState } from '../../js/core/state.js';
 import { installFakeEnv } from './helpers/fakeEnv.mjs';
 import { freshStats, makePlayer, useGameHarness } from './helpers/harness.mjs';
@@ -380,56 +385,83 @@ describe('processElimination: the elimination reveal', () => {
 });
 
 describe('handleSpyGuessVerdict: the spy guessed correctly', () => {
-    it('scores the guess and the win for the spy team, and shows the spy-guess ending (hand-worked)', () => {
-        // Caught spy S1: 3 (guess) + 2 (win) = 5. Live spy S2: 2, plus 4 * 1.5 = 6 for never being caught.
+    it('pays the guesser only the guess points, the other spies the win, and shows the spy-guess ending (hand-worked)', () => {
+        // Caught spy S1 guessed on a hard word: 3 for the guess and nothing on top of it for the win.
+        // Live spy S2: 2 for the win, plus 4 * 2 = 8 for never being caught.
         arrange({
             seats: [spy('S1', { name: 'Sara', isAlive: false }), spy('S2'), cit('C1'), cit('C2'), cit('C3')],
             target: 'S1',
-            difficulty: 'medium'
+            difficulty: 'hard'
         });
         gameState.phase = 'guess';
         handleSpyGuessVerdict('correct');
         assert.equal(hostSecretState.guessVerdict, 'correct');
-        assert.equal(byId('S1').score, 5);
-        assert.equal(points('S1'), 5);
+        assert.equal(byId('S1').score, 3);
+        assert.equal(points('S1'), 3);
         assert.equal(byId('S1').stats.spyGuesses, 1);
-        assert.equal(byId('S1').stats.sw, 1);
+        assert.equal(byId('S1').stats.sw, 1, 'the guesser is still on the winning team');
         assert.equal(byId('S1').stats.hiddenTieBreakerScore, 0);
         assert.equal(byId('S2').score, 2);
         assert.equal(points('S2'), 2);
+        assert.equal(byId('S2').stats.sw, 1);
         assert.equal(byId('S2').stats.spyGuesses, 0);
-        assert.equal(byId('S2').stats.hiddenTieBreakerScore, 6);
+        assert.equal(byId('S2').stats.hiddenTieBreakerScore, 8);
         assert.ok(['C1', 'C2', 'C3'].every((id) => byId(id).score === 0 && byId(id).stats.cw === 0));
         assertResult(SPY_WON, 'spy_guess');
         assert.ok(env.el('result-desc').innerHTML.includes('Sara'));
         assert.ok(env.el('result-desc').innerHTML.includes('Zebra'));
     });
 
-    it('uses SCORING for the guess and the win', () => {
-        arrange({
-            seats: [spy('S1', { isAlive: false }), spy('S2'), cit('C1'), cit('C2')],
-            target: 'S1'
+    // Literal numbers on purpose: easy 1, medium 2, hard 3, and 2 for a word with no rating
+    // (null for custom words; undefined and an unknown key are defensive).
+    const GUESS_POINTS = [['easy', 1], ['medium', 2], ['hard', 3], [null, 2], [undefined, 2], ['nope', 2]];
+    for (const [difficulty, expected] of GUESS_POINTS) {
+        it(`pays ${expected} for a correct guess on a word rated ${String(difficulty)}, to the guesser only`, () => {
+            arrange({
+                seats: [spy('S1', { isAlive: false }), spy('S2'), cit('C1'), cit('C2')],
+                target: 'S1',
+                difficulty
+            });
+            handleSpyGuessVerdict('correct');
+            assert.equal(byId('S1').score, expected);
+            assert.equal(points('S1'), expected);
+            assert.equal(byId('S1').stats.spyGuesses, 1);
+            assert.equal(byId('S2').score, SCORING.SPY_WIN_ROUND, 'a teammate gets the plain win');
+            assert.ok(['C1', 'C2'].every((id) => byId(id).score === 0));
         });
-        handleSpyGuessVerdict('correct');
-        assert.equal(byId('S1').score, SCORING.SPY_CORRECT_GUESS + SCORING.SPY_WIN_ROUND);
+    }
+
+    it('takes the guess points from SPY_GUESS_BY_DIFFICULTY and the teammates\' win from SCORING', () => {
+        for (const difficulty of ['easy', 'medium', 'hard']) {
+            arrange({
+                seats: [spy('S1', { isAlive: false }), spy('S2'), cit('C1'), cit('C2')],
+                target: 'S1',
+                difficulty
+            });
+            handleSpyGuessVerdict('correct');
+            assert.equal(byId('S1').score, SPY_GUESS_BY_DIFFICULTY[difficulty], difficulty);
+            assert.equal(byId('S2').score, SCORING.SPY_WIN_ROUND, difficulty);
+        }
     });
 
-    it('SUSPECTED BUG: if the guessing spy was the last one alive, the citizens win instead', () => {
-        // finalizeRound checks "no spy left" before it looks at forceSpyWin, so in a one-spy game
-        // (the default) a correct guess pays the spy 3 points but the round is still a citizen win:
-        // everyone on the citizen team scores, the spy team gets no win, and the result screen shows
-        // the citizens' ending, not the spy-guess one. The spy-guess ending is only reachable while
-        // another spy is still alive (previous tests). Update this test if that order is changed.
-        arrange({ seats: [spy('S1', { isAlive: false }), cit('C1'), cit('C2')], target: 'S1' });
+    it('one-spy game: the caught spy\'s correct guess is a spy win, paying only the guess points', () => {
+        // This used to be a citizen win (finalizeRound looked for "no spy left" before the forced
+        // spy win), with the spy paid for the guess anyway.
+        arrange({
+            seats: [spy('S1', { isAlive: false }), cit('C1'), cit('C2')],
+            target: 'S1',
+            difficulty: 'medium'
+        });
         handleSpyGuessVerdict('correct');
-        assert.equal(byId('S1').score, SCORING.SPY_CORRECT_GUESS);
+        assert.equal(byId('S1').score, 2);
+        assert.equal(points('S1'), 2);
         assert.equal(byId('S1').stats.spyGuesses, 1);
-        assert.equal(byId('S1').stats.sw, 0);
+        assert.equal(byId('S1').stats.sw, 1);
         for (const id of ['C1', 'C2']) {
-            assert.equal(byId(id).score, SCORING.CITIZEN_WIN_ROUND, id);
-            assert.equal(byId(id).stats.cw, 1, id);
+            assert.equal(byId(id).score, 0, id);
+            assert.equal(byId(id).stats.cw, 0, id);
         }
-        assertResult(CITIZENS_WON, 'spies_eliminated');
+        assertResult(SPY_WON, 'spy_guess');
     });
 
     it('still ends the round for the spies when the guessing spy cannot be found', () => {
@@ -447,6 +479,276 @@ describe('handleSpyGuessVerdict: the spy guessed correctly', () => {
         handleSpyGuessVerdict('correct');
         assert.equal(isTimerLoopActive(), false);
         assert.deepEqual(env.logs.vibrations[env.logs.vibrations.length - 1], [150, 100, 250]);
+    });
+});
+
+describe('the spy\'s last chance: every way a caught spy can end a round', () => {
+    // Plays one vote that catches `target` (S1 unless told otherwise), the reveal, and then the spy's
+    // word guess when the last-chance rule is on.
+    function catchSpy(round, verdict) {
+        arrange({ target: 'S1', ...round });
+        processElimination([]);
+        continueAfterReveal();
+        if (round.settings && round.settings.spyLastChance === false) {
+            assert.notEqual(gameState.phase, 'guess');
+            assert.ok(!harness.renders.includes('guess'), 'the guess screen was never drawn');
+            assert.equal(hostSecretState.guessVerdict, null);
+        } else {
+            assert.equal(gameState.phase, 'guess');
+            handleSpyGuessVerdict(verdict);
+        }
+    }
+
+    /** Every citizen-team player who is not a spectator scored the win; the spy team scored nothing. */
+    function assertCitizensPaid() {
+        for (const p of gameState.players) {
+            const winner = p.team === 'citizen' && !p.isSpectator;
+            const expected = winner ? SCORING.CITIZEN_WIN_ROUND : 0;
+            assert.equal(p.score, expected, p.id);
+            assert.equal(points(p.id), expected, p.id);
+            assert.equal(p.stats.cw, winner ? 1 : 0, p.id);
+            assert.equal(p.stats.sw, 0, p.id);
+            assert.equal(p.stats.spyGuesses, 0, p.id);
+        }
+        assert.equal(gameState.phase, 'result');
+    }
+
+    /**
+     * The spy team won through a correct guess: the guesser has only the guess points, every other
+     * non-spectator spy (alive or caught earlier) has the plain win, nobody else scored.
+     */
+    function assertSpiesPaid(guesserId, guessPoints) {
+        for (const p of gameState.players) {
+            const winner = p.team === 'spy' && !p.isSpectator;
+            const expected = !winner ? 0 : p.id === guesserId ? guessPoints : SCORING.SPY_WIN_ROUND;
+            assert.equal(p.score, expected, p.id);
+            assert.equal(points(p.id), expected, p.id);
+            assert.equal(p.stats.sw, winner ? 1 : 0, p.id);
+            assert.equal(p.stats.cw, 0, p.id);
+            assert.equal(p.stats.spyGuesses, p.id === guesserId ? 1 : 0, p.id);
+        }
+        assertResult(SPY_WON, 'spy_guess');
+        assert.equal(isTimerLoopActive(), false);
+    }
+
+    const ONE_SPY = () => [
+        spy('S1'),
+        cit('C1'),
+        cit('C2'),
+        cit('D', { isAlive: false }),
+        fool('F'),
+        cit('X', { isSpectator: true })
+    ];
+    // S0 was caught earlier and S2 is alive; SX watches. Four live citizens, so without the guess the
+    // round would carry on.
+    const MANY_SPIES = () => [
+        spy('S0', { isAlive: false }),
+        spy('S1'),
+        spy('S2'),
+        spy('SX', { isSpectator: true }),
+        cit('C1'),
+        cit('C2'),
+        cit('C3'),
+        cit('C4')
+    ];
+    const NOT_CORRECT = ['wrong', 'pass'];
+
+    describe('1: one spy, caught, rule on, correct guess', () => {
+        for (const [difficulty, expected] of [['easy', 1], ['medium', 2], ['hard', 3], [null, 2]]) {
+            it(`the spies win and the guesser gets only the guess points (word rated ${difficulty})`, () => {
+                catchSpy({ seats: ONE_SPY(), difficulty }, 'correct');
+                assertSpiesPaid('S1', expected);
+                assert.equal(byId('F').score, 0);
+            });
+        }
+    });
+
+    describe('2: one spy, caught, rule on, wrong guess or passing', () => {
+        for (const verdict of NOT_CORRECT) {
+            it(`${verdict}: the citizens win, the spy scores nothing`, () => {
+                catchSpy({ seats: ONE_SPY() }, verdict);
+                assertCitizensPaid();
+                assertResult(CITIZENS_WON, 'spies_eliminated');
+                assert.equal(byId('F').stats.foolEscaped, 1);
+            });
+        }
+    });
+
+    describe('2b: edge: nobody is left alive on either side', () => {
+        it('a wrong guess still gives the round to the citizens, as before', () => {
+            catchSpy({ seats: [spy('S1'), cit('C1', { isAlive: false }), cit('C2', { isAlive: false })] }, 'wrong');
+            assertCitizensPaid();
+            assertResult(CITIZENS_WON, 'spies_eliminated');
+        });
+    });
+
+    describe('3: one spy, caught, rule off', () => {
+        it('goes straight to the citizens\' win, with no guess screen', () => {
+            catchSpy({ seats: ONE_SPY(), settings: { spyLastChance: false } });
+            assertCitizensPaid();
+            assertResult(CITIZENS_WON, 'spies_eliminated');
+        });
+
+        it('also skips the guess in sudden-death games', () => {
+            catchSpy({ seats: ONE_SPY(), settings: { spyLastChance: false, sudden: true } });
+            assertCitizensPaid();
+            assertResult(CITIZENS_WON, 'spies_eliminated');
+        });
+
+        it('does not tell the reveal that a guess is coming', () => {
+            arrange({ seats: ONE_SPY(), target: 'S1' });
+            processElimination([]);
+            const noteWithGuess = env.el('elim-note').textContent;
+            continueAfterReveal();
+
+            harness.renders.length = 0;
+            arrange({ seats: ONE_SPY(), target: 'S1', settings: { spyLastChance: false } });
+            env.el('elim-note').textContent = '';
+            processElimination([]);
+            assert.ok(env.el('elim-note').textContent);
+            assert.notEqual(env.el('elim-note').textContent, noteWithGuess);
+        });
+    });
+
+    describe('4: several spies, one caught, rule on, correct guess', () => {
+        it('the spies win at that moment: the guesser has the guess points, every other spy the win', () => {
+            // One live spy against four citizens would normally go on; the guess ends it.
+            catchSpy({ seats: MANY_SPIES(), difficulty: 'hard' }, 'correct');
+            assertSpiesPaid('S1', 3);
+            assert.equal(byId('S0').stats.hiddenTieBreakerScore, 0, 'a spy caught earlier gets no evasion bonus');
+            assert.equal(byId('S2').stats.hiddenTieBreakerScore, HIDDEN_TIEBREAK.SPY_FULL_ROUND_SURVIVAL * 2);
+            assert.equal(gameState.timer.running, false);
+        });
+
+        it('the guess points follow the word\'s difficulty here too', () => {
+            for (const [difficulty, expected] of [['easy', 1], ['medium', 2], [null, 2]]) {
+                arrange({ seats: MANY_SPIES(), target: 'S1', difficulty });
+                processElimination([]);
+                continueAfterReveal();
+                handleSpyGuessVerdict('correct');
+                assert.equal(byId('S1').score, expected, String(difficulty));
+            }
+        });
+    });
+
+    describe('5: several spies, one caught, no correct guess, a spy still alive', () => {
+        const OUTNUMBERED = () => [spy('S1'), spy('S2'), cit('C1'), cit('C2'), cit('C3')];
+        const EQUAL = () => [spy('S1'), spy('S2'), cit('C1'), cit('C2', { isAlive: false })];
+
+        for (const verdict of NOT_CORRECT) {
+            it(`${verdict}: while the live spies are fewer than the live citizens the discussion goes on, unscored`, () => {
+                catchSpy({ seats: OUTNUMBERED(), pausedSec: 77 }, verdict);
+                assert.equal(gameState.phase, 'timer');
+                assert.equal(gameState.timer.running, true);
+                assert.equal(gameState.timer.pausedSec, 77);
+                assert.ok(gameState.players.every((p) => p.score === 0 && points(p.id) === 0));
+            });
+
+            it(`${verdict}: once the live spies equal the live citizens, every spy gets the win`, () => {
+                catchSpy({ seats: EQUAL(), difficulty: 'hard' }, verdict);
+                for (const id of ['S1', 'S2']) {
+                    assert.equal(byId(id).score, SCORING.SPY_WIN_ROUND, id);
+                    assert.equal(points(id), 2, id);
+                    assert.equal(byId(id).stats.sw, 1, id);
+                    assert.equal(byId(id).stats.spyGuesses, 0, id);
+                }
+                assert.equal(byId('S2').stats.hiddenTieBreakerScore, 8);
+                assert.ok(['C1', 'C2'].every((id) => byId(id).score === 0));
+                assertResult(SPY_WON, 'citizens_exhausted');
+            });
+        }
+
+        it('rule off: the discussion goes on, unscored, with no guess screen', () => {
+            catchSpy({ seats: OUTNUMBERED(), pausedSec: 77, settings: { spyLastChance: false } });
+            assert.equal(gameState.phase, 'timer');
+            assert.equal(gameState.timer.running, true);
+            assert.equal(gameState.timer.pausedSec, 77);
+            assert.ok(gameState.players.every((p) => p.score === 0 && points(p.id) === 0));
+        });
+
+        it('rule off: once the live spies equal the live citizens, every spy gets the win', () => {
+            catchSpy({ seats: EQUAL(), settings: { spyLastChance: false } });
+            for (const id of ['S1', 'S2']) assert.equal(byId(id).score, SCORING.SPY_WIN_ROUND, id);
+            assert.ok(['C1', 'C2'].every((id) => byId(id).score === 0));
+            assertResult(SPY_WON, 'citizens_exhausted');
+        });
+    });
+
+    describe('6: several spies, the last live spy caught, no correct guess', () => {
+        const LAST_SPY = () => [spy('S1', { isAlive: false }), spy('S2'), cit('C1'), cit('C2'), cit('C3')];
+
+        for (const verdict of NOT_CORRECT) {
+            it(`${verdict}: the citizens win`, () => {
+                catchSpy({ seats: LAST_SPY(), target: 'S2' }, verdict);
+                assertCitizensPaid();
+                assertResult(CITIZENS_WON, 'spies_eliminated');
+            });
+        }
+
+        it('rule off: the citizens win, with no guess screen', () => {
+            catchSpy({ seats: LAST_SPY(), target: 'S2', settings: { spyLastChance: false } });
+            assertCitizensPaid();
+            assertResult(CITIZENS_WON, 'spies_eliminated');
+        });
+    });
+
+    describe('7: several spies, the second spy caught too, correct guess', () => {
+        it('the spies win: the guesser has the guess points, the spy caught before has the plain win', () => {
+            catchSpy(
+                {
+                    seats: [spy('S1', { isAlive: false }), spy('S2'), cit('C1'), cit('C2'), cit('C3')],
+                    target: 'S2',
+                    difficulty: 'easy'
+                },
+                'correct'
+            );
+            assertSpiesPaid('S2', 1);
+            assert.equal(byId('S1').score, SCORING.SPY_WIN_ROUND);
+        });
+    });
+
+    describe('the rule itself', () => {
+        it('is on in a fresh game', () => {
+            assert.equal(gameState.settings.spyLastChance, true);
+        });
+
+        it('treats a missing setting (a game saved before the option existed) as on', () => {
+            arrange({ seats: ONE_SPY(), target: 'S1' });
+            delete gameState.settings.spyLastChance;
+            processElimination([]);
+            continueAfterReveal();
+            assert.equal(gameState.phase, 'guess');
+            handleSpyGuessVerdict('correct');
+            assertResult(SPY_WON, 'spy_guess');
+        });
+
+        it('does not touch sudden death: an eliminated innocent still ends the round for the spies, rule on or off', () => {
+            for (const spyLastChance of [true, false]) {
+                arrange({
+                    seats: [spy('S1'), cit('C1'), cit('C2'), cit('C3')],
+                    target: 'C3',
+                    settings: { sudden: true, spyLastChance }
+                });
+                processElimination([]);
+                continueAfterReveal();
+                assertResult(SPY_WON, 'sudden_death');
+                // The wrong elimination pays the live spy the survival point, then the win comes on top.
+                assert.equal(byId('S1').score, SCORING.SPY_SURVIVE_WRONG_VOTE + SCORING.SPY_WIN_ROUND);
+            }
+        });
+
+        it('does not touch the elimination of an innocent without sudden death', () => {
+            for (const spyLastChance of [true, false]) {
+                arrange({
+                    seats: [spy('S1'), spy('S2'), cit('C1'), cit('C2'), cit('C3'), cit('C4')],
+                    target: 'C4',
+                    settings: { spyLastChance }
+                });
+                processElimination([]);
+                continueAfterReveal();
+                assert.equal(gameState.phase, 'timer');
+            }
+        });
     });
 });
 

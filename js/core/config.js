@@ -23,17 +23,27 @@ export function getMaxSpiesAllowed(playersCount) {
 export const SCORING = {
     SPY_SURVIVE_WRONG_VOTE: 1,
     SPY_WIN_ROUND: 2,
-    SPY_CORRECT_GUESS: 3,
     CITIZEN_WIN_ROUND: 2,
     WAGER_PROFIT_MULTIPLIER: 1
 };
+
+// Points for the caught spy who names the secret word correctly. The guess is worth more on
+// harder words; words with no difficulty rating (custom words) pay the medium amount.
+export const SPY_GUESS_BY_DIFFICULTY = { easy: 1, medium: 2, hard: 3 };
+
+export function getSpyGuessPoints(diffKey) {
+    // hasOwnProperty, not a plain lookup: keys like "constructor" must count as unknown.
+    return Object.prototype.hasOwnProperty.call(SPY_GUESS_BY_DIFFICULTY, diffKey)
+        ? SPY_GUESS_BY_DIFFICULTY[diffKey]
+        : SPY_GUESS_BY_DIFFICULTY.medium;
+}
 
 // Silent tie-breaking micro-score. Never shown in the UI — used only to
 // resolve players who finish with an identical visible `score`, so a
 // shared rank is a rare, genuine last resort rather than the default.
 export const HIDDEN_TIEBREAK = {
     DIFFICULTY_MULTIPLIER: { easy: 1.0, medium: 1.5, hard: 2.0 },
-    DEFAULT_MULTIPLIER: 1.0, // "all"-pool rounds and user-added custom words (no rating)
+    DEFAULT_MULTIPLIER: 1.0, // words with no difficulty rating, e.g. user-added custom words
     CITIZEN_CORRECT_VOTE: 2,      // per citizen whose vote correctly caught the eliminated spy
     SPY_SURVIVAL_PER_ATTEMPT: 1,  // per prior wrong elimination the spy survived through this round
     SPY_FULL_ROUND_SURVIVAL: 4    // spy never caught for the entire round (maximum evasion)

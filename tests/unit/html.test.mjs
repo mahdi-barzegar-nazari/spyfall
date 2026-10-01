@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
+import { INFO_TEXTS } from '../../js/data/infoTexts.js';
 
 const root = new URL('../../', import.meta.url);
 const html = readFileSync(new URL('index.html', root), 'utf8');
@@ -43,6 +44,45 @@ describe('index.html hygiene', () => {
     it('external links opened in a new tab use rel="noopener"', () => {
         const bad = [...html.matchAll(/<a[^>]*target="_blank"[^>]*>/g)].map((m) => m[0]).filter((t) => !/noopener/.test(t));
         assert.deepEqual(bad, []);
+    });
+});
+
+describe('setup toggles and help texts', () => {
+    const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+    /** The <div class="toggle-item"> that holds the checkbox with this id. */
+    const toggleItem = (checkboxId) => {
+        const items = html.split('<div class="toggle-item">').slice(1);
+        return items.map((chunk) => chunk.split('</label>')[0]).find((chunk) => chunk.includes(`id="${checkboxId}"`));
+    };
+
+    it('every data-info button points at a text in INFO_TEXTS', () => {
+        const keys = [...html.matchAll(/data-info="([^"]+)"/g)].map((m) => m[1]);
+        assert.ok(keys.length > 0);
+        assert.deepEqual(keys.filter((key) => !(key in INFO_TEXTS)), []);
+    });
+    it('every INFO_TEXTS entry has a title and a text', () => {
+        for (const [key, entry] of Object.entries(INFO_TEXTS)) {
+            assert.ok(entry.title && entry.title.trim(), `${key} has no title`);
+            assert.ok(entry.text && entry.text.trim(), `${key} has no text`);
+        }
+    });
+    it('has the spy\'s last-chance toggle, on by default, labelled and explained', () => {
+        const item = toggleItem('toggle-last-chance');
+        assert.ok(item, '#toggle-last-chance is missing');
+        assert.match(item, /<input type="checkbox" id="toggle-last-chance" checked /);
+        const labelId = item.match(/id="toggle-last-chance"[^>]*aria-labelledby="([^"]+)"/)[1];
+        assert.ok(ids.has(labelId), `aria-labelledby points at a missing id: ${labelId}`);
+        assert.ok(item.includes(`id="${labelId}"`), 'the label is in the same toggle row');
+        const infoKey = item.match(/data-info="([^"]+)"/)[1];
+        assert.equal(infoKey, 'spyLastChance');
+        assert.ok(INFO_TEXTS[infoKey].title && INFO_TEXTS[infoKey].text);
+    });
+    it('the guess screen buttons do not promise any points (the amount depends on the word)', () => {
+        for (const id of ['btn-guess-correct', 'btn-guess-wrong', 'btn-guess-pass']) {
+            const label = html.match(new RegExp(`id="${id}"[^>]*>([^<]*)<`))[1];
+            assert.ok(label.trim().length > 0, id);
+            assert.doesNotMatch(label, /[0-9۰-۹٠-٩]/, `${id}: ${label}`);
+        }
     });
 });
 

@@ -2,7 +2,7 @@
  * Resolving a vote: elimination, scoring, spy guess, round result, detective inquiry.
  */
 
-import { HIDDEN_TIEBREAK, SCORING, getDifficultyMultiplier } from '../core/config.js';
+import { HIDDEN_TIEBREAK, SCORING, getDifficultyMultiplier, getSpyGuessPoints } from '../core/config.js';
 import { commitState, setPhase } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { resumeTimer, stopTimerLoop } from './timer.js';
@@ -88,9 +88,18 @@ export function processElimination(wagers) {
 
     commitState();
 
-    showEliminationReveal(sus, wasSpy, survivorNote, () => {
+    // Saves from before this option existed have no `spyLastChance`: undefined counts as on.
+    const lastChanceOn = gameState.settings.spyLastChance !== false;
+    // The reveal says "now the spy guesses the word" by default; that is false when there is no guess.
+    const revealNote = (wasSpy && !lastChanceOn) ? 'در این بازی جاسوس شانس آخر ندارد.' : survivorNote;
+
+    showEliminationReveal(sus, wasSpy, revealNote, () => {
         if (wasSpy) {
-            setPhase('guess');
+            if (lastChanceOn) {
+                setPhase('guess');
+            } else {
+                finalizeRound(false);
+            }
         } else if (gameState.settings.sudden) {
             finalizeRound(true, false, true);
         } else {
@@ -105,9 +114,10 @@ export function handleSpyGuessVerdict(verdict) {
 
     if (verdict === 'correct') {
         if (sus) {
-            sus.score += SCORING.SPY_CORRECT_GUESS;
+            const guessPoints = getSpyGuessPoints(gameState.round.wordDifficulty);
+            sus.score += guessPoints;
             sus.stats.spyGuesses = (sus.stats.spyGuesses || 0) + 1;
-            gameState.round.pointsMap[sus.id] = (gameState.round.pointsMap[sus.id] || 0) + SCORING.SPY_CORRECT_GUESS;
+            gameState.round.pointsMap[sus.id] = (gameState.round.pointsMap[sus.id] || 0) + guessPoints;
         }
         finalizeRound(true, true, false);
     } else {
@@ -119,7 +129,27 @@ function finalizeRound(forceSpyWin=false, spyGuessed=false, sudden=false) {
     let aS = gameState.players.filter(p => p.isAlive && !p.isSpectator && p.team === 'spy').length;
     let aC = gameState.players.filter(p => p.isAlive && !p.isSpectator && p.team === 'citizen').length;
 
-    if (aS === 0) {
+    // A forced spy win (correct last-chance guess, sudden death) is decided before "no spy left"
+    // is checked: the guessing spy has just been voted out, so in a one-spy game aS is already 0.
+    if (forceSpyWin || (aS > 0 && aS >= aC)) {
+        const diffMultiplier = getDifficultyMultiplier(gameState.round.wordDifficulty);
+        // The spy who guessed the word was already paid the guess points; they don't get the
+        // round-win points on top. They still count as a winner (stats.sw).
+        const guesser = spyGuessed ? gameState.players.find(p => p.id === gameState.vote.targetId) : null;
+        gameState.players.filter(p => p.team === 'spy' && !p.isSpectator).forEach(s => {
+            if (!(guesser && s.id === guesser.id)) {
+                s.score += SCORING.SPY_WIN_ROUND;
+                gameState.round.pointsMap[s.id] += SCORING.SPY_WIN_ROUND;
+            }
+            s.stats.sw++;
+            if (s.isAlive) {
+                // Never caught for the entire round — maximum evasion bonus.
+                s.stats.hiddenTieBreakerScore = (s.stats.hiddenTieBreakerScore || 0) +
+                    (HIDDEN_TIEBREAK.SPY_FULL_ROUND_SURVIVAL * diffMultiplier);
+            }
+        });
+        buildHostRoundResult('spy', spyGuessed, sudden);
+    } else if (aS === 0) {
         gameState.players.filter(p => p.team === 'citizen' && !p.isSpectator).forEach(c => {
             c.score += SCORING.CITIZEN_WIN_ROUND;
             gameState.round.pointsMap[c.id] += SCORING.CITIZEN_WIN_ROUND;
@@ -129,19 +159,6 @@ function finalizeRound(forceSpyWin=false, spyGuessed=false, sudden=false) {
             }
         });
         buildHostRoundResult('citizen', false, false);
-    } else if (forceSpyWin || aS >= aC) {
-        const diffMultiplier = getDifficultyMultiplier(gameState.round.wordDifficulty);
-        gameState.players.filter(p => p.team === 'spy' && !p.isSpectator).forEach(s => {
-            s.score += SCORING.SPY_WIN_ROUND;
-            gameState.round.pointsMap[s.id] += SCORING.SPY_WIN_ROUND;
-            s.stats.sw++;
-            if (s.isAlive) {
-                // Never caught for the entire round — maximum evasion bonus.
-                s.stats.hiddenTieBreakerScore = (s.stats.hiddenTieBreakerScore || 0) +
-                    (HIDDEN_TIEBREAK.SPY_FULL_ROUND_SURVIVAL * diffMultiplier);
-            }
-        });
-        buildHostRoundResult('spy', spyGuessed, sudden);
     } else {
         resumeTimer();
     }

@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { RULES, THEME_COLORS, VALID_PHASES, getDifficultyMultiplier, getMaxSpiesAllowed } from '../../js/core/config.js';
+import {
+    RULES,
+    SCORING,
+    SPY_GUESS_BY_DIFFICULTY,
+    THEME_COLORS,
+    VALID_PHASES,
+    getDifficultyMultiplier,
+    getMaxSpiesAllowed,
+    getSpyGuessPoints
+} from '../../js/core/config.js';
 
 const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
 
@@ -30,6 +39,32 @@ describe('getDifficultyMultiplier', () => {
     it('falls back to the default for "all" and unknown keys', () => {
         assert.equal(getDifficultyMultiplier('all'), 1);
         assert.equal(getDifficultyMultiplier('nope'), 1);
+    });
+});
+
+describe('getSpyGuessPoints', () => {
+    it('pays 1, 2 and 3 for an easy, medium and hard word', () => {
+        assert.equal(getSpyGuessPoints('easy'), 1);
+        assert.equal(getSpyGuessPoints('medium'), 2);
+        assert.equal(getSpyGuessPoints('hard'), 3);
+    });
+    it('pays the medium amount (2) for null, undefined and any key it does not know', () => {
+        for (const key of [null, undefined, 'all', 'nope', '', 0, 'EASY', ' easy']) {
+            assert.equal(getSpyGuessPoints(key), 2, JSON.stringify(key));
+        }
+    });
+    it('does not mistake inherited object keys for a difficulty', () => {
+        for (const key of ['constructor', 'toString', 'hasOwnProperty', '__proto__']) {
+            assert.equal(getSpyGuessPoints(key), 2, key);
+        }
+    });
+    it('rewards harder words, and covers exactly the difficulties the word bank uses', () => {
+        assert.ok(getSpyGuessPoints('hard') > getSpyGuessPoints('medium'));
+        assert.ok(getSpyGuessPoints('medium') > getSpyGuessPoints('easy'));
+        assert.deepEqual(Object.keys(SPY_GUESS_BY_DIFFICULTY).sort(), ['easy', 'hard', 'medium']);
+    });
+    it('replaces the old flat SPY_CORRECT_GUESS constant', () => {
+        assert.equal('SPY_CORRECT_GUESS' in SCORING, false);
     });
 });
 

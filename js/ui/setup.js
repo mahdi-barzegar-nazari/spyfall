@@ -83,6 +83,7 @@ export function validateAndSaveSettings() {
         roleRevealConfirm: document.getElementById('toggle-role-reveal-confirm').checked,
         voteConfirm: document.getElementById('toggle-vote-confirm').checked,
         quickVoting: document.getElementById('toggle-quick-voting').checked,
+        spyLastChance: document.getElementById('toggle-last-chance').checked,
         detectiveUsed: false
     };
 

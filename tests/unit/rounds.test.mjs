@@ -259,16 +259,37 @@ describe('startNextRound: spies', () => {
         }
     });
 
-    it('QUIRK: the first non-spy seat is spiesCount, not the capped spy count', () => {
-        // With spiesCount >= players the loop caps the spies at players - 1, but the fool is still
-        // looked for at index spiesCount, which is past the end, so the last citizen stays plain.
+    it('puts the fool right after the spies that were really assigned when spiesCount is capped', () => {
+        // With spiesCount >= players the spies are capped at players - 1. The fool takes the seat after
+        // the last spy (the one remaining player), not a seat counted from the uncapped spiesCount.
         // The setup screen never allows this (spies < players / 2); it is only reachable from code.
-        env.seedRandom(15);
-        arrange({ players: 3, settings: { spiesCount: 3, fool: true } });
+        for (const [players, spiesCount] of [[3, 3], [3, 5], [4, 9]]) {
+            env.seedRandom(15);
+            arrange({ players, settings: { spiesCount, fool: true } });
+            startNextRound();
+            assert.equal(countRole('spy'), players - 1, `${players} players, spiesCount ${spiesCount}`);
+            assert.equal(countRole('fool'), 1, `${players} players, spiesCount ${spiesCount}`);
+            assert.equal(countRole('citizen'), 0, `${players} players, spiesCount ${spiesCount}`);
+            assert.equal(gameState.players.find((p) => p.role === 'fool').stats.timesFool, 1);
+        }
+    });
+
+    it('with spiesCount capped there is no seat left for the detective after the fool', () => {
+        env.seedRandom(16);
+        arrange({ players: 3, settings: { spiesCount: 3, fool: true, detective: true } });
+        startNextRound();
+        assert.equal(countRole('spy'), 2);
+        assert.equal(countRole('fool'), 1);
+        assert.equal(countRole('detective'), 0);
+    });
+
+    it('with spiesCount capped and only the detective on, the detective takes the last seat', () => {
+        env.seedRandom(17);
+        arrange({ players: 3, settings: { spiesCount: 3, detective: true } });
         startNextRound();
         assert.equal(countRole('spy'), 2);
         assert.equal(countRole('fool'), 0);
-        assert.equal(countRole('citizen'), 1);
+        assert.equal(countRole('detective'), 1);
     });
 });
 
