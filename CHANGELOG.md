@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Spy's last chance** setup option (`spyLastChance`, on by default, next to sudden death). When on, a spy caught by the vote still gets to say the secret word aloud, as before. When off, the classic rule applies: the caught spy has no final guess and the round resolves at once (the guess screen is skipped, and the elimination reveal no longer announces a guess). Games saved before the option existed have no value and behave as on.
+
 - Word bank grew from 543 to 741 built-in words (+198): every category now has at least 16 `hard` and 16 `medium` entries, with the small categories (vehicles, sports, events) growing the most.
 
 - Unit tests for the game rules that had none: `game/rounds.js`, `game/voting.js`, `game/resolution.js` and `game/timer.js` (156 tests in `tests/unit/{rounds,voting,resolution,timer}.test.mjs`). They pin today's behaviour (roles, hints, word selection, ballots and ties, scoring, wagers, round results, the countdown) using a small fake browser in `tests/unit/helpers/`, with seeded randomness and a manual clock, so nothing waits and no dependency was added.
@@ -12,10 +14,19 @@
 
 ### Changed
 
+- **A correct word guess is now worth 1, 2 or 3 points on an easy, medium or hard word** (2 for custom words and any word with no rating), instead of a flat 3. `SCORING.SPY_CORRECT_GUESS` is replaced by `SPY_GUESS_BY_DIFFICULTY` and `getSpyGuessPoints()` in `core/config.js`.
+- **The guessing spy no longer also collects the round-win points.** A correct guess ends the round for the spy team: the guesser gets only the guess points, every other non-spectator spy (alive or already caught) still gets the round win, and the guesser still counts as a winner in the win statistics.
+- The three buttons on the guess screen no longer state point amounts (they depended on a flat rule that no longer exists); a short line under them explains the outcome. The scoring list in the wager help text was updated to match.
 - **Broke the import cycles around `dispatch`.** `core/dispatch.js` is now a small port that forwards to a handler; the big action `switch` moved to `app/actions.js`, and `setPhase` / `commitState` moved to `core/phase.js`. `app/wire.js` connects the handler, the screen renderer and the timer's phase-change hook once at start-up (`main.js` calls `wireApp()` first). Game behaviour is unchanged, and `dispatch` and `showInfoModal` are still exported from `core/dispatch.js`. `setPhase` and `commitState` are no longer exported from there; import them from `core/phase.js`.
 - Self-host the Vazirmatn font instead of loading it from Google Fonts.
 - Split `ui/scorecard.js` into pure layout calculations and canvas rendering.
 - CI now uses `npm ci` instead of `npm install`.
+
+### Fixed
+
+- **Correct guess in a one-spy game gave the round to the citizens.** `finalizeRound` checked "no spy left alive" before the forced spy win, and the spy who guessed had just been voted out, so with a single spy the guess paid points but the citizens still won. A correct guess now always gives the spies the round.
+- With `spiesCount` at or above the number of players (not reachable from the setup screen), the fool and detective seats were counted from the uncapped spy count, so they went missing. They now follow the spies that were actually assigned.
+- The comment on `HIDDEN_TIEBREAK.DEFAULT_MULTIPLIER` said "all"-pool rounds have no multiplier; the default only applies to words with no difficulty rating, such as custom words.
 
 ## 2.0.0
 

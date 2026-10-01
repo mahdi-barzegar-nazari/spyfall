@@ -28,7 +28,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 ## Features
 
 - **Pass-and-play privacy.** A hand-off gate names who should hold the phone before any secret is shown, and a floating **Cover Mode** (حالت پوشش) hides the screen instantly if someone peeks.
-- **Roles and modifiers.** Spies (1 to 5), Detective, Fool, known-spy networks, secret side quests, one-word rounds, a question director, sudden death, and player wagers.
+- **Roles and modifiers.** Spies (1 to 5), Detective, Fool, known-spy networks, secret side quests, one-word rounds, a question director, sudden death, a last-chance word guess for a caught spy (optional, on by default; a correct guess pays 1 to 3 points by word difficulty), and player wagers.
 - **Fair tie-breaking.** Tied votes are settled by a spinning SVG wheel backed by a crypto-random pick, plus a hidden scoring tie-breaker so shared ranks are rare.
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
@@ -59,7 +59,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 258 unit tests (built-in node:test, no dependencies)
+npm test               # 304 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser smoke test of the production build, including offline mode
 npm run lint
