@@ -21,12 +21,15 @@
 - Self-host the Vazirmatn font instead of loading it from Google Fonts.
 - Split `ui/scorecard.js` into pure layout calculations and canvas rendering.
 - CI now uses `npm ci` instead of `npm install`.
+- The detective's answer now reads «name» جاسوس است. or «name» شهروند است. (it used to be «name» قطعاً جاسوس است! or «name» شهروند بی‌گناه است.) and is written as plain text. The role card shows the saved sentence exactly as saved, so a game saved before this change still shows its old sentence.
 
 ### Fixed
 
 - **Correct guess in a one-spy game gave the round to the citizens.** `finalizeRound` checked "no spy left alive" before the forced spy win, and the spy who guessed had just been voted out, so with a single spy the guess paid points but the citizens still won. A correct guess now always gives the spies the round.
 - With `spiesCount` at or above the number of players (not reachable from the setup screen), the fool and detective seats were counted from the uncapped spy count, so they went missing. They now follow the spies that were actually assigned.
 - The comment on `HIDDEN_TIEBREAK.DEFAULT_MULTIPLIER` said "all"-pool rounds have no multiplier; the default only applies to words with no difficulty rating, such as custom words.
+- **Old votes were counted in the next ballot after a time-out.** `votesCast` was only emptied at the start of a round and on the emergency bell, so when the discussion timer ran out (or a saved game whose countdown had already ended was restored) the new ballot still counted the previous ballot's votes, including those of a player who had since been eliminated. That could turn a tie into a win without the wheel and credit `spiesCaught` / `wrongVotes` to a voter no longer in the game. Both time-out paths now start the ballot with no votes; restoring a game saved in the middle of a vote still keeps its partial votes.
+- **The detective's answer looked different for a spy and for a citizen, and the role card told them apart by searching the saved text for «جاسوس».** Both answers now have one shape, with no emoji and no colour class, and nothing is decided from the text any more, so translating the interface cannot break it. The name is written with `textContent`, so a name that contains HTML shows as plain text.
 
 ## 2.0.0
 
