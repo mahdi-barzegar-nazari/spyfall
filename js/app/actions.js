@@ -314,6 +314,9 @@ function restorePhaseBindings() {
             gameState.timer.pausedSec = 0;
             gameState.timer.running = false;
             gameState.timer.reason = 'timeout';
+            // Same as the time-out in game/timer.js: this ballot starts with no old votes. Only this
+            // branch clears them; a save made in the middle of a vote keeps its partial votes.
+            hostSecretState.votesCast = {};
             setPhase('vote');
         } else {
             // Resume strictly from the discrete remaining-seconds value

@@ -44,6 +44,10 @@ const RESULT_TEXT = {
     citizens_exhausted: 'ناکافی',
     spies_eliminated: 'شناسایی شدند'
 };
+// UI TEXT (detective): the detective's one-sentence answer is «name» + role word + a closing word and full stop.
+// Update these when the interface is translated.
+const ROLE_WORD = { spy: 'جاسوس', citizen: 'شهروند' };
+const detectiveAnswer = (name, role) => `«${name}» ${ROLE_WORD[role]} است.`;
 const SPY_WON = { emoji: '😈', color: 'var(--brand-rose)' };
 const CITIZENS_WON = { emoji: '🎉', color: 'var(--brand-emerald)' };
 
@@ -869,57 +873,81 @@ describe('handleDetectiveQueryInternal', () => {
         cit('D', { name: 'Dead', isAlive: false }),
         spy('DS', { name: 'DeadSpy', isAlive: false })
     ];
+    // The result box as index.html has it: two utility classes and no colour.
+    const BOX_CLASSES = 'mt-6 u-bold';
     const arrangeInquiry = (extra = {}) => {
         arrange({ seats: SEATS(), target: null, ...extra });
-        env.el('detective-result-box');
+        const box = env.el('detective-result-box');
+        box.textContent = '';
+        box.innerHTML = '';
+        box.className = BOX_CLASSES;
         env.el('btn-detective-inquiry');
         env.el('detective-target-select');
+        return box;
     };
 
     it('ignores a target who is eliminated or does not exist', () => {
-        arrangeInquiry();
+        const box = arrangeInquiry();
         handleDetectiveQueryInternal('D');
         handleDetectiveQueryInternal('DS');
         handleDetectiveQueryInternal('nobody');
         assert.equal(hostSecretState.detectiveUsed, false);
         assert.equal(gameState.settings.detectiveUsed, false);
         assert.equal(hostSecretState.detectiveInquiryResult, null);
-        assert.equal(env.el('detective-result-box').innerHTML, '');
+        assert.equal(box.textContent, '');
+        assert.equal(box.innerHTML, '');
         assert.equal(env.el('btn-detective-inquiry').disabled, false);
         assert.deepEqual(harness.renders, []);
     });
 
     it('tells the detective a spy is a spy, uses up the inquiry and locks the controls', () => {
-        arrangeInquiry();
+        const box = arrangeInquiry();
         handleDetectiveQueryInternal('S1');
         assert.equal(hostSecretState.detectiveUsed, true);
         assert.equal(gameState.settings.detectiveUsed, true);
-        assert.ok(hostSecretState.detectiveInquiryResult.includes('Sara'));
-        const box = env.el('detective-result-box').innerHTML;
-        assert.ok(box.includes('color-rose') && box.includes('Sara'));
-        assert.ok(!box.includes('color-emerald'));
+        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Sara', 'spy'));
+        assert.equal(box.textContent, detectiveAnswer('Sara', 'spy'));
         assert.equal(env.el('btn-detective-inquiry').disabled, true);
         assert.equal(env.el('detective-target-select').disabled, true);
         assert.deepEqual(harness.renders, ['vote']);
     });
 
-    it('tells the detective a citizen or a fool is innocent, in a different style and wording', () => {
-        arrangeInquiry();
+    it('tells the detective a citizen or a fool is a citizen (a fool is not told apart)', () => {
+        const box = arrangeInquiry();
         handleDetectiveQueryInternal('C1');
-        const citizenText = hostSecretState.detectiveInquiryResult;
-        const citizenBox = env.el('detective-result-box').innerHTML;
-        assert.ok(citizenBox.includes('color-emerald') && citizenBox.includes('Cyrus'));
-        assert.ok(!citizenBox.includes('color-rose'));
-
-        arrangeInquiry();
-        handleDetectiveQueryInternal('S1');
-        const spyText = hostSecretState.detectiveInquiryResult;
-        assert.notEqual(spyText.replace('Sara', '#'), citizenText.replace('Cyrus', '#'));
+        assert.equal(box.textContent, detectiveAnswer('Cyrus', 'citizen'));
+        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Cyrus', 'citizen'));
 
         arrangeInquiry();
         handleDetectiveQueryInternal('F');
-        assert.ok(env.el('detective-result-box').innerHTML.includes('color-emerald'));
-        assert.equal(hostSecretState.detectiveInquiryResult.replace('Farid', '#'), citizenText.replace('Cyrus', '#'));
+        assert.equal(box.textContent, detectiveAnswer('Farid', 'citizen'));
+        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Farid', 'citizen'));
+    });
+
+    it('shows a spy, a citizen and a fool in exactly the same way: only the role word differs', () => {
+        // Someone looking at the screen from the side must not be able to tell the answers apart.
+        const shapes = [];
+        for (const [role, id, name] of [['spy', 'S1', 'Sara'], ['citizen', 'C1', 'Cyrus'], ['citizen', 'F', 'Farid']]) {
+            const box = arrangeInquiry();
+            handleDetectiveQueryInternal(id);
+            const stored = hostSecretState.detectiveInquiryResult;
+            assert.equal(box.textContent, stored, `${name}: the screen shows exactly what is stored`);
+            assert.equal(box.innerHTML, '', `${name}: written as text, never as markup`);
+            assert.equal(box.className, BOX_CLASSES, `${name}: no colour or other class is added or removed`);
+            assert.deepEqual(box.style, {}, `${name}: no inline colour`);
+            assert.ok(!/\p{Extended_Pictographic}/u.test(box.textContent), `${name}: no emoji`);
+            shapes.push(stored.replace(name, '{name}').replace(ROLE_WORD[role], '{role}'));
+        }
+        assert.equal(new Set(shapes).size, 1, `same structure for all three: ${shapes.join(' | ')}`);
+    });
+
+    it('plays no sound and no vibration for either answer', () => {
+        for (const id of ['S1', 'C1']) {
+            arrangeInquiry();
+            handleDetectiveQueryInternal(id);
+        }
+        assert.deepEqual(env.logs.oscillators, []);
+        assert.deepEqual(env.logs.vibrations, []);
     });
 
     it('works when the inquiry button and the target select are not on the page', () => {
@@ -929,16 +957,17 @@ describe('handleDetectiveQueryInternal', () => {
         assert.equal(hostSecretState.detectiveUsed, true);
     });
 
-    it('escapes the name in the on-screen result, for a spy and for an innocent; the stored text keeps the raw name', () => {
-        // The stored text is escaped later, when ui/render.js redraws the role card.
+    it('shows a name that contains HTML as plain text, for a spy and for an innocent', () => {
         const evil = '<img src=x onerror=alert(1)>';
-        for (const target of [spy('T', { name: evil }), cit('T', { name: evil })]) {
+        for (const [role, target] of [['spy', spy('T', { name: evil })], ['citizen', cit('T', { name: evil })]]) {
             arrange({ seats: [makePlayer('Q', { role: 'detective' }), target], target: null });
-            env.el('detective-result-box');
+            const box = env.el('detective-result-box');
+            box.textContent = '';
+            box.innerHTML = '';
             handleDetectiveQueryInternal('T');
-            const box = env.el('detective-result-box').innerHTML;
-            assert.ok(!box.includes('<img') && box.includes('&lt;img src=x onerror=alert(1)&gt;'), target.role);
-            assert.ok(hostSecretState.detectiveInquiryResult.includes(evil), target.role);
+            assert.equal(box.textContent, detectiveAnswer(evil, role), role);
+            assert.equal(box.innerHTML, '', `${role}: never interpreted as HTML`);
+            assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer(evil, role), role);
         }
     });
 });

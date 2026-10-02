@@ -10,12 +10,14 @@ import { makePlayer, useGameHarness } from './helpers/harness.mjs';
 
 const env = installFakeEnv();
 const { generateWagerOptionsHtml, getCurrentVoter, handleLocalVote } = await import('../../js/game/voting.js');
+const { runTick, stopTimerLoop } = await import('../../js/game/timer.js');
 const harness = useGameHarness(env, {
     setup: () => {
         env.el('toast-container');
         for (const id of ['tie-announce-names', 'tie-announce-stage', 'tie-wheel-stage']) env.el(id);
         for (const id of ['tie-wheel-result', 'btn-tie-continue', 'wheel-segments', 'wheel-needle']) env.el(id);
-    }
+    },
+    teardown: () => stopTimerLoop()
 });
 after(() => env.uninstall());
 
@@ -230,17 +232,37 @@ describe('handleLocalVote: ties', () => {
         assert.ok(announced.includes('&lt;img') && announced.includes('&lt;b&gt;'));
     });
 
-    it('KNOWN BUG: a leftover vote from an eliminated player still counts in a later ballot', () => {
-        // After an earlier ballot in the same round, the timer-out path (game/timer.js) opens a new
-        // ballot without emptying votesCast. Here X was eliminated earlier and voted for A. The four
-        // alive players split 1-1-1-1, but X's stale vote makes A win outright and skips the wheel.
-        // Fixing it would turn this into a four-way tie: update this test when that is fixed.
+    it('with no old votes, a 1-1-1-1 split among four alive players is a four-way tie and opens the wheel', () => {
+        // X was eliminated in an earlier ballot of the round and is not counted: only the four alive players' votes are.
+        env.stubCrypto(() => 3);
+        seat(['A', 'B', 'C', 'D', 'X'], { X: { isAlive: false } });
+        castVotes([['A', 'B'], ['B', 'A'], ['C', 'D'], ['D', 'C']]);
+        const announced = env.el('tie-announce-names').innerHTML;
+        assert.ok(['Ali', 'Bita', 'Cyrus', 'Dara'].every((name) => announced.includes(name)));
+        assert.deepEqual(harness.actions, [{ type: 'OPEN_MODAL', payload: 'tie-breaker-modal' }]);
+        assert.equal(gameState.vote.pendingId, null);
+        assert.deepEqual(Object.keys(hostSecretState.votesCast).sort(), ['A', 'B', 'C', 'D']);
+        playTieWheel();
+        assert.equal(gameState.vote.pendingId, 'C', 'candidates are B, A, D, C and index 3 is C');
+        assert.equal(confirmed().length, 1);
+    });
+
+    it('a vote left by an eliminated player before a time-out does not count in the next ballot', () => {
+        // The same 1-1-1-1 split as above, but X's vote for A is still in votesCast from the earlier ballot
+        // when the discussion timer runs out. The time-out must start the new ballot with no votes.
+        env.stubCrypto(() => 0);
         seat(['A', 'B', 'C', 'D', 'X'], { X: { isAlive: false } });
         hostSecretState.votesCast = { X: 'A' };
+        gameState.phase = 'timer';
+        gameState.timer = { running: true, pausedSec: 1, reason: 'emergency', wasRunningBeforePanic: false };
+        runTick();
+        env.clock.tick(1000);
+        assert.equal(gameState.phase, 'vote');
+        assert.deepEqual(hostSecretState.votesCast, {});
         castVotes([['A', 'B'], ['B', 'A'], ['C', 'D'], ['D', 'C']]);
-        assert.equal(gameState.vote.pendingId, 'A');
-        assert.equal(confirmed().length, 1);
-        assert.ok(!harness.actions.some((a) => a.type === 'OPEN_MODAL'));
+        assert.deepEqual(harness.actions, [{ type: 'OPEN_MODAL', payload: 'tie-breaker-modal' }]);
+        assert.equal(gameState.vote.pendingId, null);
+        assert.deepEqual(confirmed(), []);
     });
 });
 

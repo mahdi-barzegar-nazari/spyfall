@@ -3,7 +3,7 @@
  */
 
 import { setPhase } from '../core/phase.js';
-import { gameState, session } from '../core/state.js';
+import { gameState, hostSecretState, session } from '../core/state.js';
 import { calcDirectorTurn } from './rounds.js';
 import { keepAudioAlive, playSiren, playTone, stopAudioKeepAlive, vibrate } from '../platform/audio.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
@@ -77,6 +77,8 @@ export function runTick() {
             playTone(900, 0.7);
             gameState.localVoteIndex = 0;
             session.voteHandoffDoneIndex = -1;
+            // Votes left over from an earlier ballot in this round must not count in this one.
+            hostSecretState.votesCast = {};
             setPhase('vote');
         } else {
             renderTimer(diff);

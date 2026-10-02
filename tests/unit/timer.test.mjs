@@ -5,8 +5,8 @@
  */
 import assert from 'node:assert/strict';
 import { after, describe, it } from 'node:test';
-import { setBeforePhaseChange, setPhase } from '../../js/core/phase.js';
-import { gameState, session } from '../../js/core/state.js';
+import { setBeforePhaseChange, setPhase, setRenderer } from '../../js/core/phase.js';
+import { gameState, hostSecretState, session } from '../../js/core/state.js';
 import { installFakeEnv } from './helpers/fakeEnv.mjs';
 import { makePlayers, useGameHarness } from './helpers/harness.mjs';
 
@@ -221,6 +221,55 @@ describe('the countdown', () => {
         assert.equal(remaining(), 0);
         assert.equal(gameState.phase, 'vote');
         assert.equal(gameState.timer.reason, 'timeout');
+    });
+});
+
+describe('votes left over from an earlier ballot', () => {
+    /** A round in which p5 was voted out in an earlier ballot; that ballot's votes are still in votesCast. */
+    function leaveOldVotes() {
+        gameState.players = makePlayers(5);
+        gameState.players[4].isAlive = false;
+        hostSecretState.votesCast = { p5: 'p1', p1: 'p2', p2: 'p1' };
+    }
+    const savedVotes = () => JSON.parse(env.storage.get('spy_full_state_master')).secrets.votesCast;
+
+    it('are emptied when the time runs out, before the vote screen is drawn and the game is saved', () => {
+        let votesWhenDrawn = null;
+        setRenderer(() => {
+            if (gameState.phase === 'vote') votesWhenDrawn = { ...hostSecretState.votesCast };
+        });
+        leaveOldVotes();
+        gameState.settings.timerMin = 1;
+        startTimer();
+        gameState.timer.pausedSec = 1;
+        seconds(1);
+        assert.equal(gameState.phase, 'vote');
+        assert.equal(gameState.timer.reason, 'timeout');
+        assert.deepEqual(hostSecretState.votesCast, {});
+        assert.deepEqual(votesWhenDrawn, {});
+        assert.deepEqual(savedVotes(), {});
+    });
+
+    it('are left alone by pausing, resuming and ticking; only the time-out empties them', () => {
+        leaveOldVotes();
+        const before = structuredClone(hostSecretState.votesCast);
+        gameState.settings.timerMin = 1;
+        startTimer();
+        seconds(5);
+        assert.deepEqual(hostSecretState.votesCast, before, 'after ticking');
+        pauseTimer();
+        seconds(10);
+        assert.deepEqual(hostSecretState.votesCast, before, 'after a pause');
+        resumeTimer();
+        seconds(5);
+        assert.deepEqual(hostSecretState.votesCast, before, 'after a resume');
+        pauseTimer(true);
+        resumeTimer();
+        assert.deepEqual(hostSecretState.votesCast, before, 'after a silent pause and resume');
+        assert.equal(gameState.phase, 'timer');
+        seconds(60);
+        assert.equal(gameState.phase, 'vote');
+        assert.deepEqual(hostSecretState.votesCast, {});
     });
 });
 

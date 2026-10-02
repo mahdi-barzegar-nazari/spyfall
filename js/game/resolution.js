@@ -216,17 +216,13 @@ export function handleDetectiveQueryInternal(targetId) {
     if (!tar || !tar.isAlive) return;
     hostSecretState.detectiveUsed = true;
     gameState.settings.detectiveUsed = true;
-    let resText = tar.role === 'spy'
-        ? `⚠️ «${tar.name}» قطعاً جاسوس است!`
-        : `✅ «${tar.name}» شهروند بی‌گناه است.`;
+    // Both answers must look the same to anyone glancing at the screen: one short sentence, no emoji and no
+    // colour, differing only in the role word. The stored string is what the role card shows again later.
+    const resText = `«${tar.name}» ${tar.role === 'spy' ? 'جاسوس' : 'شهروند'} است.`;
     hostSecretState.detectiveInquiryResult = resText;
-    
-    let res = document.getElementById('detective-result-box');
-    if (tar.role === 'spy') {
-        res.innerHTML = `⚠️ <span class="color-rose">«${escapeHtml(tar.name)}» قطعاً جاسوس است!</span>`;
-    } else {
-        res.innerHTML = `✅ <span class="color-emerald">«${escapeHtml(tar.name)}» شهروند بی‌گناه است.</span>`;
-    }
+
+    // textContent, so a name containing HTML is shown as plain text.
+    document.getElementById('detective-result-box').textContent = resText;
     const btnDet = document.getElementById('btn-detective-inquiry');
     if (btnDet) btnDet.disabled = true;
     const selDet = document.getElementById('detective-target-select');

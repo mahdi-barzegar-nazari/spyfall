@@ -301,11 +301,8 @@ export function renderRoleModalContent(id) {
         } else {
             selDet.disabled = true;
             btnDet.disabled = true;
-            if (storedDetectiveInquiry) {
-                resBox.innerHTML = storedDetectiveInquiry.includes('جاسوس')
-                    ? `⚠️ <span class="color-rose">${escapeHtml(storedDetectiveInquiry)}</span>`
-                    : `✅ <span class="color-emerald">${escapeHtml(storedDetectiveInquiry)}</span>`;
-            }
+            // Shown exactly as stored (also for saves from before the wording changed), whatever it says.
+            if (storedDetectiveInquiry) resBox.textContent = storedDetectiveInquiry;
         }
     } else {
         b.className = 'role-badge role-citizen';
