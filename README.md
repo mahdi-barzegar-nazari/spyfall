@@ -59,7 +59,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 317 unit tests (built-in node:test, no dependencies)
+npm test               # 359 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser smoke test of the production build, including offline mode
 npm run lint
@@ -78,7 +78,8 @@ npm run lint
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
 │   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
-│   ├── data/                  # word bank, side quests, help texts
+│   ├── data/                  # word bank, side quests, help-text keys
+│   ├── i18n/                  # translation core (t, language switching) and the Persian catalog
 │   └── utils/                 # text and random helpers (pure)
 ├── sw.js                      # service worker (versioned app-shell precache)
 ├── manifest.json              # PWA manifest

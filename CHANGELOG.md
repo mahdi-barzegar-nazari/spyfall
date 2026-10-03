@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Translation core** in `js/i18n/`: `t(key, params)` (active language, then Persian, then the key; plain text, `{name}` parameters), `setLang` / `getLang` / `onLangChange`, `initI18n()` (called first in `main.js`; reads the language saved under `spy_lang`) and a Persian catalog (`fa.js`, registered in `catalogs.js`). Only Persian is supported for now, so nothing changes for players.
+- The fixed texts in `index.html` (about 150 texts, `aria-label`s and placeholders, the page title and description) and the help (i) texts now live in the Persian catalog. The Persian text stays in `index.html` as the default, marked with `data-i18n` / `data-i18n-attr`; `applyStaticTranslations()` fills it from the active language when that is not Persian. `INFO_TEXTS` is replaced by `INFO_KEYS` in `data/infoTexts.js` (the texts are `info.<key>.title` / `info.<key>.text` in the catalog), and `showInfoModal` reads them with `t()`.
+- Tests for it: `tests/unit/i18n.test.mjs` (lookup, fallback, parameters, plain-text output, `setLang`, `initI18n`, the static translator) and `tests/unit/i18n-html.test.mjs` (keys exist, the Persian text in `index.html` equals the catalog, no untranslated visible text, no unused key), a rule in the import-graph test that `i18n/` never imports from `game/`, `ui/` or `app/`, and a small HTML scanner in `tests/unit/helpers/htmlScan.mjs`.
+
 - **Spy's last chance** setup option (`spyLastChance`, on by default, next to sudden death). When on, a spy caught by the vote still gets to say the secret word aloud, as before. When off, the classic rule applies: the caught spy has no final guess and the round resolves at once (the guess screen is skipped, and the elimination reveal no longer announces a guess). Games saved before the option existed have no value and behave as on.
 
 - Word bank grew from 543 to 741 built-in words (+198): every category now has at least 16 `hard` and 16 `medium` entries, with the small categories (vehicles, sports, events) growing the most.
@@ -25,6 +29,7 @@
 
 ### Fixed
 
+- The "all topics" button on the setup screen promised "+500 words", but the word bank has 741; it now says "+700 words". A test ties the label to the real size of the bank.
 - **Correct guess in a one-spy game gave the round to the citizens.** `finalizeRound` checked "no spy left alive" before the forced spy win, and the spy who guessed had just been voted out, so with a single spy the guess paid points but the citizens still won. A correct guess now always gives the spies the round.
 - With `spiesCount` at or above the number of players (not reachable from the setup screen), the fool and detective seats were counted from the uncapped spy count, so they went missing. They now follow the spies that were actually assigned.
 - The comment on `HIDDEN_TIEBREAK.DEFAULT_MULTIPLIER` said "all"-pool rounds have no multiplier; the default only applies to words with no difficulty rating, such as custom words.
