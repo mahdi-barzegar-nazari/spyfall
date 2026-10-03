@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { INFO_TEXTS } from '../../js/data/infoTexts.js';
+import { INFO_KEYS } from '../../js/data/infoTexts.js';
+import { fa } from '../../js/i18n/fa.js';
 
 const root = new URL('../../', import.meta.url);
 const html = readFileSync(new URL('index.html', root), 'utf8');
@@ -55,15 +56,17 @@ describe('setup toggles and help texts', () => {
         return items.map((chunk) => chunk.split('</label>')[0]).find((chunk) => chunk.includes(`id="${checkboxId}"`));
     };
 
-    it('every data-info button points at a text in INFO_TEXTS', () => {
+    it('every data-info button points at a help text listed in INFO_KEYS', () => {
         const keys = [...html.matchAll(/data-info="([^"]+)"/g)].map((m) => m[1]);
         assert.ok(keys.length > 0);
-        assert.deepEqual(keys.filter((key) => !(key in INFO_TEXTS)), []);
+        assert.deepEqual(keys.filter((key) => !INFO_KEYS.includes(key)), []);
     });
-    it('every INFO_TEXTS entry has a title and a text', () => {
-        for (const [key, entry] of Object.entries(INFO_TEXTS)) {
-            assert.ok(entry.title && entry.title.trim(), `${key} has no title`);
-            assert.ok(entry.text && entry.text.trim(), `${key} has no text`);
+    it('every INFO_KEYS entry has a title and a text in the Persian catalog', () => {
+        for (const key of INFO_KEYS) {
+            const title = fa[`info.${key}.title`];
+            const text = fa[`info.${key}.text`];
+            assert.ok(title && title.trim(), `${key} has no title`);
+            assert.ok(text && text.trim(), `${key} has no text`);
         }
     });
     it('has the spy\'s last-chance toggle, on by default, labelled and explained', () => {
@@ -75,7 +78,7 @@ describe('setup toggles and help texts', () => {
         assert.ok(item.includes(`id="${labelId}"`), 'the label is in the same toggle row');
         const infoKey = item.match(/data-info="([^"]+)"/)[1];
         assert.equal(infoKey, 'spyLastChance');
-        assert.ok(INFO_TEXTS[infoKey].title && INFO_TEXTS[infoKey].text);
+        assert.ok(fa[`info.${infoKey}.title`] && fa[`info.${infoKey}.text`]);
     });
     it('the guess screen buttons do not promise any points (the amount depends on the word)', () => {
         for (const id of ['btn-guess-correct', 'btn-guess-wrong', 'btn-guess-pass']) {

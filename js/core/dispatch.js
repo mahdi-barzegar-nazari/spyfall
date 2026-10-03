@@ -6,7 +6,8 @@
  * that dispatch never depend on the modules that handle.
  */
 
-import { INFO_TEXTS } from '../data/infoTexts.js';
+import { INFO_KEYS } from '../data/infoTexts.js';
+import { t } from '../i18n/index.js';
 
 let handler = null;
 
@@ -21,10 +22,9 @@ export function dispatch(action) {
 }
 
 export function showInfoModal(key) {
-    const item = INFO_TEXTS[key];
-    if (!item) return;
-    document.getElementById('info-modal-title').textContent = item.title;
+    if (!INFO_KEYS.includes(key)) return;
+    document.getElementById('info-modal-title').textContent = t(`info.${key}.title`);
     document.getElementById('info-modal-desc').style.whiteSpace = 'pre-line';
-    document.getElementById('info-modal-desc').textContent = item.text;
+    document.getElementById('info-modal-desc').textContent = t(`info.${key}.text`);
     dispatch({type: 'OPEN_MODAL', payload: 'info-modal'});
 }

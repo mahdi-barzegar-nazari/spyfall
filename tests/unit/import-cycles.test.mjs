@@ -137,6 +137,18 @@ describe('module graph of js/', () => {
         }
         assert.deepEqual(upward, [], 'core/ must stay below game/, ui/ and app/; inject the dependency instead');
     });
+
+    it('keeps i18n/ a leaf layer: it never imports from game/, ui/ or app/', () => {
+        assert.ok([...graph.keys()].some((file) => file.startsWith('js/i18n/')), 'js/i18n/ was not found in the module graph');
+        const upward = [];
+        for (const [file, imports] of graph) {
+            if (!file.startsWith('js/i18n/')) continue;
+            for (const target of imports) {
+                if (/^js\/(game|ui|app)\//.test(target)) upward.push(`${file} -> ${target}`);
+            }
+        }
+        assert.deepEqual(upward, [], 'i18n/ must stay below game/, ui/ and app/');
+    });
 });
 
 describe('cycle detector (self-check on throwaway trees)', () => {

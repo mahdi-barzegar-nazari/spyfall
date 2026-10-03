@@ -4,6 +4,7 @@
 
 import { wireApp } from './app/wire.js';
 import { SAVE_VERSION } from './core/state.js';
+import { initI18n } from './i18n/index.js';
 import { initAntiZoom } from './platform/antiZoom.js';
 import { setupAudio } from './platform/audio.js';
 import { initInstallPrompt } from './platform/install.js';
@@ -45,6 +46,7 @@ function start() {
     } catch(e){}
 }
 
+initI18n();
 wireApp();
 initAntiZoom();
 setupAudio();

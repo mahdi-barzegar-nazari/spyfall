@@ -12,7 +12,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no, email=no, address=no, date=no">
-    <meta name="description" content="بازی دورهمی و معمایی جاسوس (Spyfall) - نسخه پیشرفته تحت وب بدون نیاز به نصب">
+    <meta name="description" content="بازی دورهمی و معمایی جاسوس (Spyfall) - نسخه پیشرفته تحت وب بدون نیاز به نصب" data-i18n-attr="content:meta.description">
     <meta property="og:title" content="بازی دورهمی جاسوس">
     <meta property="og:description" content="بازی دورهمی و معمایی جاسوس (Spyfall) - نسخه پیشرفته تحت وب بدون نیاز به نصب">
     <meta property="og:type" content="website">
@@ -22,83 +22,83 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
     <link rel="stylesheet" href="./css/style.css">
-    <title>بازی دورهمی جاسوس</title>
+    <title data-i18n="meta.title">بازی دورهمی جاسوس</title>
 </head>
 <body data-theme="default">
 
 <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<button type="button" id="panic-shield" class="hidden" aria-label="خروج از حالت پوشش">
+<button type="button" id="panic-shield" class="hidden" aria-label="خروج از حالت پوشش" data-i18n-attr="aria-label:panic.shield.aria">
     <span class="fs-title-icon" aria-hidden="true">🔒</span>
-    <span class="fs-subtitle-panic">حالت پوشش فعال است (برای خروج دو بار ضربه بزنید)</span>
+    <span class="fs-subtitle-panic" data-i18n="panic.shield.text">حالت پوشش فعال است (برای خروج دو بار ضربه بزنید)</span>
 </button>
 
-<button type="button" id="btn-panic-open" class="panic-btn-floating" aria-label="فعال‌سازی حالت پوشش امنیتی">🛡️ حالت پوشش</button>
+<button type="button" id="btn-panic-open" class="panic-btn-floating" aria-label="فعال‌سازی حالت پوشش امنیتی" data-i18n="panic.open.text" data-i18n-attr="aria-label:panic.open.aria">🛡️ حالت پوشش</button>
 
-<button type="button" id="btn-install-app" class="install-btn-floating hidden" aria-label="نصب برنامه روی گوشی">⬇️ نصب برنامه روی گوشی</button>
+<button type="button" id="btn-install-app" class="install-btn-floating hidden" aria-label="نصب برنامه روی گوشی" data-i18n="install.text" data-i18n-attr="aria-label:install.aria">⬇️ نصب برنامه روی گوشی</button>
 
 <div id="handoff-gate" class="hidden" role="dialog" aria-modal="true" aria-labelledby="handoff-name" data-hold-mode="0">
     <div class="handoff-card">
         <div class="handoff-icon" aria-hidden="true">📱</div>
-        <p class="handoff-caption color-secondary">گوشی را به این بازیکن بده:</p>
+        <p class="handoff-caption color-secondary" data-i18n="handoff.caption">گوشی را به این بازیکن بده:</p>
         <h3 id="handoff-name">—</h3>
         <p id="handoff-subtitle" class="handoff-subtitle color-secondary"></p>
         <button type="button" id="handoff-action" class="btn btn-primary handoff-action">ادامه</button>
-        <button type="button" id="handoff-cancel" class="btn btn-ghost">بازگشت</button>
+        <button type="button" id="handoff-cancel" class="btn btn-ghost" data-i18n="handoff.cancel">بازگشت</button>
     </div>
 </div>
 
 <main class="app-container" id="main-content-root">
     <header class="header-bar">
         <div class="flex-row-gap-8 u-items-center">
-            <button type="button" id="btn-sound-toggle" class="btn btn-ghost btn-sm p-4-10 u-fs-110" aria-label="قطع و وصل صدا" aria-pressed="false">🔊</button>
-            <label for="theme-selector" class="sr-only">انتخاب پوسته</label>
+            <button type="button" id="btn-sound-toggle" class="btn btn-ghost btn-sm p-4-10 u-fs-110" aria-label="قطع و وصل صدا" aria-pressed="false" data-i18n-attr="aria-label:header.sound.aria">🔊</button>
+            <label for="theme-selector" class="sr-only" data-i18n="header.theme.label">انتخاب پوسته</label>
             <select id="theme-selector" class="input-control btn-sm w-auto p-4-8">
-                <option value="default">🌌 نئون کهکشانی</option>
-                <option value="noir">🕵️ نوآر کلاسیک</option>
-                <option value="classic">🎞️ سینمای کلاسیک</option>
-                <option value="emerald">🌲 جنگل زمرد</option>
-                <option value="crimson">🔥 شعله سرخ</option>
-                <option value="sunset">🌇 میراژ غروب</option>
-                <option value="cyber">🤖 سایبرپانک</option>
-                <option value="ocean">🧊 اقیانوس یخی</option>
+                <option value="default" data-i18n="theme.default">🌌 نئون کهکشانی</option>
+                <option value="noir" data-i18n="theme.noir">🕵️ نوآر کلاسیک</option>
+                <option value="classic" data-i18n="theme.classic">🎞️ سینمای کلاسیک</option>
+                <option value="emerald" data-i18n="theme.emerald">🌲 جنگل زمرد</option>
+                <option value="crimson" data-i18n="theme.crimson">🔥 شعله سرخ</option>
+                <option value="sunset" data-i18n="theme.sunset">🌇 میراژ غروب</option>
+                <option value="cyber" data-i18n="theme.cyber">🤖 سایبرپانک</option>
+                <option value="ocean" data-i18n="theme.ocean">🧊 اقیانوس یخی</option>
             </select>
         </div>
     </header>
 
     <div id="recovery-banner" class="quest-box hidden border-amber color-amber text-center mb-12">
-        <div>⚠️ یک مسابقه نیمه‌کاره یافت شد.</div>
+        <div data-i18n="recovery.message">⚠️ یک مسابقه نیمه‌کاره یافت شد.</div>
         <div class="flex-row-gap-8 mt-8">
-            <button type="button" id="btn-restore-game" class="btn btn-amber btn-sm flex-1">ادامه مسابقه</button>
-            <button type="button" id="btn-discard-game" class="btn btn-ghost btn-sm flex-1">شروع تازه</button>
+            <button type="button" id="btn-restore-game" class="btn btn-amber btn-sm flex-1" data-i18n="recovery.restore">ادامه مسابقه</button>
+            <button type="button" id="btn-discard-game" class="btn btn-ghost btn-sm flex-1" data-i18n="recovery.discard">شروع تازه</button>
         </div>
     </div>
 
     <section id="screen-welcome" class="screen-view">
-        <h1>🕵️ بازی جاسوس</h1>
-        <p>یک بازی معمایی، هیجانی و دورهمی. قبل از اینکه جاسوس کلمه رمز را کشف کند، او را شناسایی کنید!</p>
+        <h1 data-i18n="welcome.title">🕵️ بازی جاسوس</h1>
+        <p data-i18n="welcome.tagline">یک بازی معمایی، هیجانی و دورهمی. قبل از اینکه جاسوس کلمه رمز را کشف کند، او را شناسایی کنید!</p>
         
         <div class="play-hero">
-            <button type="button" class="play-button" id="btn-nav-setup" aria-label="شروع بازی">
+            <button type="button" class="play-button" id="btn-nav-setup" aria-label="شروع بازی" data-i18n-attr="aria-label:welcome.start.aria">
                 <span class="play-button-icon" aria-hidden="true"></span>
             </button>
-            <span class="play-button-label">شروع بازی</span>
-            <span class="play-button-caption">دست‌به‌دست کردن یک گوشی در جمع دورهمی</span>
+            <span class="play-button-label" data-i18n="welcome.start.label">شروع بازی</span>
+            <span class="play-button-caption" data-i18n="welcome.start.caption">دست‌به‌دست کردن یک گوشی در جمع دورهمی</span>
         </div>
-        <button type="button" id="btn-open-words" class="btn btn-ghost">✏️ بانک کلمات سفارشی</button>
-        <p class="credit-line"><a href="https://www.instagram.com/mhd.barzegar" target="_blank" rel="noopener noreferrer" class="credit-link" aria-label="صفحه سازنده">ساخته شده توسط مهدی</a> · <a href="https://www.coffeete.ir/MahdiBN" target="_blank" rel="noopener noreferrer" class="credit-link credit-link-coffee" aria-label="حمایت مالی از سازنده">☕</a></p>
+        <button type="button" id="btn-open-words" class="btn btn-ghost" data-i18n="welcome.words">✏️ بانک کلمات سفارشی</button>
+        <p class="credit-line"><a href="https://www.instagram.com/mhd.barzegar" target="_blank" rel="noopener noreferrer" class="credit-link" aria-label="صفحه سازنده" data-i18n="welcome.credit.author" data-i18n-attr="aria-label:welcome.credit.author.aria">ساخته شده توسط مهدی</a> · <a href="https://www.coffeete.ir/MahdiBN" target="_blank" rel="noopener noreferrer" class="credit-link credit-link-coffee" aria-label="حمایت مالی از سازنده" data-i18n-attr="aria-label:welcome.credit.support.aria">☕</a></p>
     </section>
 
     <section id="screen-setup" class="screen-view hidden">
-        <h2>تنظیمات مسابقه</h2>
+        <h2 data-i18n="setup.title">تنظیمات مسابقه</h2>
         <div class="grid-2">
             <div class="input-group">
-                <label for="setup-players-count">تعداد کل بازیکنان:</label>
+                <label for="setup-players-count" data-i18n="setup.players.label">تعداد کل بازیکنان:</label>
                 <input type="text" id="setup-players-count" class="input-control" value="4" inputmode="numeric" aria-describedby="players-limit-hint">
                 <div id="players-limit-hint" class="field-hint"></div>
             </div>
             <div class="input-group">
-                <label for="setup-spies-count">تعداد جاسوس‌ها:</label>
+                <label for="setup-spies-count" data-i18n="setup.spies.label">تعداد جاسوس‌ها:</label>
                 <input type="text" id="setup-spies-count" class="input-control" value="1" inputmode="numeric" aria-describedby="spies-limit-hint">
                 <div id="spies-limit-hint" class="field-hint"></div>
             </div>
@@ -106,226 +106,226 @@
 
         <div class="input-group">
             <div class="label-text">
-                <span>دسته‌بندی موضوعات کلمات:</span>
-                <button type="button" id="btn-toggle-all-cats" class="btn btn-ghost btn-sm u-compact">همه موضوعات (+500 کلمه)</button>
+                <span data-i18n="setup.categories.label">دسته‌بندی موضوعات کلمات:</span>
+                <button type="button" id="btn-toggle-all-cats" class="btn btn-ghost btn-sm u-compact" data-i18n="setup.categories.all">همه موضوعات (+700 کلمه)</button>
             </div>
             <div class="chips-grid" id="category-chips-container">
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="places" checked> اماکن و فضاها</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="jobs" checked> مشاغل و حرفه‌ها</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="foods" checked> غذاها و خوراکی‌ها</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="objects" checked> اشیاء و فناوری</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="vehicles" checked> وسایل نقلیه</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="animals" checked> حیوانات و طبیعت</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="sports" checked> ورزش و بازی‌ها</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="events" checked> رویدادها و پدیده‌ها</label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="custom"> کلمات سفارشی</label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="places" checked> <span data-i18n="setup.cat.places">اماکن و فضاها</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="jobs" checked> <span data-i18n="setup.cat.jobs">مشاغل و حرفه‌ها</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="foods" checked> <span data-i18n="setup.cat.foods">غذاها و خوراکی‌ها</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="objects" checked> <span data-i18n="setup.cat.objects">اشیاء و فناوری</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="vehicles" checked> <span data-i18n="setup.cat.vehicles">وسایل نقلیه</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="animals" checked> <span data-i18n="setup.cat.animals">حیوانات و طبیعت</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="sports" checked> <span data-i18n="setup.cat.sports">ورزش و بازی‌ها</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="events" checked> <span data-i18n="setup.cat.events">رویدادها و پدیده‌ها</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-cat" value="custom"> <span data-i18n="setup.cat.custom">کلمات سفارشی</span></label>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="input-group">
-                <label for="setup-difficulty">سطح دشواری:</label>
+                <label for="setup-difficulty" data-i18n="setup.difficulty.label">سطح دشواری:</label>
                 <select id="setup-difficulty" class="input-control">
-                    <option value="all">همه سطوح</option>
-                    <option value="easy">ساده</option>
-                    <option value="medium">متوسط</option>
-                    <option value="hard">سخت</option>
+                    <option value="all" data-i18n="setup.difficulty.all">همه سطوح</option>
+                    <option value="easy" data-i18n="setup.difficulty.easy">ساده</option>
+                    <option value="medium" data-i18n="setup.difficulty.medium">متوسط</option>
+                    <option value="hard" data-i18n="setup.difficulty.hard">سخت</option>
                 </select>
             </div>
             <div class="input-group">
-                <label for="setup-timer">زمان گفتگو (دقیقه):</label>
+                <label for="setup-timer" data-i18n="setup.timer.label">زمان گفتگو (دقیقه):</label>
                 <input type="text" id="setup-timer" class="input-control" value="4" inputmode="numeric" aria-describedby="timer-limit-hint">
                 <div id="timer-limit-hint" class="field-hint"></div>
             </div>
         </div>
 
         <div class="input-group">
-            <label for="setup-reveal-mode">نحوه مشاهده کارت:</label>
+            <label for="setup-reveal-mode" data-i18n="setup.reveal.label">نحوه مشاهده کارت:</label>
             <select id="setup-reveal-mode" class="input-control">
-                <option value="click">کلیک ساده</option>
-                <option value="hold">نگه‌داشتن انگشت (Hold)</option>
+                <option value="click" data-i18n="setup.reveal.click">کلیک ساده</option>
+                <option value="hold" data-i18n="setup.reveal.hold">نگه‌داشتن انگشت (Hold)</option>
             </select>
         </div>
 
         <div class="input-group">
             <div class="label-text">
-                <span>نوع راهنمای جاسوس:</span>
+                <span data-i18n="setup.hints.label">نوع راهنمای جاسوس:</span>
                 <button type="button" class="info-btn" data-info="hintTypes">ℹ️</button>
             </div>
-            <p class="hint-note">می‌توانید چند مورد را همزمان فعال نگه دارید؛ هر دور یکی از موارد فعال به‌صورت تصادفی انتخاب می‌شود.</p>
+            <p class="hint-note" data-i18n="setup.hints.note">می‌توانید چند مورد را همزمان فعال نگه دارید؛ هر دور یکی از موارد فعال به‌صورت تصادفی انتخاب می‌شود.</p>
             <div class="hint-grid" id="hint-chips-container">
                 <label class="hint-chip">
                     <input type="checkbox" name="setup-hint" value="related_word" checked>
                     <span class="hint-chip-icon">🔗</span>
-                    <span class="hint-chip-text">کلمه مرتبط</span>
+                    <span class="hint-chip-text" data-i18n="setup.hint.related">کلمه مرتبط</span>
                 </label>
                 <label class="hint-chip">
                     <input type="checkbox" name="setup-hint" value="category">
                     <span class="hint-chip-icon">🗂️</span>
-                    <span class="hint-chip-text">نام موضوع</span>
+                    <span class="hint-chip-text" data-i18n="setup.hint.category">نام موضوع</span>
                 </label>
                 <label class="hint-chip">
                     <input type="checkbox" name="setup-hint" value="first_letter">
                     <span class="hint-chip-icon">🔤</span>
-                    <span class="hint-chip-text">حرف اول کلمه</span>
+                    <span class="hint-chip-text" data-i18n="setup.hint.firstLetter">حرف اول کلمه</span>
                 </label>
                 <label class="hint-chip hint-chip-hard">
                     <input type="checkbox" name="setup-hint" value="none">
                     <span class="hint-chip-icon">🔥</span>
-                    <span class="hint-chip-text">بدون راهنما</span>
-                    <span class="hint-chip-tag">سخت</span>
+                    <span class="hint-chip-text" data-i18n="setup.hint.none">بدون راهنما</span>
+                    <span class="hint-chip-tag" data-i18n="setup.hint.noneTag">سخت</span>
                 </label>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-detective">کارآگاه</span><button class="info-btn" data-info="detective" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-detective" data-i18n="setup.toggle.detective">کارآگاه</span><button class="info-btn" data-info="detective" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-detective" aria-labelledby="lbl-detective"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-known">همکاران</span><button class="info-btn" data-info="knownSpies" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-known" data-i18n="setup.toggle.known">همکاران</span><button class="info-btn" data-info="knownSpies" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-known" aria-labelledby="lbl-known"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-fool">ساده‌لوح</span><button class="info-btn" data-info="fool" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-fool" data-i18n="setup.toggle.fool">ساده‌لوح</span><button class="info-btn" data-info="fool" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-fool" aria-labelledby="lbl-fool"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-director">دستیار نوبت</span><button class="info-btn" data-info="director" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-director" data-i18n="setup.toggle.director">دستیار نوبت</span><button class="info-btn" data-info="director" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-director" aria-labelledby="lbl-director"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-oneword">تک‌کلمه‌ای</span><button class="info-btn" data-info="oneword" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-oneword" data-i18n="setup.toggle.oneword">تک‌کلمه‌ای</span><button class="info-btn" data-info="oneword" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-oneword" aria-labelledby="lbl-oneword"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-quests">ماموریت</span><button class="info-btn" data-info="quests" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-quests" data-i18n="setup.toggle.quests">ماموریت</span><button class="info-btn" data-info="quests" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-quests" aria-labelledby="lbl-quests"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-wager">شرط‌بندی</span><button class="info-btn" data-info="wager" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-wager" data-i18n="setup.toggle.wager">شرط‌بندی</span><button class="info-btn" data-info="wager" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-wager" aria-labelledby="lbl-wager"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-sudden">حذف درجا</span><button class="info-btn" data-info="sudden" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-sudden" data-i18n="setup.toggle.sudden">حذف درجا</span><button class="info-btn" data-info="sudden" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-sudden" aria-labelledby="lbl-sudden"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-last-chance">شانس آخر جاسوس</span><button class="info-btn" data-info="spyLastChance" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-last-chance" data-i18n="setup.toggle.lastChance">شانس آخر جاسوس</span><button class="info-btn" data-info="spyLastChance" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-last-chance" checked aria-labelledby="lbl-last-chance"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-limit">سقف زنگ</span><button class="info-btn" data-info="voteLimit" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-limit" data-i18n="setup.toggle.limit">سقف زنگ</span><button class="info-btn" data-info="voteLimit" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-limit" aria-labelledby="lbl-limit"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-role-reveal-confirm">تأییدیه دیدن نقش</span><button class="info-btn" data-info="roleRevealConfirm" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-role-reveal-confirm" data-i18n="setup.toggle.roleRevealConfirm">تأییدیه دیدن نقش</span><button class="info-btn" data-info="roleRevealConfirm" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-role-reveal-confirm" checked aria-labelledby="lbl-role-reveal-confirm"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-vote-confirm">تأییدیه ثبت رأی</span><button class="info-btn" data-info="voteConfirm" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-vote-confirm" data-i18n="setup.toggle.voteConfirm">تأییدیه ثبت رأی</span><button class="info-btn" data-info="voteConfirm" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-vote-confirm" aria-labelledby="lbl-vote-confirm"><span class="slider"></span></label>
             </div>
             <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-quick-voting">رای‌گیری سریع</span><button class="info-btn" data-info="quickVoting" type="button">ℹ️</button></div>
+                <div class="toggle-label-wrap"><span id="lbl-quick-voting" data-i18n="setup.toggle.quickVoting">رای‌گیری سریع</span><button class="info-btn" data-info="quickVoting" type="button">ℹ️</button></div>
                 <label class="switch"><input type="checkbox" id="toggle-quick-voting" aria-labelledby="lbl-quick-voting"><span class="slider"></span></label>
             </div>
         </div>
         
         <div id="vote-limit-box" class="input-group hidden">
-            <label for="setup-max-votes" class="sr-only">حداکثر سهمیه زنگ اضطراری</label>
-            <input type="text" id="setup-max-votes" class="input-control" value="2" placeholder="حداکثر سهمیه زنگ اضطراری" inputmode="numeric" aria-describedby="maxvotes-limit-hint">
+            <label for="setup-max-votes" class="sr-only" data-i18n="setup.maxVotes.label">حداکثر سهمیه زنگ اضطراری</label>
+            <input type="text" id="setup-max-votes" class="input-control" value="2" placeholder="حداکثر سهمیه زنگ اضطراری" inputmode="numeric" aria-describedby="maxvotes-limit-hint" data-i18n-attr="placeholder:setup.maxVotes.placeholder">
             <div id="maxvotes-limit-hint" class="field-hint"></div>
         </div>
         
         <fieldset class="input-group mt-14" id="names-section-container">
             <legend class="label-text u-legend-full" id="names-section-label">
                 <span class="u-row-between">
-                    <span>اسامی بازیکنان حاضر:</span>
-                    <button type="button" id="btn-reset-names" class="btn btn-ghost btn-sm">🗑️ پیش‌فرض</button>
+                    <span data-i18n="setup.names.label">اسامی بازیکنان حاضر:</span>
+                    <button type="button" id="btn-reset-names" class="btn btn-ghost btn-sm" data-i18n="setup.names.reset">🗑️ پیش‌فرض</button>
                 </span>
             </legend>
             <div id="name-inputs-container" class="mt-6"></div>
         </fieldset>
-        <button type="button" id="btn-start-match" class="btn btn-primary">شروع مسابقه و توزیع کارت‌ها 🚀</button>
-        <button type="button" id="btn-back-welcome-2" class="btn btn-ghost">بازگشت</button>
+        <button type="button" id="btn-start-match" class="btn btn-primary" data-i18n="setup.start">شروع مسابقه و توزیع کارت‌ها 🚀</button>
+        <button type="button" id="btn-back-welcome-2" class="btn btn-ghost" data-i18n="setup.back">بازگشت</button>
     </section>
 
     <section id="screen-reveal" class="screen-view hidden">
-        <h2>کارت‌های محرمانه</h2>
+        <h2 data-i18n="reveal.title">کارت‌های محرمانه</h2>
         <p id="reveal-instruction-text">گوشی را بچرخانید و کارت خود را ببینید.</p>
         <div id="reveal-grid" class="grid-2"></div>
-        <button type="button" id="btn-start-discussion" class="btn btn-emerald hidden">همه دیدند؛ شروع تایمر گفتگو ⏳</button>
+        <button type="button" id="btn-start-discussion" class="btn btn-emerald hidden" data-i18n="reveal.startDiscussion">همه دیدند؛ شروع تایمر گفتگو ⏳</button>
     </section>
 
     <section id="screen-timer" class="screen-view hidden">
-        <div id="oneword-banner" class="quest-box hidden text-center color-amber border-amber mb-12">⚡ قانون تک‌کلمه‌ای فعال است! فقط ۱ کلمه پاسخ دهید.</div>
+        <div id="oneword-banner" class="quest-box hidden text-center color-amber border-amber mb-12" data-i18n="timer.oneword.banner">⚡ قانون تک‌کلمه‌ای فعال است! فقط ۱ کلمه پاسخ دهید.</div>
         <div id="director-box" class="quest-box hidden text-center mb-12">
-            <div class="color-primary u-fs-075 u-bold">🎯 نوبت سوال و جواب هوشمند:</div>
+            <div class="color-primary u-fs-075 u-bold" data-i18n="timer.director.title">🎯 نوبت سوال و جواب هوشمند:</div>
             <div id="director-text" class="mt-4 u-fw-700">-</div>
-            <button type="button" id="btn-next-director" class="btn btn-ghost btn-sm mt-6 u-inline-block">نوبت بعدی 🔄</button>
+            <button type="button" id="btn-next-director" class="btn btn-ghost btn-sm mt-6 u-inline-block" data-i18n="timer.director.next">نوبت بعدی 🔄</button>
         </div>
         <div class="timer-card">
             <div id="timer-text" class="timer-display" aria-live="off">00:00</div>
             <div id="votes-remaining-badge" class="color-secondary mt-6 u-fs-078">زنگ اضطراری: نامحدود</div>
         </div>
-        <button type="button" id="btn-emergency-vote" class="btn btn-rose">🚨 اعلام زنگ اضطراری و رای‌گیری</button>
-        <button type="button" id="btn-confirm-end-1" class="btn btn-ghost">پایان مسابقه و کارنامه 🏆</button>
+        <button type="button" id="btn-emergency-vote" class="btn btn-rose" data-i18n="timer.emergency">🚨 اعلام زنگ اضطراری و رای‌گیری</button>
+        <button type="button" id="btn-confirm-end-1" class="btn btn-ghost" data-i18n="timer.end">پایان مسابقه و کارنامه 🏆</button>
     </section>
 
     <section id="screen-vote" class="screen-view hidden">
-        <h2>رای‌گیری اخراج</h2>
+        <h2 data-i18n="vote.title">رای‌گیری اخراج</h2>
         <p id="vote-instruction-text">متهم اصلی را انتخاب کنید:</p>
         <div id="vote-grid" class="grid-2"></div>
-        <button type="button" id="btn-cancel-vote" class="btn btn-ghost">انصراف و بازگشت به گفتگو</button>
+        <button type="button" id="btn-cancel-vote" class="btn btn-ghost" data-i18n="vote.cancel">انصراف و بازگشت به گفتگو</button>
     </section>
 
     <section id="screen-wager" class="screen-view hidden">
-        <h2>🎲 شرط‌بندی روی هویت مظنون</h2>
-        <p>مظنون اخراج: <strong id="wager-target-name" class="color-rose"></strong></p>
+        <h2 data-i18n="wager.title">🎲 شرط‌بندی روی هویت مظنون</h2>
+        <p><span data-i18n="wager.suspect">مظنون اخراج:</span> <strong id="wager-target-name" class="color-rose"></strong></p>
         <div id="wager-players-list" class="mb-14"></div>
         <button type="button" id="btn-submit-wagers" class="btn btn-emerald">ثبت شرط و رونمایی هویت ✅</button>
     </section>
 
     <section id="screen-guess" class="screen-view hidden">
-        <h2>🎯 فرصت حدس کلمه رمز!</h2>
-        <p><strong id="guess-spy-name" class="color-rose"></strong> شناسایی شد!<br>جاسوس کلمه حدس‌زده را به صورت <strong>شفاهی</strong> به جمع اعلام کند.</p>
+        <h2 data-i18n="guess.title">🎯 فرصت حدس کلمه رمز!</h2>
+        <p><strong id="guess-spy-name" class="color-rose"></strong> <span data-i18n="guess.identified">شناسایی شد!</span><br><span data-i18n="guess.announce.pre">جاسوس کلمه حدس‌زده را به صورت</span> <strong data-i18n="guess.announce.verbal">شفاهی</strong> <span data-i18n="guess.announce.post">به جمع اعلام کند.</span></p>
         <div class="quest-box text-center mb-12">
-            <span class="color-secondary u-fs-082">نتیجه اعلام شفاهی جاسوس را ثبت کنید:</span>
+            <span class="color-secondary u-fs-082" data-i18n="guess.verdict.prompt">نتیجه اعلام شفاهی جاسوس را ثبت کنید:</span>
         </div>
         <div id="guess-verdict-actions" class="flex-row-gap-8 u-stack-10">
-            <button type="button" id="btn-guess-correct" class="btn btn-emerald">✅ حدس درست بود</button>
-            <button type="button" id="btn-guess-wrong" class="btn btn-rose">❌ حدس اشتباه بود</button>
-            <button type="button" id="btn-guess-pass" class="btn btn-ghost">⚪ حدس نزد / انصراف داد</button>
+            <button type="button" id="btn-guess-correct" class="btn btn-emerald" data-i18n="guess.correct">✅ حدس درست بود</button>
+            <button type="button" id="btn-guess-wrong" class="btn btn-rose" data-i18n="guess.wrong">❌ حدس اشتباه بود</button>
+            <button type="button" id="btn-guess-pass" class="btn btn-ghost" data-i18n="guess.pass">⚪ حدس نزد / انصراف داد</button>
         </div>
-        <p class="text-center color-secondary u-fs-075 mt-10">حدس درست: جاسوس‌ها دور را می‌برند. غلط یا انصراف: بازی طبق قانون ادامه پیدا می‌کند.</p>
+        <p class="text-center color-secondary u-fs-075 mt-10" data-i18n="guess.note">حدس درست: جاسوس‌ها دور را می‌برند. غلط یا انصراف: بازی طبق قانون ادامه پیدا می‌کند.</p>
     </section>
 
     <section id="screen-result" class="screen-view hidden">
         <h2 id="result-title">نتیجه این دست</h2>
         <div class="secret-box"><div class="u-text-095" id="result-desc"></div></div>
         <table class="score-table">
-            <caption class="sr-only">جدول تغییرات امتیاز دست فعلی</caption>
-            <thead><tr><th scope="col">بازیکن</th><th scope="col">تغییر</th><th scope="col">مجموع</th></tr></thead>
+            <caption class="sr-only" data-i18n="result.table.caption">جدول تغییرات امتیاز دست فعلی</caption>
+            <thead><tr><th scope="col" data-i18n="result.col.player">بازیکن</th><th scope="col" data-i18n="result.col.change">تغییر</th><th scope="col" data-i18n="result.col.total">مجموع</th></tr></thead>
             <tbody id="round-leaderboard-body"></tbody>
         </table>
-        <button type="button" id="btn-next-round" class="btn btn-emerald">دست بعدی 🔁</button>
-        <button type="button" id="btn-confirm-end-2" class="btn btn-primary">اتمام مسابقه و کارنامه نهایی 🏆</button>
+        <button type="button" id="btn-next-round" class="btn btn-emerald" data-i18n="result.next">دست بعدی 🔁</button>
+        <button type="button" id="btn-confirm-end-2" class="btn btn-primary" data-i18n="result.end">اتمام مسابقه و کارنامه نهایی 🏆</button>
     </section>
 
     <section id="screen-leaderboard" class="screen-view hidden">
-        <h2>🏆 تابلوی افتخارات و کارنامه</h2>
+        <h2 data-i18n="leaderboard.title">🏆 تابلوی افتخارات و کارنامه</h2>
         <div id="podium-container" class="podium-wrap"></div>
         <div id="accolades-container" class="mb-16"></div>
         <table class="score-table">
-            <caption class="sr-only">جدول کارنامه نهایی مسابقه</caption>
-            <thead><tr><th scope="col">رتبه</th><th scope="col">بازیکن</th><th scope="col">پیروزی‌ها</th><th scope="col">امتیاز نهایی</th></tr></thead>
+            <caption class="sr-only" data-i18n="leaderboard.table.caption">جدول کارنامه نهایی مسابقه</caption>
+            <thead><tr><th scope="col" data-i18n="leaderboard.col.rank">رتبه</th><th scope="col" data-i18n="leaderboard.col.player">بازیکن</th><th scope="col" data-i18n="leaderboard.col.wins">پیروزی‌ها</th><th scope="col" data-i18n="leaderboard.col.score">امتیاز نهایی</th></tr></thead>
             <tbody id="final-leaderboard-body"></tbody>
         </table>
-        <button type="button" id="btn-export-image" class="btn btn-amber">📸 ذخیره عکس کارنامه</button>
-        <button type="button" id="btn-player-details" class="btn btn-ghost">📋 دیدن جزئیات کامل بازیکنان</button>
-        <button type="button" id="btn-reset-match" class="btn btn-emerald">مسابقه جدید 🔄</button>
+        <button type="button" id="btn-export-image" class="btn btn-amber" data-i18n="leaderboard.exportImage">📸 ذخیره عکس کارنامه</button>
+        <button type="button" id="btn-player-details" class="btn btn-ghost" data-i18n="leaderboard.details">📋 دیدن جزئیات کامل بازیکنان</button>
+        <button type="button" id="btn-reset-match" class="btn btn-emerald" data-i18n="leaderboard.newMatch">مسابقه جدید 🔄</button>
     </section>
 </main>
 
@@ -333,49 +333,49 @@
     <div class="modal-card text-right">
         <h3 id="info-modal-title" class="color-primary mb-8 text-center">راهنما</h3>
         <p id="info-modal-desc" class="text-right u-text-090"></p>
-        <button type="button" id="btn-info-modal-close" class="btn btn-primary mt-14">متوجه شدم</button>
+        <button type="button" id="btn-info-modal-close" class="btn btn-primary mt-14" data-i18n="modal.info.close">متوجه شدم</button>
     </div>
 </div>
 
 <div id="custom-words-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-card text-right scroll-y-modal">
-        <h3 class="text-center">✏️ مدیریت کلمات سفارشی</h3>
+        <h3 class="text-center" data-i18n="words.title">✏️ مدیریت کلمات سفارشی</h3>
         <div class="input-group">
-            <input type="text" id="cust-word" class="input-control" placeholder="کلمه اصلی (مثلاً: بیمارستان)" maxlength="30">
+            <input type="text" id="cust-word" class="input-control" placeholder="کلمه اصلی (مثلاً: بیمارستان)" maxlength="30" data-i18n-attr="placeholder:words.word.placeholder">
         </div>
         <div class="input-group">
-            <input type="text" id="cust-fool" class="input-control" placeholder="کلمه ساده‌لوح (مثلاً: درمانگاه)" maxlength="30">
+            <input type="text" id="cust-fool" class="input-control" placeholder="کلمه ساده‌لوح (مثلاً: درمانگاه)" maxlength="30" data-i18n-attr="placeholder:words.fool.placeholder">
         </div>
         <div class="input-group">
-            <input type="text" id="cust-hint" class="input-control" placeholder="راهنمای جاسوس (یک کلمه، مثلاً: پزشک)" maxlength="30">
+            <input type="text" id="cust-hint" class="input-control" placeholder="راهنمای جاسوس (یک کلمه، مثلاً: پزشک)" maxlength="30" data-i18n-attr="placeholder:words.hint.placeholder">
         </div>
-        <button type="button" id="btn-add-custom-word" class="btn btn-emerald">➕ افزودن کلمه</button>
+        <button type="button" id="btn-add-custom-word" class="btn btn-emerald" data-i18n="words.add">➕ افزودن کلمه</button>
         <div class="flex-row-gap-8 mt-8">
-            <button type="button" id="btn-export-words" class="btn btn-primary btn-sm flex-1">📤 پشتیبان JSON</button>
-            <label for="import-words-file" class="btn btn-ghost btn-sm flex-1 u-pointer">📥 بارگذاری JSON</label>
+            <button type="button" id="btn-export-words" class="btn btn-primary btn-sm flex-1" data-i18n="words.export">📤 پشتیبان JSON</button>
+            <label for="import-words-file" class="btn btn-ghost btn-sm flex-1 u-pointer" data-i18n="words.import">📥 بارگذاری JSON</label>
             <input type="file" id="import-words-file" accept=".json" class="sr-only">
         </div>
-        <div class="mt-14 u-bold">کلمات ثبت‌شده (<span id="cust-count">0</span>):</div>
+        <div class="mt-14 u-bold"><span data-i18n="words.registered">کلمات ثبت‌شده (</span><span id="cust-count">0</span>):</div>
         <div id="custom-words-list" class="mt-6 scroll-y-160"></div>
-        <button type="button" id="btn-close-words-modal" class="btn btn-ghost mt-14">بستن</button>
+        <button type="button" id="btn-close-words-modal" class="btn btn-ghost mt-14" data-i18n="words.close">بستن</button>
     </div>
 </div>
 
 <div id="player-details-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-card text-right details-modal-card">
-        <h3 class="text-center">📋 جزئیات کامل بازیکنان</h3>
-        <p class="text-center color-secondary u-fs-078 u-pull-up">آماری که در طول مسابقه پشت صحنه ثبت شده</p>
+        <h3 class="text-center" data-i18n="details.title">📋 جزئیات کامل بازیکنان</h3>
+        <p class="text-center color-secondary u-fs-078 u-pull-up" data-i18n="details.subtitle">آماری که در طول مسابقه پشت صحنه ثبت شده</p>
         <div id="player-details-list" class="details-modal-scroll mt-8"></div>
-        <button type="button" id="btn-close-player-details" class="btn btn-ghost mt-14">بستن</button>
+        <button type="button" id="btn-close-player-details" class="btn btn-ghost mt-14" data-i18n="details.close">بستن</button>
     </div>
 </div>
 
 <div id="vote-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
-        <h3 class="color-amber">تایید رای</h3>
-        <p>آیا مطمئنید می‌خواهید به <strong id="vote-confirm-name" class="color-rose"></strong> رای دهید؟</p>
-        <button type="button" id="btn-confirm-vote-yes" class="btn btn-rose mt-16">بله، ثبت رای</button>
-        <button type="button" id="btn-confirm-vote-no" class="btn btn-ghost">انصراف</button>
+        <h3 class="color-amber" data-i18n="voteConfirm.title">تایید رای</h3>
+        <p><span data-i18n="voteConfirm.pre">آیا مطمئنید می‌خواهید به</span> <strong id="vote-confirm-name" class="color-rose"></strong> <span data-i18n="voteConfirm.post">رای دهید؟</span></p>
+        <button type="button" id="btn-confirm-vote-yes" class="btn btn-rose mt-16" data-i18n="voteConfirm.yes">بله، ثبت رای</button>
+        <button type="button" id="btn-confirm-vote-no" class="btn btn-ghost" data-i18n="voteConfirm.no">انصراف</button>
     </div>
 </div>
 
@@ -387,15 +387,15 @@
             <div id="modal-secret-title" class="color-secondary mb-4 u-fs-082">کلمه رمز شما:</div>
             <div id="modal-secret-content" class="secret-word">-</div>
         </div>
-        <div id="modal-fellow-spies" class="quest-box hidden border-rose color-rose"><strong>🕵️ همکاران جاسوس:</strong> <span id="modal-fellow-spies-text"></span></div>
+        <div id="modal-fellow-spies" class="quest-box hidden border-rose color-rose"><strong data-i18n="role.fellowSpies">🕵️ همکاران جاسوس:</strong> <span id="modal-fellow-spies-text"></span></div>
         <div id="modal-detective-action" class="quest-box hidden border-primary color-primary">
-            <strong>🔍 استعلام هویت:</strong>
+            <strong data-i18n="role.detective.heading">🔍 استعلام هویت:</strong>
             <select id="detective-target-select" class="input-control my-6"></select>
-            <button type="button" id="btn-detective-inquiry" class="btn btn-primary btn-sm">استعلام هویت</button>
+            <button type="button" id="btn-detective-inquiry" class="btn btn-primary btn-sm" data-i18n="role.detective.inquiry">استعلام هویت</button>
             <div id="detective-result-box" class="mt-6 u-bold"></div>
         </div>
-        <div id="modal-quest-box" class="quest-box hidden"><strong>🎯 ماموریت جانبی:</strong> <span id="modal-quest-text"></span></div>
-        <button type="button" id="btn-role-close" class="btn btn-primary mt-14">دیدم و مخفی کن</button>
+        <div id="modal-quest-box" class="quest-box hidden"><strong data-i18n="role.quest.heading">🎯 ماموریت جانبی:</strong> <span id="modal-quest-text"></span></div>
+        <button type="button" id="btn-role-close" class="btn btn-primary mt-14" data-i18n="role.close">دیدم و مخفی کن</button>
     </div>
 </div>
 
@@ -403,8 +403,8 @@
     <div class="modal-card">
         <h3 id="confirm-modal-title">⚠️ تایید</h3>
         <p id="confirm-modal-text"></p>
-        <button type="button" id="btn-confirm-yes" class="btn btn-rose">بله</button>
-        <button type="button" id="btn-confirm-no" class="btn btn-ghost">انصراف</button>
+        <button type="button" id="btn-confirm-yes" class="btn btn-rose" data-i18n="confirm.yes">بله</button>
+        <button type="button" id="btn-confirm-no" class="btn btn-ghost" data-i18n="confirm.no">انصراف</button>
     </div>
 </div>
 
@@ -414,7 +414,7 @@
         <h3 id="elim-name" class="mb-8">نام بازیکن</h3>
         <div id="elim-badge" class="role-badge role-citizen">شهروند بی‌گناه بود</div>
         <p id="elim-note" class="text-center mt-10 u-fs-086"></p>
-        <button type="button" id="btn-elim-continue" class="btn btn-primary mt-14">ادامه ⏭️</button>
+        <button type="button" id="btn-elim-continue" class="btn btn-primary mt-14" data-i18n="elim.continue">ادامه ⏭️</button>
     </div>
 </div>
 
@@ -423,12 +423,12 @@
         <div id="tie-announce-stage">
             <div class="elim-icon">🎲</div>
             <h3 id="tie-announce-names" class="mb-8">تساوی آرا</h3>
-            <div class="role-badge role-detective">تساوی آرا!</div>
-            <p class="text-center mt-10 u-fs-086">پس می‌ریم سراغ شانس... 🍀</p>
-            <button type="button" id="btn-tie-continue" class="btn btn-primary mt-14">ادامه ⏭️</button>
+            <div class="role-badge role-detective" data-i18n="tie.badge">تساوی آرا!</div>
+            <p class="text-center mt-10 u-fs-086" data-i18n="tie.note">پس می‌ریم سراغ شانس... 🍀</p>
+            <button type="button" id="btn-tie-continue" class="btn btn-primary mt-14" data-i18n="tie.continue">ادامه ⏭️</button>
         </div>
         <div id="tie-wheel-stage" class="hidden">
-            <h3 class="mb-8">چرخ شانس 🎡</h3>
+            <h3 class="mb-8" data-i18n="tie.wheel.title">چرخ شانس 🎡</h3>
             <div class="wheel-stage">
                 <svg id="wheel-svg" viewBox="0 0 300 300" class="wheel-svg" aria-hidden="true">
                     <g id="wheel-segments"></g>
