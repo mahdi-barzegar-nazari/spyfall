@@ -103,6 +103,15 @@ export class FakeElement {
         return child;
     }
 
+    replaceChildren(...nodes) {
+        this.children.forEach((child) => {
+            child.parent = null;
+        });
+        this.children = [];
+        this.textContent = '';
+        nodes.forEach((node) => this.appendChild(node));
+    }
+
     remove() {
         if (this.parent) this.parent.children = this.parent.children.filter((c) => c !== this);
         this.parent = null;
@@ -225,6 +234,7 @@ export function installFakeEnv() {
         querySelectorAll: (selector) => dom.queries.get(selector) || [],
         querySelector: (selector) => (dom.queries.get(selector) || [])[0] || null,
         createElement: (tag) => new FakeElement('', tag),
+        createTextNode: (text) => ({ nodeType: 3, textContent: String(text), parent: null }),
         createElementNS: (ns, tag) => new FakeElement('', tag)
     });
     define('navigator', {

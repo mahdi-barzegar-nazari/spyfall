@@ -102,7 +102,7 @@ export function computeHeaderLayout(layout) {
 // circle, and every text baseline stacked underneath it, all in terms of
 // the shared scale for this export.
 const RANK_TO_SLOT = { 1: 1, 2: 0, 3: 2 }; // silver-left, gold-center, bronze-right
-const PEDESTAL_HEIGHT_FACTORS = [140, 100, 74]; // [رتبه ۱, رتبه ۲, رتبه ۳] — اول باید بلندترین باشد
+const PEDESTAL_HEIGHT_FACTORS = [140, 100, 74]; // [rank 1, rank 2, rank 3]: the first must be the tallest
 
 export function computePodiumSlotLayout(rank, layout) {
     const s = layout.scale;

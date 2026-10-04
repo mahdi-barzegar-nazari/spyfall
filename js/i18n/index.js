@@ -3,8 +3,12 @@
  *
  * Rules:
  *  - Every displayable text comes from `t(key)` (JS) or from a `data-i18n*` attribute (index.html).
- *  - `t()` returns plain text. It never interprets HTML, and it never escapes anything: a caller that
- *    puts the result (or a parameter) into `innerHTML` must escape it first.
+ *  - `t()` and `tn()` return plain text. They never interpret HTML and never escape anything: a caller
+ *    that puts the result (or a parameter) into `innerHTML` must escape it first, or use `tHtml()` /
+ *    `tnHtml()`, which escape the catalog text and every parameter except a `rawHtml()` one.
+ *  - A catalog value never contains markup. When a sentence needs a bold name, a `<bdi>` or a line break,
+ *    the markup stays in the code: the sentence is one template with `{name}` / `{br}` placeholders that
+ *    `setTemplate()` (DOM nodes) or `tHtml()` (an HTML string) fills in.
  *  - The Persian text written in index.html stays as the default, so the first paint, the offline path
  *    and the Persian experience never wait for JS. Static translations are applied only when the
  *    language is not the default, and again on every `setLang`.
@@ -21,6 +25,11 @@ export const SUPPORTED_LANGS = ['fa'];
 /** Value written to `<html dir>` for each language. */
 export const LANG_DIRECTIONS = { fa: 'rtl' };
 
+/** Numeral system of each language: `persian` writes 0-9 as ۰-۹, a language not listed keeps Latin digits. */
+export const NUMERALS = { fa: 'persian' };
+
+const DIGIT_SETS = { persian: ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'] };
+
 /** localStorage key of the chosen language. */
 export const LANG_STORAGE_KEY = 'spy_lang';
 
@@ -33,15 +42,23 @@ export function getLang() {
     return currentLang;
 }
 
-/** The text for `key` in the active language, else in Persian, else `undefined`. Own properties only. */
-function lookup(key) {
+/**
+ * The first text found for any of `keys` (tried in the order given): in the active language first, then
+ * in Persian. Own properties only, so `constructor` or `__proto__` can never be mistaken for a key.
+ */
+function lookupFirst(keys) {
     const chain = currentLang === DEFAULT_LANG ? [DEFAULT_LANG] : [currentLang, DEFAULT_LANG];
     for (const lang of chain) {
         const catalog = hasOwn(CATALOGS, lang) ? CATALOGS[lang] : null;
-        if (catalog && hasOwn(catalog, key) && typeof catalog[key] === 'string') return catalog[key];
+        if (!catalog) continue;
+        for (const key of keys) {
+            if (hasOwn(catalog, key) && typeof catalog[key] === 'string') return catalog[key];
+        }
     }
     return undefined;
 }
+
+const lookup = (key) => lookupFirst([key]);
 
 /** True when `key` has a text in the active language or in the Persian fallback. */
 export function hasTranslation(key) {
@@ -50,19 +67,174 @@ export function hasTranslation(key) {
 
 const PLACEHOLDER = /\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 
+/** The value of `name` in `params`, or `undefined` (own properties only; `null` counts as missing). */
+function paramValue(params, name) {
+    const value = params && hasOwn(params, name) ? params[name] : undefined;
+    return value === null ? undefined : value;
+}
+
+/** One pass over `text`, so a value that looks like a placeholder is never expanded again. */
+function fill(text, params) {
+    if (!params) return text;
+    return text.replace(PLACEHOLDER, (match, name) => {
+        const value = paramValue(params, name);
+        return value === undefined ? match : String(value);
+    });
+}
+
 /**
  * Translate `key` for the active language, falling back to Persian and then to the key itself.
  * `{name}` in the text is replaced by `params.name`; a placeholder with no value is left as it is.
- * The replacement is a single pass, so a value that looks like a placeholder is never expanded again.
  */
 export function t(key, params) {
     const text = lookup(key);
+    return text === undefined ? String(key) : fill(text, params);
+}
+
+/**
+ * Write `value` in the digits of the active language (see NUMERALS). Anything else is turned into text
+ * the way `String(value)` does, so a bad value shows up as "undefined" or "NaN" instead of throwing.
+ */
+export function formatNumber(value) {
+    const text = String(value);
+    const digits = hasOwn(NUMERALS, currentLang) ? DIGIT_SETS[NUMERALS[currentLang]] : null;
+    return digits ? text.replace(/[0-9]/g, (d) => digits[d]) : text;
+}
+
+const pluralRulesByLang = new Map();
+
+/** `one`, `other`, ... for `count` in the active language; `other` if Intl cannot tell. */
+function pluralCategory(count) {
+    try {
+        if (!pluralRulesByLang.has(currentLang)) pluralRulesByLang.set(currentLang, new Intl.PluralRules(currentLang));
+        return pluralRulesByLang.get(currentLang).select(Number(count));
+    } catch (e) {
+        return 'other';
+    }
+}
+
+/** The plural text of `key` for `count`: `key.<category>` then `key.other`, in the active language then Persian. */
+function lookupPlural(key, count) {
+    return lookupFirst([`${key}.${pluralCategory(count)}`, `${key}.other`]);
+}
+
+/** `params` with `{count}` added: the caller's own `params.count` if there is one, else `formatNumber(count)`. */
+function withCount(count, params) {
+    const own = paramValue(params, 'count');
+    return { ...params, count: own === undefined ? formatNumber(count) : own };
+}
+
+/**
+ * Translate a text that depends on a number. The form is picked by `Intl.PluralRules` of the active
+ * language (`key.one`, `key.other`, ...), falling back to `key.other`, then to Persian, then to the key.
+ * `{count}` is filled with `formatNumber(count)` unless `params.count` is given (a caller that must keep
+ * its own formatting passes it); every other placeholder comes from `params`.
+ */
+export function tn(key, count, params) {
+    const text = lookupPlural(key, count);
     if (text === undefined) return String(key);
-    if (!params) return text;
-    return text.replace(PLACEHOLDER, (match, name) => {
-        const value = hasOwn(params, name) ? params[name] : undefined;
-        return value === undefined || value === null ? match : String(value);
+    return fill(text, withCount(count, params));
+}
+
+/**
+ * "2 minutes and 9 seconds" / "45 seconds" in the active language. Negative, missing and fractional
+ * values are clamped and rounded like the old `formatSecondsFa` did; anything that is not a finite
+ * number counts as 0. Texts: `time.minutes.*` and `time.seconds.*` (plural), and
+ * `time.minutesAndSeconds` (`{minutes}` `{seconds}`, so the language decides the order).
+ */
+export function formatDuration(totalSec) {
+    const rounded = Math.round(Number(totalSec) || 0);
+    const s = Number.isFinite(rounded) ? Math.max(0, rounded) : 0;
+    const minutes = Math.floor(s / 60);
+    const seconds = s % 60;
+    if (minutes === 0) return tn('time.seconds', seconds);
+    return t('time.minutesAndSeconds', { minutes: tn('time.minutes', minutes), seconds: tn('time.seconds', seconds) });
+}
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeText = (text) => text.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+
+class RawHtml {
+    constructor(html) {
+        this.html = html;
+    }
+}
+
+/** Mark `html` as trusted markup for `tHtml()` / `tnHtml()`: it is inserted as it is, not escaped. */
+export function rawHtml(html) {
+    return new RawHtml(String(html));
+}
+
+/**
+ * Like `fill`, for an HTML string: the catalog text and every parameter are escaped, except a
+ * `rawHtml()` one, which is inserted as it is. `{br}` is a line break unless `params.br` says otherwise.
+ */
+function fillHtml(text, params) {
+    return escapeText(text).replace(PLACEHOLDER, (match, name) => {
+        const value = paramValue(params, name);
+        if (value === undefined) return name === 'br' ? '<br>' : match;
+        return value instanceof RawHtml ? value.html : escapeText(String(value));
     });
+}
+
+/**
+ * `t()` for text that goes into `innerHTML`. The result is safe HTML: the catalog text and the
+ * parameters are escaped, and the only markup is what the caller passes as `rawHtml()` (a name already
+ * wrapped in `<strong>`, say) plus `{br}`.
+ */
+export function tHtml(key, params) {
+    const text = lookup(key);
+    return text === undefined ? escapeText(String(key)) : fillHtml(text, params);
+}
+
+/** `tn()` for text that goes into `innerHTML`; see `tHtml()`. */
+export function tnHtml(key, count, params) {
+    const text = lookupPlural(key, count);
+    if (text === undefined) return escapeText(String(key));
+    return fillHtml(text, withCount(count, params));
+}
+
+/**
+ * Write the text of `key` into `element` without `innerHTML`. Each `{name}` in the text is replaced by
+ * `slots[name]`: a Node (a bold `<strong>` holding a player's name, say) is inserted, a string or a
+ * number becomes text. A placeholder that has no slot takes `params[name]` as text, like `t()` would.
+ * Everything else is text, so a name like `<img onerror=...>` can only ever be shown as text. A
+ * placeholder with neither is left as it is; `{br}` is a line break unless a slot says otherwise. The
+ * text is read in a single pass: a value that looks like a placeholder is never expanded again. A Node
+ * used by two placeholders is cloned for the second one.
+ */
+export function setTemplate(element, key, slots, params) {
+    const lookedUp = lookup(key);
+    const text = lookedUp === undefined ? String(key) : lookedUp;
+    const nodes = [];
+    const used = new Set();
+    let buffer = '';
+    const flush = () => {
+        if (buffer) nodes.push(document.createTextNode(buffer));
+        buffer = '';
+    };
+    let last = 0;
+    for (const match of text.matchAll(PLACEHOLDER)) {
+        buffer += text.slice(last, match.index);
+        last = match.index + match[0].length;
+        const name = match[1];
+        let slot = paramValue(slots, name);
+        if (slot === undefined) slot = paramValue(params, name);
+        if (slot === undefined && name === 'br') slot = document.createElement('br');
+        if (slot === undefined) {
+            buffer += match[0];
+        } else if (typeof slot === 'object') {
+            flush();
+            nodes.push(used.has(slot) && typeof slot.cloneNode === 'function' ? slot.cloneNode(true) : slot);
+            used.add(slot);
+        } else {
+            buffer += String(slot);
+        }
+    }
+    buffer += text.slice(last);
+    flush();
+    element.replaceChildren(...nodes);
+    return element;
 }
 
 /**

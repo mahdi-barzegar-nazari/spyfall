@@ -4,20 +4,24 @@
 
 import { cleanCustomWord, getCustomWords, saveCustomWords } from '../core/storage.js';
 import { showToast } from './feedback.js';
+import { formatNumber, t, tn } from '../i18n/index.js';
 import { escapeHtml, normalizeWord } from '../utils/text.js';
+
+// The longest a word, fool word or hint may be.
+const MAX_TEXT_LENGTH = 30;
 
 export function addCustomWordDOM() {
     let w = document.getElementById('cust-word').value.trim();
     let f = document.getElementById('cust-fool').value.trim() || w;
-    let h = document.getElementById('cust-hint').value.trim() || "بدون راهنما";
+    let h = document.getElementById('cust-hint').value.trim() || t('setup.hint.none');
     
-    if (!w) { showToast("کلمه اصلی را وارد فرمایید!"); return; }
-    if (w.length > 30 || f.length > 30) { showToast("طول کلمه نباید بیشتر از ۳۰ کاراکتر باشد!"); return; }
-    if (h.length > 30) { showToast("طول راهنما نباید بیشتر از ۳۰ کاراکتر باشد!"); return; }
+    if (!w) { showToast(t('toast.wordRequired')); return; }
+    if (w.length > MAX_TEXT_LENGTH || f.length > MAX_TEXT_LENGTH) { showToast(t('toast.wordTooLong', { max: formatNumber(MAX_TEXT_LENGTH) })); return; }
+    if (h.length > MAX_TEXT_LENGTH) { showToast(t('toast.hintTooLong', { max: formatNumber(MAX_TEXT_LENGTH) })); return; }
 
     let list = getCustomWords();
     if (list.length >= 1000) {
-        showToast("حداکثر سقف مجاز ثبت کلمات سفارشی تکمیل شده است.");
+        showToast(t('toast.wordLimitReached'));
         return;
     }
     list.push({ word: w, foolWord: f, hint: h, diff: "medium" });
@@ -26,7 +30,7 @@ export function addCustomWordDOM() {
     document.getElementById('cust-fool').value = '';
     document.getElementById('cust-hint').value = '';
     renderCustomWordsList();
-    showToast("کلمه با موفقیت اضافه شد!");
+    showToast(t('toast.wordAdded'));
 }
 
 function deleteCustomWord(idx) {
@@ -38,7 +42,7 @@ function deleteCustomWord(idx) {
 
 export function renderCustomWordsList() {
     let list = getCustomWords();
-    document.getElementById('cust-count').textContent = list.length;
+    document.getElementById('cust-count-label').textContent = t('words.registered', { count: list.length });
     let c = document.getElementById('custom-words-list');
     c.innerHTML = '';
     list.forEach((item, idx) => {
@@ -54,7 +58,7 @@ export function renderCustomWordsList() {
         delBtn.className = 'btn btn-ghost btn-sm color-rose w-auto m-0';
         delBtn.style.padding = '2px 8px';
         delBtn.textContent = '🗑️';
-        delBtn.setAttribute('aria-label', `حذف کلمه ${item.word}`);
+        delBtn.setAttribute('aria-label', t('customWords.delete.aria', { word: item.word }));
         delBtn.addEventListener('click', () => deleteCustomWord(idx));
         
         div.appendChild(infoDiv);
@@ -80,7 +84,7 @@ export function importCustomWordsJSON(inputFile) {
     let file = inputFile.files[0];
     if (!file) return;
     if (file.size > 512 * 1024) {
-        showToast("فایل بیش از حد بزرگ است!");
+        showToast(t('toast.fileTooLarge'));
         inputFile.value = '';
         return;
     }
@@ -107,13 +111,13 @@ export function importCustomWordsJSON(inputFile) {
                     if (deduplicatedNew.length > 0) {
                         saveCustomWords([...current, ...deduplicatedNew]);
                         renderCustomWordsList();
-                        showToast(`${deduplicatedNew.length} کلمه جدید افزوده شد!`);
+                        showToast(tn('toast.wordsImported', deduplicatedNew.length, { count: deduplicatedNew.length }));
                     } else {
-                        showToast("تمام کلمات فایل قبلاً ثبت شده بودند.");
+                        showToast(t('toast.wordsAllKnown'));
                     }
                 }
             }
-        } catch(err) { showToast("خطا در پردازش فایل JSON!"); }
+        } catch(err) { showToast(t('toast.importFailed')); }
         inputFile.value = '';
     };
     reader.readAsText(file);

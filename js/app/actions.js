@@ -15,6 +15,7 @@ import { calcDirectorTurn, initMatchPlayers, startNextRound } from '../game/roun
 import { pauseTimer, resumeTimer, startTimer, stopTimerLoop } from '../game/timer.js';
 import { getCurrentVoter, handleLocalVote } from '../game/voting.js';
 import { stopAudioKeepAlive, toggleMute } from '../platform/audio.js';
+import { setTemplate, t } from '../i18n/index.js';
 import { addCustomWordDOM, exportCustomWordsJSON, importCustomWordsJSON } from '../ui/customWords.js';
 import { showToast } from '../ui/feedback.js';
 import { trapFocus } from '../ui/focusTrap.js';
@@ -133,7 +134,7 @@ export function handleAction(action) {
             if (gameState.phase !== 'timer') return;
             if (gameState.settings.voteLimitEnabled) {
                 if (gameState.vote.limit <= 0) {
-                    showToast("سهمیه زنگ اضطراری به پایان رسیده است!");
+                    showToast(t('toast.emergencyExhausted'));
                     return;
                 }
                 gameState.vote.limit--;
@@ -154,16 +155,19 @@ export function handleAction(action) {
             if (gameState.phase !== 'vote') return;
             let currentVoter = getCurrentVoter();
             if (currentVoter && action.payload === currentVoter.id) {
-                showToast("شما نمی‌توانید به خودتان رای دهید!");
+                showToast(t('toast.selfVote'));
                 return;
             }
-            // "تأییدیه ثبت رأی" (Vote Confirmation) setting: off by default,
+            // "Vote Confirmation" setting: off by default,
             // so a tap registers the vote immediately. When on, show the
             // confirmation popup before finalizing, as before.
             if (gameState.settings.voteConfirm) {
                 gameState.vote.pendingId = action.payload;
                 let targetP = gameState.players.find(p => p.id === action.payload);
-                document.getElementById('vote-confirm-name').textContent = targetP ? targetP.name : '';
+                const confirmName = document.createElement('strong');
+                confirmName.className = 'color-rose';
+                confirmName.textContent = targetP ? targetP.name : '';
+                setTemplate(document.getElementById('vote-confirm-text'), 'voteConfirm.question', { name: confirmName });
                 dispatch({type: 'OPEN_MODAL', payload: 'vote-confirm-modal'});
             } else {
                 handleLocalVote(action.payload);
@@ -263,8 +267,8 @@ export function handleAction(action) {
             dispatch({type: 'NAVIGATE', payload: 'setup'});
             break;
         case 'CONFIRM_END_MATCH':
-            document.getElementById('confirm-modal-title').textContent = "پایان مسابقه";
-            document.getElementById('confirm-modal-text').textContent = "آیا مسابقه خاتمه یابد و کارنامه کلی نمایش داده شود؟";
+            document.getElementById('confirm-modal-title').textContent = t('confirm.endMatch.title');
+            document.getElementById('confirm-modal-text').textContent = t('confirm.endMatch.text');
             session.pendingConfirmAction = () => dispatch({type: 'END_MATCH'});
             dispatch({type: 'OPEN_MODAL', payload: 'confirm-modal'});
             break;

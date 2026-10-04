@@ -2,6 +2,8 @@
  * Text helpers: Persian/Latin digits, HTML escaping, word normalisation, duration formatting.
  */
 
+import { formatDuration } from '../i18n/index.js';
+
 export function toLatinDigits(v) {
     const faDigits = '۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩';
     const enDigits = '01234567890123456789';
@@ -22,13 +24,9 @@ export function normalizeWord(t) {
     return s;
 }
 
-// "۲ دقیقه و ۹ ثانیه" / "۴۵ ثانیه" — used for the total spy catch-time stat.
+// Deprecated alias of `formatDuration` (i18n/), which has the same output; kept for existing imports and tests.
 export function formatSecondsFa(totalSec) {
-    const s = Math.max(0, Math.round(totalSec || 0));
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    if (m === 0) return `${toPersianDigits(r)} ثانیه`;
-    return `${toPersianDigits(m)} دقیقه و ${toPersianDigits(r)} ثانیه`;
+    return formatDuration(totalSec);
 }
 
 export function toPersianDigits(value) {

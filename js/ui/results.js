@@ -3,7 +3,8 @@
  */
 
 import { gameState } from '../core/state.js';
-import { escapeHtml, formatSecondsFa, toPersianDigits } from '../utils/text.js';
+import { formatDuration, formatNumber, rawHtml, t, tHtml, tn, tnHtml } from '../i18n/index.js';
+import { escapeHtml } from '../utils/text.js';
 
 export const PODIUM_RANK_META = {
     1: { icon: '👑' },
@@ -12,10 +13,10 @@ export const PODIUM_RANK_META = {
 };
 
 function formatGroupNames(group) {
-    const names = group.players.map(p => escapeHtml(p.name));
-    if (names.length === 1) return `<bdi>${names[0]}</bdi>`;
-    if (names.length === 2) return `<bdi>${names[0]}</bdi> و <bdi>${names[1]}</bdi>`;
-    return `<bdi>${names[0]}</bdi> و ${toPersianDigits(names.length - 1)} نفر دیگر`;
+    const names = group.players.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`);
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return tHtml('names.pair', { a: rawHtml(names[0]), b: rawHtml(names[1]) });
+    return tnHtml('names.more', names.length - 1, { a: rawHtml(names[0]) });
 }
 
 export function renderPodium(container, groups) {
@@ -27,14 +28,14 @@ export function renderPodium(container, groups) {
         const el = document.createElement('div');
         el.className = 'podium-item';
         el.dataset.rank = String(g.rank);
-        const tieBadge = g.players.length > 1 ? `<span class="podium-tie-badge">مشترک</span>` : '';
+        const tieBadge = g.players.length > 1 ? `<span class="podium-tie-badge">${escapeHtml(t('leaderboard.podiumTied'))}</span>` : '';
         el.innerHTML = `
                 <div class="podium-pillar">
                     <div class="podium-card">
                         <span class="podium-icon" aria-hidden="true">${meta.icon}</span>
                         <span class="podium-name">${formatGroupNames(g)}</span>
                         ${tieBadge}
-                        <span class="podium-score">${g.score} امتیاز</span>
+                        <span class="podium-score">${escapeHtml(tn('score.points', g.score, { count: g.score }))}</span>
                     </div>
                     <div class="podium-riser" aria-hidden="true"></div>
                 </div>
@@ -66,10 +67,10 @@ export function renderPodium(container, groups) {
 }
 
 function statRow(label, value) {
-    return `<div class="detail-row"><span>${label}</span><span>${value}</span></div>`;
+    return `<div class="detail-row"><span>${escapeHtml(label)}</span><span>${value}</span></div>`;
 }
 
-// Builds the full "دیدن جزئیات" list — one card per player with every
+// Builds the full "player details" list — one card per player with every
 // behind-the-scenes stat the game secretly tracked this match. Sections
 // that never applied to a given player (never spy, never fool, never
 // wagered) are skipped for them rather than showing a wall of zeros.
@@ -84,39 +85,39 @@ export function renderPlayerDetails() {
         const st = p.stats || {};
         let rows = '';
 
-        rows += `<div class="detail-section-title">🎖️ کلی</div>`;
-        rows += statRow('امتیاز نهایی', toPersianDigits(Number(p.score) || 0));
-        rows += statRow('بردها به‌عنوان شهروند', toPersianDigits(st.cw || 0));
-        rows += statRow('رای‌های درست (هنگام شهروند بودن)', toPersianDigits(st.spiesCaught || 0));
-        rows += statRow('رای‌های غلط (هنگام شهروند بودن)', toPersianDigits(st.wrongVotes || 0));
-        rows += statRow('دفعاتی که به اشتباه اخراج شد', toPersianDigits(st.innocentVotesReceived || 0));
+        rows += `<div class="detail-section-title">${escapeHtml(t('details.section.overall'))}</div>`;
+        rows += statRow(t('leaderboard.col.score'), formatNumber(Number(p.score) || 0));
+        rows += statRow(t('details.stat.citizenWins'), formatNumber(st.cw || 0));
+        rows += statRow(t('details.stat.votesRight'), formatNumber(st.spiesCaught || 0));
+        rows += statRow(t('details.stat.votesWrong'), formatNumber(st.wrongVotes || 0));
+        rows += statRow(t('details.stat.wrongfullyEjected'), formatNumber(st.innocentVotesReceived || 0));
 
         if ((st.timesFool || 0) > 0) {
-            rows += `<div class="detail-section-title">🎭 به‌عنوان ساده‌لوح</div>`;
-            rows += statRow('دفعاتی که این نقش را داشت', toPersianDigits(st.timesFool));
-            rows += statRow('فرارهای موفق (بدون شناسایی)', toPersianDigits(st.foolEscaped || 0));
+            rows += `<div class="detail-section-title">${escapeHtml(t('details.section.fool'))}</div>`;
+            rows += statRow(t('details.stat.foolTimes'), formatNumber(st.timesFool));
+            rows += statRow(t('details.stat.foolEscapes'), formatNumber(st.foolEscaped || 0));
         }
 
         if ((st.timesSpy || 0) > 0) {
-            rows += `<div class="detail-section-title">🕵️ به‌عنوان جاسوس</div>`;
-            rows += statRow('دفعاتی که جاسوس شد', toPersianDigits(st.timesSpy));
-            rows += statRow('بردها به‌عنوان جاسوس', toPersianDigits(st.sw || 0));
-            rows += statRow('دفعاتی که شناسایی و اخراج شد', toPersianDigits(st.vs || 0));
-            rows += statRow('شهروندانی که قبل از خودش اخراج کرد', toPersianDigits(st.citizensEliminatedBeforeCaught || 0));
-            rows += statRow('مجموع زمان طول‌کشیدن تا لو رفتن', formatSecondsFa(st.totalCatchTimeSec));
-            rows += statRow('حدس‌های درست کلمه رمز', toPersianDigits(st.spyGuesses || 0));
+            rows += `<div class="detail-section-title">${escapeHtml(t('details.section.spy'))}</div>`;
+            rows += statRow(t('details.stat.spyTimes'), formatNumber(st.timesSpy));
+            rows += statRow(t('details.stat.spyWins'), formatNumber(st.sw || 0));
+            rows += statRow(t('details.stat.spyCaught'), formatNumber(st.vs || 0));
+            rows += statRow(t('details.stat.spyCitizensEjected'), formatNumber(st.citizensEliminatedBeforeCaught || 0));
+            rows += statRow(t('details.stat.spyCatchTime'), formatDuration(st.totalCatchTimeSec));
+            rows += statRow(t('details.stat.spyGuesses'), formatNumber(st.spyGuesses || 0));
         }
 
         if (((st.bw || 0) + (st.bl || 0)) > 0) {
-            rows += `<div class="detail-section-title">🎲 شرط‌بندی</div>`;
-            rows += statRow('شرط‌های برنده', toPersianDigits(st.bw || 0));
-            rows += statRow('شرط‌های بازنده', toPersianDigits(st.bl || 0));
+            rows += `<div class="detail-section-title">${escapeHtml(t('details.section.wager'))}</div>`;
+            rows += statRow(t('details.stat.wagersWon'), formatNumber(st.bw || 0));
+            rows += statRow(t('details.stat.wagersLost'), formatNumber(st.bl || 0));
             const wp = Math.round(st.wagerProfit || 0);
-            rows += statRow('سود/زیان خالص شرط‌بندی', `${wp > 0 ? '+' : ''}${toPersianDigits(wp)}`);
+            rows += statRow(t('details.stat.wagerProfit'), `${wp > 0 ? '+' : ''}${formatNumber(wp)}`);
         }
 
-        rows += `<div class="detail-section-title">🔒 امتیاز مخفی پشت‌صحنه</div>`;
-        rows += statRow('امتیاز مخفی تساوی‌شکن (فقط برای شکستن تساوی، در امتیاز نهایی دیده نمی‌شود)', toPersianDigits(Math.round((st.hiddenTieBreakerScore || 0) * 10) / 10));
+        rows += `<div class="detail-section-title">${escapeHtml(t('details.section.hidden'))}</div>`;
+        rows += statRow(t('details.stat.hiddenTieBreaker'), formatNumber(Math.round((st.hiddenTieBreakerScore || 0) * 10) / 10));
 
         const card = document.createElement('div');
         card.className = 'detail-player-card';
@@ -136,6 +137,18 @@ function getTopPlayersForAccolade(statKey) {
     return tops;
 }
 
+// "a, b and c": the names are joined with the language's own "and" (see `names.pair`).
+function joinNames(players) {
+    return players
+        .map(p => `<bdi>${escapeHtml(p.name)}</bdi>`)
+        .reduce((joined, next) => tHtml('names.pair', { a: rawHtml(joined), b: rawHtml(next) }));
+}
+
+function accoladeCard(icon, colorClass, titleKey, descKey, players) {
+    const title = tHtml(titleKey, { names: rawHtml(joinNames(players)) });
+    return `<div class="accolade-card"><div class="accolade-icon">${icon}</div><div><div class="${colorClass} u-bold">${title}</div><div class="color-secondary u-fs-075">${escapeHtml(t(descKey))}</div></div></div>`;
+}
+
 export function renderAccolades() {
     const acc = document.getElementById('accolades-container');
     acc.innerHTML = '';
@@ -147,28 +160,10 @@ export function renderAccolades() {
     const topVictims = getTopPlayersForAccolade('innocentVotesReceived');
     const topFools = getTopPlayersForAccolade('foolEscaped');
 
-    if (topSpies) {
-        const names = topSpies.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕵️</div><div><div class="color-rose u-bold">شبح سیاه: ${names}</div><div class="color-secondary u-fs-075">زیرک‌ترین جاسوس با بیشترین فرار از شناسایی</div></div></div>`;
-    }
-    if (topGuessers) {
-        const names = topGuessers.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🧠</div><div><div class="color-amber u-bold">ذهن‌خوان برجسته: ${names}</div><div class="color-secondary u-fs-075">حدس صحیح کلمه رمز اصلی در نقش جاسوس</div></div></div>`;
-    }
-    if (topDetectives) {
-        const names = topDetectives.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🔍</div><div><div class="color-emerald u-bold">شرلوک هلمز: ${names}</div><div class="color-secondary u-fs-075">بیشترین شکار جاسوس‌ها در جلسات رای‌گیری</div></div></div>`;
-    }
-    if (topWagerers) {
-        const names = topWagerers.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🐺</div><div><div class="color-primary u-bold">گرگ وال‌استریت: ${names}</div><div class="color-secondary u-fs-075">کسب بیشترین سود از شرط‌بندی روی مظنونین</div></div></div>`;
-    }
-    if (topVictims) {
-        const names = topVictims.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🕊️</div><div><div class="color-violet u-bold">قربانی بی‌گناه: ${names}</div><div class="color-secondary u-fs-075">مظلوم‌ترین شهروند که بیشترین اتهام اشتباه را خورد</div></div></div>`;
-    }
-    if (topFools) {
-        const names = topFools.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`).join(' و ');
-        acc.innerHTML += `<div class="accolade-card"><div class="accolade-icon">🎭</div><div><div class="color-amber u-bold">بازیگر نقاب‌دار: ${names}</div><div class="color-secondary u-fs-075">ساده‌لوحی که بدون سوءظن موفق به فرار شد</div></div></div>`;
-    }
+    if (topSpies) acc.innerHTML += accoladeCard('🕵️', 'color-rose', 'leaderboard.accolade.ghost.title', 'leaderboard.accolade.ghost.desc', topSpies);
+    if (topGuessers) acc.innerHTML += accoladeCard('🧠', 'color-amber', 'leaderboard.accolade.mindreader.title', 'leaderboard.accolade.mindreader.desc', topGuessers);
+    if (topDetectives) acc.innerHTML += accoladeCard('🔍', 'color-emerald', 'leaderboard.accolade.sherlock.title', 'leaderboard.accolade.sherlock.desc', topDetectives);
+    if (topWagerers) acc.innerHTML += accoladeCard('🐺', 'color-primary', 'leaderboard.accolade.wolf.title', 'leaderboard.accolade.wolf.desc', topWagerers);
+    if (topVictims) acc.innerHTML += accoladeCard('🕊️', 'color-violet', 'leaderboard.accolade.victim.title', 'leaderboard.accolade.victim.desc', topVictims);
+    if (topFools) acc.innerHTML += accoladeCard('🎭', 'color-amber', 'leaderboard.accolade.mask.title', 'leaderboard.accolade.mask.desc', topFools);
 }

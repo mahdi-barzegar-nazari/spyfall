@@ -3,6 +3,7 @@
  */
 
 import { showToast } from '../ui/feedback.js';
+import { t } from '../i18n/index.js';
 
 /** Register the service worker (production builds only do real caching; see sw.js). */
 export function registerServiceWorker() {
@@ -17,7 +18,7 @@ export function registerServiceWorker() {
                 installing.addEventListener('statechange', () => {
                     // An existing controller means this is an update, not the first install.
                     if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-                        showToast('نسخه جدید بازی آماده است. برنامه را ببندید و دوباره باز کنید.');
+                        showToast(t('toast.updateReady'));
                     }
                 });
             });

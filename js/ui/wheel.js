@@ -6,7 +6,7 @@ import { dispatch } from '../core/dispatch.js';
 import { gameState } from '../core/state.js';
 import { playCardFlip } from '../platform/audio.js';
 import { getRandomCryptoInt } from '../utils/random.js';
-import { escapeHtml } from '../utils/text.js';
+import { t, tHtml } from '../i18n/index.js';
 
 let elimRevealTimeoutId = null;
 
@@ -16,17 +16,17 @@ export function showEliminationReveal(player, wasSpy, note, onDone) {
     const badge = document.getElementById('elim-badge');
     const noteEl = document.getElementById('elim-note');
 
-    nameEl.textContent = `«${player.name}» از بازی حذف شد`;
+    nameEl.textContent = t('elim.removed', { name: player.name });
     if (wasSpy) {
         icon.textContent = '🕵️';
         badge.className = 'role-badge role-spy';
-        badge.textContent = '🕵️ جاسوس بود!';
-        noteEl.textContent = note || 'حالا نوبت حدس‌زدن کلمه رمز است...';
+        badge.textContent = t('elim.badge.spy');
+        noteEl.textContent = note || t('elim.note.spyGuess');
     } else {
         icon.textContent = '😇';
         badge.className = 'role-badge role-citizen';
-        badge.textContent = '😇 شهروند بی‌گناه بود!';
-        noteEl.textContent = note || 'اخراج اشتباه بود!';
+        badge.textContent = t('elim.badge.citizen');
+        noteEl.textContent = note || t('elim.note.wrong');
     }
 
     playCardFlip();
@@ -131,11 +131,13 @@ function spinWheel(names, winnerIndex, onDone) {
 let tieAnnounceTimeoutId = null;
 
 export function runTieBreakerWheel(candidateIds, onResolved) {
-    const names = candidateIds.map(id => gameState.players.find(p => p.id === id)?.name || '؟');
+    const names = candidateIds.map(id => gameState.players.find(p => p.id === id)?.name || t('common.unknownName'));
     const winnerIndex = getRandomCryptoInt(candidateIds.length);
     const winnerId = candidateIds[winnerIndex];
 
-    document.getElementById('tie-announce-names').innerHTML = `رای‌های ${names.map(n => `«${escapeHtml(n)}»`).join(' و ')} مساوی شد`;
+    const quotedNames = names.map(n => t('names.quoted', { name: n }));
+    const joinedNames = quotedNames.length ? quotedNames.reduce((joined, next) => t('names.pair', { a: joined, b: next })) : '';
+    document.getElementById('tie-announce-names').innerHTML = tHtml('tie.announce', { names: joinedNames });
     document.getElementById('tie-announce-stage').classList.remove('hidden');
     document.getElementById('tie-wheel-stage').classList.add('hidden');
     document.getElementById('tie-wheel-result').textContent = '';
@@ -153,7 +155,7 @@ export function runTieBreakerWheel(candidateIds, onResolved) {
         document.getElementById('tie-announce-stage').classList.add('hidden');
         document.getElementById('tie-wheel-stage').classList.remove('hidden');
         spinWheel(names, winnerIndex, () => {
-            document.getElementById('tie-wheel-result').textContent = `🎯 «${names[winnerIndex]}» انتخاب شد!`;
+            document.getElementById('tie-wheel-result').textContent = t('tie.winner', { name: names[winnerIndex] });
             setTimeout(() => {
                 dispatch({type: 'CLOSE_MODAL', payload: 'tie-breaker-modal'});
                 onResolved(winnerId);

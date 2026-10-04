@@ -3,6 +3,7 @@
  */
 
 import { SAVE_VERSION, gameState, serializeSecrets } from './state.js';
+import { t } from '../i18n/index.js';
 
 export function persist() {
     if (gameState.players.length > 0) {
@@ -53,7 +54,7 @@ export function cleanCustomWord(w) {
     if (!w || typeof w !== 'object') return null;
     const word = String(w.word || '').trim();
     const foolWord = String(w.foolWord || word).trim();
-    const hint = String(w.hint || 'بدون راهنما').trim();
+    const hint = String(w.hint || t('setup.hint.none')).trim();
     if (!word || word.length > 30) return null;
     if (foolWord.length > 30) return null;
     if (hint.length > 30) return null;

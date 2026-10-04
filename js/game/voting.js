@@ -5,8 +5,10 @@
 import { dispatch } from '../core/dispatch.js';
 import { commitState } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
+import { t, tn } from '../i18n/index.js';
 import { showToast } from '../ui/feedback.js';
 import { runTieBreakerWheel } from '../ui/wheel.js';
+import { escapeHtml } from '../utils/text.js';
 
 export function getCurrentVoter() {
     let alive = gameState.players.filter(p => p.isAlive && !p.isSpectator);
@@ -24,7 +26,7 @@ export function handleLocalVote(suspectId) {
     if (!currentVoter) return;
 
     if (suspectId === currentVoter.id) {
-        showToast("شما نمی‌توانید به خودتان رای دهید!");
+        showToast(t('toast.selfVote'));
         return;
     }
 
@@ -48,7 +50,7 @@ function checkVoteCompletion() {
         
         const voteCounts = Object.values(tally);
         if (voteCounts.length === 0) {
-            showToast("خطا در تجمیع آرا؛ رای‌گیری لغو شد.");
+            showToast(t('toast.tallyError'));
             dispatch({ type: 'CANCEL_VOTE' });
             return;
         }
@@ -75,14 +77,15 @@ function checkVoteCompletion() {
 }
 
 export function generateWagerOptionsHtml(score) {
-    let html = '<option value="0">بدون شرط (۰)</option>';
+    let html = `<option value="0">${escapeHtml(t('wager.option.none'))}</option>`;
     const safeMax = Math.min(Math.max(0, parseInt(score, 10) || 0), 100);
     const step = safeMax > 20 ? Math.ceil(safeMax / 10) : 1;
     for (let i = 1; i <= safeMax; i += step) {
-        html += `<option value="${i}">${i} امتیاز</option>`;
+        // The amounts keep Latin digits, as they always did here.
+        html += `<option value="${i}">${escapeHtml(tn('score.points', i, { count: i }))}</option>`;
     }
     if (safeMax > 0 && !html.includes(`value="${safeMax}"`)) {
-        html += `<option value="${safeMax}">حداکثر (${safeMax} امتیاز)</option>`;
+        html += `<option value="${safeMax}">${escapeHtml(tn('wager.option.max', safeMax, { count: safeMax }))}</option>`;
     }
     return html;
 }

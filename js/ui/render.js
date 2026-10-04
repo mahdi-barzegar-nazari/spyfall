@@ -8,20 +8,21 @@ import { comparePlayersForRank, getRankedStandings } from '../game/ranking.js';
 import { generateWagerOptionsHtml, getCurrentVoter } from '../game/voting.js';
 import { hideHandoffGate, openHandoffGate } from './handoff.js';
 import { PODIUM_RANK_META, renderAccolades, renderPodium } from './results.js';
+import { rawHtml, setTemplate, t, tHtml } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
 export function renderTimer(sec) {
-    const t = document.getElementById('timer-text');
-    if (!t) return;
+    const display = document.getElementById('timer-text');
+    if (!display) return;
     const validSec = Math.max(0, parseInt(sec, 10) || 0);
     const m = Math.floor(validSec / 60);
     const s = validSec % 60;
-    t.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    t.className = 'timer-display';
+    display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    display.className = 'timer-display';
     if (validSec <= 10 && validSec > 0) {
-        t.classList.add('timer-danger');
+        display.classList.add('timer-danger');
     } else if (validSec <= 30 && validSec > 0) {
-        t.classList.add('timer-warning');
+        display.classList.add('timer-warning');
     }
 }
 
@@ -46,15 +47,15 @@ export function renderUI() {
     previousPhase = gameState.phase;
 
     if (gameState.phase === 'reveal') {
-        // "تأییدیه دیدن نقش" (Role Reveal Confirmation) — default ON.
+        // "Role Reveal Confirmation" — default ON.
         // Missing on an old restored save is treated as ON (its prior
         // default/only behavior), for backward compatibility.
         const revealConfirmOn = gameState.settings.roleRevealConfirm !== false;
-        document.getElementById('reveal-instruction-text').textContent = !revealConfirmOn
-            ? "نام خودت را انتخاب کن تا کارتت بلافاصله نمایش داده شود."
+        document.getElementById('reveal-instruction-text').textContent = t(!revealConfirmOn
+            ? 'reveal.instruction.immediate'
             : gameState.settings.revealHold
-                ? "نام خودت را انتخاب کن، سپس انگشتت را روی دکمهٔ نمایش نگه دار."
-                : "نام خودت را انتخاب کن، سپس کارتت را نمایش بده.";
+                ? 'reveal.instruction.hold'
+                : 'reveal.instruction.tap');
         let g = document.getElementById('reveal-grid'); g.innerHTML = ''; let seenCount = 0;
         const revealRoster = gameState.players.filter(p => !p.isSpectator);
         revealRoster.forEach(p => {
@@ -73,9 +74,9 @@ export function renderUI() {
                 d.onclick = () => openHandoffGate({
                     player: p,
                     subtitle: gameState.settings.revealHold
-                        ? 'روی دکمهٔ پایین انگشتت را نگه‌دار تا کارت باز شود؛ با برداشتن انگشت دوباره مخفی می‌شود.'
-                        : 'وقتی گوشی دست توئه، روی دکمهٔ پایین بزن تا کارتت را ببینی.',
-                    actionLabel: gameState.settings.revealHold ? '🔒 نگه‌دار تا باز شود' : '👁 نمایش کارت من',
+                        ? t('handoff.reveal.subtitle.hold')
+                        : t('handoff.reveal.subtitle.tap'),
+                    actionLabel: gameState.settings.revealHold ? t('handoff.reveal.action.hold') : t('handoff.reveal.action.tap'),
                     holdMode: !!gameState.settings.revealHold,
                     onConfirm: () => dispatch({type: 'OPEN_ROLE_CARD', payload: p.id})
                 });
@@ -96,12 +97,12 @@ export function renderUI() {
             let last = gameState.round.history[gameState.round.history.length - 1];
             let aP = gameState.players.find(x => x.id === last.a), tP = gameState.players.find(x => x.id === last.t);
             if (aP && tP) {
-                document.getElementById('director-text').textContent = `«${aP.name}» سوال بپرسد از «${tP.name}»`;
+                document.getElementById('director-text').textContent = t('timer.director.turn', { asker: aP.name, target: tP.name });
             }
         }
         renderTimer(gameState.timer.pausedSec);
         let v = document.getElementById('votes-remaining-badge');
-        v.textContent = !gameState.settings.voteLimitEnabled ? "زنگ: نامحدود" : `سهمیه زنگ باقی‌مانده: ${gameState.vote.limit}`;
+        v.textContent = !gameState.settings.voteLimitEnabled ? t('timer.votes.unlimited') : t('timer.votes.remaining', { limit: gameState.vote.limit });
     }
 
     if (gameState.phase === 'vote') {
@@ -119,7 +120,7 @@ export function renderUI() {
                 d.type = 'button';
                 let isSelf = p.id === currentVoter.id;
                 d.className = `player-card ${isSelf ? 'disabled' : ''}`;
-                d.textContent = p.name + (isSelf ? ' (شما)' : '');
+                d.textContent = isSelf ? t('vote.option.self', { name: p.name }) : p.name;
                 if (isSelf) {
                     d.disabled = true;
                 } else {
@@ -128,16 +129,18 @@ export function renderUI() {
                 g.appendChild(d);
             });
 
-            document.getElementById('vote-instruction-text').innerHTML = `📱 گوشی دست <strong>«${escapeHtml(currentVoter.name)}»</strong> باشد:<br>متهم مورد نظرت را انتخاب کن:`;
+            const voterName = document.createElement('strong');
+            voterName.textContent = t('names.quoted', { name: currentVoter.name });
+            setTemplate(document.getElementById('vote-instruction-text'), 'vote.instruction', { name: voterName });
 
-            // "رای‌گیری سریع" (Quick Voting) — when on, skip the
+            // "Quick Voting" — when on, skip the
             // pass-and-play handoff gate entirely; the vote grid above
             // is already interactive as soon as it's someone's turn.
             if (!gameState.settings.quickVoting && session.voteHandoffDoneIndex !== gameState.localVoteIndex) {
                 openHandoffGate({
                     player: currentVoter,
-                    subtitle: 'وقتی گوشی دست توئه، برای دیدن گزینه‌های رای‌گیری روی دکمهٔ پایین بزن.',
-                    actionLabel: '🗳 آماده‌ام، رای می‌دهم',
+                    subtitle: t('handoff.vote.subtitle'),
+                    actionLabel: t('handoff.vote.action'),
                     onConfirm: () => { session.voteHandoffDoneIndex = gameState.localVoteIndex; hideHandoffGate(); }
                 });
             }
@@ -145,8 +148,11 @@ export function renderUI() {
     }
 
     if (gameState.phase === 'wager') {
-        let t = gameState.players.find(p => p.id === gameState.vote.targetId);
-        document.getElementById('wager-target-name').textContent = t ? t.name : 'متهم';
+        const target = gameState.players.find(p => p.id === gameState.vote.targetId);
+        const suspectName = document.createElement('strong');
+        suspectName.className = 'color-rose';
+        suspectName.textContent = target ? target.name : t('common.suspect');
+        setTemplate(document.getElementById('wager-suspect-line'), 'wager.suspectLine', { name: suspectName });
         let l = document.getElementById('wager-players-list'); l.innerHTML = '';
         let submitBtn = document.getElementById('btn-submit-wagers');
 
@@ -154,16 +160,16 @@ export function renderUI() {
         let currentWagerer = eligible[gameState.localWagerIndex];
         if (currentWagerer) {
             let d = document.createElement('div'); d.className = 'toggle-item';
-            d.innerHTML = `<div>📱 نوبت <strong>${escapeHtml(currentWagerer.name)}</strong> (موجودی: ${currentWagerer.score})</div><select class="input-control wager-select w-auto u-p-6" data-player-id="${currentWagerer.id}" aria-label="میزان شرط ${escapeHtml(currentWagerer.name)}">${generateWagerOptionsHtml(currentWagerer.score)}</select>`;
+            d.innerHTML = `<div>${tHtml('wager.turn', { name: rawHtml(`<strong>${escapeHtml(currentWagerer.name)}</strong>`), score: currentWagerer.score })}</div><select class="input-control wager-select w-auto u-p-6" data-player-id="${currentWagerer.id}" aria-label="${escapeHtml(t('wager.select.aria', { name: currentWagerer.name }))}">${generateWagerOptionsHtml(currentWagerer.score)}</select>`;
             l.appendChild(d);
-            submitBtn.textContent = (gameState.localWagerIndex === eligible.length - 1) ? "ثبت شرط نهایی و رونمایی ✅" : "ثبت و نفر بعدی ➡️";
+            submitBtn.textContent = (gameState.localWagerIndex === eligible.length - 1) ? t('wager.submit.final') : t('wager.submit.next');
             submitBtn.classList.remove('hidden');
 
             if (session.wagerHandoffDoneIndex !== gameState.localWagerIndex) {
                 openHandoffGate({
                     player: currentWagerer,
-                    subtitle: 'وقتی گوشی دست توئه، برای انتخاب میزان شرطت روی دکمهٔ پایین بزن.',
-                    actionLabel: '💰 آماده‌ام، شرط می‌بندم',
+                    subtitle: t('handoff.wager.subtitle'),
+                    actionLabel: t('handoff.wager.action'),
                     onConfirm: () => { session.wagerHandoffDoneIndex = gameState.localWagerIndex; hideHandoffGate(); }
                 });
             }
@@ -172,7 +178,12 @@ export function renderUI() {
 
     if (gameState.phase === 'guess') {
         let spyP = gameState.players.find(p => p.id === gameState.vote.targetId);
-        document.getElementById('guess-spy-name').textContent = spyP ? spyP.name : 'جاسوس';
+        const spyName = document.createElement('strong');
+        spyName.className = 'color-rose';
+        spyName.textContent = spyP ? spyP.name : t('common.spy');
+        const verbalWord = document.createElement('strong');
+        verbalWord.textContent = t('guess.verbalWord');
+        setTemplate(document.getElementById('guess-announce'), 'guess.announce', { name: spyName, verbal: verbalWord });
     }
 
     if (gameState.phase === 'result') {
@@ -197,7 +208,7 @@ export function renderUI() {
             const rankLabel = meta ? meta.icon : `#${g.rank}`;
             g.players.forEach(p => {
                 const wins = (Number(p.stats?.cw) || 0) + (Number(p.stats?.sw) || 0);
-                const tieNote = g.players.length > 1 ? `<span class="tie-note">(هم‌رتبه)</span>` : '';
+                const tieNote = g.players.length > 1 ? `<span class="tie-note">${escapeHtml(t('leaderboard.tied'))}</span>` : '';
                 let tr = document.createElement('tr');
                 tr.innerHTML = `<td class="rank-cell">${rankLabel}</td><th scope="row"><bdi>${escapeHtml(p.name)}</bdi>${tieNote}</th><td>${wins}</td><td class="color-amber">${Number(p.score) || 0}</td>`;
                 tb.appendChild(tr);
@@ -212,7 +223,7 @@ export function renderRoleModalContent(id) {
     if (!p) return;
 
     let role = p.role;
-    let hintTitle = "کلمه رمز شما:";
+    let hintTitle = t('role.hintTitle.word');
     let secretWord = hostSecretState.secretWord || "";
     let foolWord = hostSecretState.foolWord || "";
     let quest = p.quest;
@@ -222,12 +233,12 @@ export function renderRoleModalContent(id) {
     if (p.isSpectator) {
         document.getElementById('modal-player-name').textContent = p.name;
         let b = document.getElementById('modal-role-badge');
-        let t = document.getElementById('modal-secret-title');
+        let titleEl = document.getElementById('modal-secret-title');
         let c = document.getElementById('modal-secret-content');
         b.className = 'role-badge role-spectator';
-        b.textContent = '👀 شما تماشاچی هستید';
-        t.textContent = 'وضعیت شما در این دور:';
-        c.textContent = 'در دست بعدی وارد مسابقه می‌شوید';
+        b.textContent = t('role.spectator.badge');
+        titleEl.textContent = t('role.spectator.title');
+        c.textContent = t('role.spectator.content');
         document.getElementById('modal-fellow-spies').classList.add('hidden');
         document.getElementById('modal-detective-action').classList.add('hidden');
         document.getElementById('modal-quest-box').classList.add('hidden');
@@ -238,7 +249,7 @@ export function renderRoleModalContent(id) {
     if (hostSecretState.roles[id]) {
         let sec = hostSecretState.roles[id];
         role = sec.role;
-        hintTitle = sec.hintTitle || 'کلمه رمز شما:';
+        hintTitle = sec.hintTitle || t('role.hintTitle.word');
         secretWord = sec.role === 'spy'
             ? sec.hint
             : (sec.role === 'fool' ? hostSecretState.foolWord : hostSecretState.secretWord);
@@ -250,7 +261,7 @@ export function renderRoleModalContent(id) {
     }
 
     let b = document.getElementById('modal-role-badge');
-    let t = document.getElementById('modal-secret-title');
+    let titleEl = document.getElementById('modal-secret-title');
     let c = document.getElementById('modal-secret-content');
     let f = document.getElementById('modal-fellow-spies');
     let d = document.getElementById('modal-detective-action');
@@ -263,22 +274,22 @@ export function renderRoleModalContent(id) {
 
     if (role === 'spy') {
         b.className = 'role-badge role-spy';
-        b.textContent = '🕵️ شما جاسوس هستید!';
-        t.textContent = hintTitle;
+        b.textContent = t('role.spy.badge');
+        titleEl.textContent = hintTitle;
         c.textContent = secretWord;
         if (gameState.settings.knownSpies && fellowSpies.length > 0) {
             f.classList.remove('hidden');
-            document.getElementById('modal-fellow-spies-text').textContent = fellowSpies.join(' ، ');
+            document.getElementById('modal-fellow-spies-text').textContent = fellowSpies.reduce((list, name) => t('role.fellowSpies.join', { a: list, b: name }));
         }
     } else if (role === 'fool') {
         b.className = 'role-badge role-citizen';
-        b.textContent = '👤 شما شهروند هستید';
-        t.textContent = 'کلمه رمز شما:';
+        b.textContent = t('role.citizen.badge');
+        titleEl.textContent = t('role.hintTitle.word');
         c.textContent = foolWord;
     } else if (role === 'detective') {
         b.className = 'role-badge role-detective';
-        b.textContent = '🔍 شما کارآگاه هستید';
-        t.textContent = 'کلمه رمز شما:';
+        b.textContent = t('role.detective.badge');
+        titleEl.textContent = t('role.hintTitle.word');
         c.textContent = secretWord;
         
         d.classList.remove('hidden');
@@ -306,8 +317,8 @@ export function renderRoleModalContent(id) {
         }
     } else {
         b.className = 'role-badge role-citizen';
-        b.textContent = '👤 شما شهروند هستید';
-        t.textContent = 'کلمه رمز شما:';
+        b.textContent = t('role.citizen.badge');
+        titleEl.textContent = t('role.hintTitle.word');
         c.textContent = secretWord;
     }
 

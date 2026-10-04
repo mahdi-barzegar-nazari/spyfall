@@ -7,6 +7,7 @@ import { gameState, hostSecretState, session } from '../core/state.js';
 import { getCustomWords } from '../core/storage.js';
 import { sideQuestsPool } from '../data/sideQuests.js';
 import { WORD_PACKS } from '../data/wordPacks.js';
+import { t } from '../i18n/index.js';
 import { generateId, getRandomCryptoInt, shuffle } from '../utils/random.js';
 import { normalizeWord } from '../utils/text.js';
 
@@ -147,21 +148,21 @@ export function startNextRound() {
     }
 
     activePlayers.forEach(p => {
-        let hintTitle = "کلمه رمز شما:";
+        let hintTitle = t('role.hintTitle.word');
         let hint = "";
         if (p.role === 'spy') {
             const hintType = gameState.round.currentHintType;
             if (hintType === 'none') {
-                hintTitle = "نوع راهنما:";
-                hint = "بدون هیچ راهنمایی (سخت)";
+                hintTitle = t('role.hintTitle.hintType');
+                hint = t('role.hint.none');
             } else if (hintType === 'category') {
-                hintTitle = "دسته‌بندی موضوع:";
+                hintTitle = t('role.hintTitle.category');
                 hint = gameState.round.category;
             } else if (hintType === 'first_letter') {
-                hintTitle = "حرف اول کلمه رمز:";
-                hint = `« ${chosen.word.charAt(0)} »`;
+                hintTitle = t('role.hintTitle.firstLetter');
+                hint = t('role.hint.firstLetter', { letter: chosen.word.charAt(0) });
             } else {
-                hintTitle = "کلمه مرتبط راهنما:";
+                hintTitle = t('role.hintTitle.related');
                 hint = chosen.hint;
             }
         }
@@ -201,17 +202,18 @@ export function calcDirectorTurn() {
     gameState.round.history.push({ a: asker.id, t: target.id });
 }
 
+const CATEGORY_LABEL_KEYS = {
+    places: 'setup.cat.places',
+    jobs: 'setup.cat.jobs',
+    foods: 'setup.cat.foods',
+    objects: 'setup.cat.objects',
+    vehicles: 'setup.cat.vehicles',
+    animals: 'setup.cat.animals',
+    sports: 'setup.cat.sports',
+    events: 'setup.cat.events',
+    custom: 'setup.cat.custom'
+};
+
 function getCategoryLabel(key) {
-    const labels = {
-        places: "اماکن و فضاها",
-        jobs: "مشاغل و حرفه‌ها",
-        foods: "غذاها و خوراکی‌ها",
-        objects: "اشیاء و فناوری",
-        vehicles: "وسایل نقلیه",
-        animals: "حیوانات و طبیعت",
-        sports: "ورزش و بازی‌ها",
-        events: "رویدادها و پدیده‌ها",
-        custom: "کلمات سفارشی"
-    };
-    return labels[key] || "موضوعات بازی";
+    return t(CATEGORY_LABEL_KEYS[key] || 'setup.cat.unknown');
 }

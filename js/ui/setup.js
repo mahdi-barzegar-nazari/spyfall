@@ -6,31 +6,32 @@ import { RULES, getMaxSpiesAllowed } from '../core/config.js';
 import { gameState } from '../core/state.js';
 import { loadSavedNames, saveCurrentNames } from '../core/storage.js';
 import { flagFieldError, pulseInvalidField, showToast } from './feedback.js';
+import { formatNumber, t, tn } from '../i18n/index.js';
 import { generateId } from '../utils/random.js';
-import { normalizeWord, toLatinDigits, toPersianDigits } from '../utils/text.js';
+import { normalizeWord, toLatinDigits } from '../utils/text.js';
 
 export function validateAndSaveSettings() {
     let c = parseInt(toLatinDigits(document.getElementById('setup-players-count').value), 10);
     let s = parseInt(toLatinDigits(document.getElementById('setup-spies-count').value), 10);
-    let t = parseInt(toLatinDigits(document.getElementById('setup-timer').value), 10);
+    let timerMinutes = parseInt(toLatinDigits(document.getElementById('setup-timer').value), 10);
     let isVoteLimitEnabled = document.getElementById('toggle-limit').checked;
     let maxV = parseInt(toLatinDigits(document.getElementById('setup-max-votes').value), 10);
     let isFool = document.getElementById('toggle-fool').checked;
     let isDetective = document.getElementById('toggle-detective').checked;
 
     if (isNaN(c) || c < RULES.players.min || c > RULES.players.max) {
-        flagFieldError('setup-players-count', `تعداد بازیکنان باید بین ${toPersianDigits(RULES.players.min)} تا ${toPersianDigits(RULES.players.max)} نفر باشد!`);
+        flagFieldError('setup-players-count', t('setup.error.players', { min: formatNumber(RULES.players.min), max: formatNumber(RULES.players.max) }));
         return false;
     }
 
     const maxSpiesAllowed = getMaxSpiesAllowed(c);
     if (isNaN(s) || s < RULES.spies.min || s > maxSpiesAllowed) {
-        flagFieldError('setup-spies-count', `با ${toPersianDigits(c)} بازیکن، حداکثر ${toPersianDigits(maxSpiesAllowed)} جاسوس مجاز است (جاسوس‌ها باید کمتر از نصف بازیکنان باشند)!`);
+        flagFieldError('setup-spies-count', tn('setup.error.spies', c, { max: formatNumber(maxSpiesAllowed) }));
         return false;
     }
 
-    if (isNaN(t) || t < RULES.timerMinutes.min || t > RULES.timerMinutes.max) {
-        flagFieldError('setup-timer', `زمان گفتگو باید بین ${toPersianDigits(RULES.timerMinutes.min)} تا ${toPersianDigits(RULES.timerMinutes.max)} دقیقه باشد!`);
+    if (isNaN(timerMinutes) || timerMinutes < RULES.timerMinutes.min || timerMinutes > RULES.timerMinutes.max) {
+        flagFieldError('setup-timer', t('setup.error.timer', { min: formatNumber(RULES.timerMinutes.min), max: formatNumber(RULES.timerMinutes.max) }));
         return false;
     }
 
@@ -38,14 +39,14 @@ export function validateAndSaveSettings() {
     // is hidden and functionally unused otherwise, so a stale/empty
     // value shouldn't block starting the match.
     if (isVoteLimitEnabled && (isNaN(maxV) || maxV < RULES.emergencyVotes.min || maxV > RULES.emergencyVotes.max)) {
-        flagFieldError('setup-max-votes', `سقف زنگ اضطراری باید بین ${toPersianDigits(RULES.emergencyVotes.min)} تا ${toPersianDigits(RULES.emergencyVotes.max)} بار باشد!`);
+        flagFieldError('setup-max-votes', t('setup.error.maxVotes', { min: formatNumber(RULES.emergencyVotes.min), max: formatNumber(RULES.emergencyVotes.max) }));
         return false;
     }
     if (!isVoteLimitEnabled || isNaN(maxV)) maxV = 2;
 
     let totalSpecialRoles = s + (isFool ? 1 : 0) + (isDetective ? 1 : 0);
     if (c < totalSpecialRoles) {
-        flagFieldError('setup-spies-count', `تعداد کل بازیکنان (${toPersianDigits(c)}) کمتر از مجموع نقش‌های انتخابی (${toPersianDigits(totalSpecialRoles)}) است!`);
+        flagFieldError('setup-spies-count', t('setup.error.roles', { players: formatNumber(c), roles: formatNumber(totalSpecialRoles) }));
         return false;
     }
 
@@ -65,7 +66,7 @@ export function validateAndSaveSettings() {
     }
 
     gameState.settings = {
-        playersCount: c, spiesCount: s, timerMin: t,
+        playersCount: c, spiesCount: s, timerMin: timerMinutes,
         cats: selectedCats,
         diff: document.getElementById('setup-difficulty').value,
         revealHold: document.getElementById('setup-reveal-mode').value === 'hold',
@@ -90,8 +91,8 @@ export function validateAndSaveSettings() {
     let inputs = document.querySelectorAll('#name-inputs-container input'), names = [];
     for (let i = 0; i < inputs.length; i++) {
         let n = normalizeWord(inputs[i].value);
-        if (!n) { showToast(`نام بازیکن ${i+1} خالی است!`); pulseInvalidField(inputs[i]); return false; }
-        if (names.includes(n)) { showToast(`اسامی بازیکنان نباید تکراری باشند!`); pulseInvalidField(inputs[i]); return false; }
+        if (!n) { showToast(t('toast.playerNameEmpty', { n: i + 1 })); pulseInvalidField(inputs[i]); return false; }
+        if (names.includes(n)) { showToast(t('toast.playerNamesDuplicate')); pulseInvalidField(inputs[i]); return false; }
         names.push(n);
     }
     saveCurrentNames(Array.from(inputs).map(x => x.value));
@@ -103,20 +104,20 @@ export function validateAndSaveSettings() {
 // error ever needs to fire.
 export function updateSetupLimitHints() {
     const playersHint = document.getElementById('players-limit-hint');
-    if (playersHint) playersHint.textContent = `بین ${toPersianDigits(RULES.players.min)} تا ${toPersianDigits(RULES.players.max)} نفر`;
+    if (playersHint) playersHint.textContent = t('setup.limit.players', { min: formatNumber(RULES.players.min), max: formatNumber(RULES.players.max) });
 
     const timerHint = document.getElementById('timer-limit-hint');
-    if (timerHint) timerHint.textContent = `بین ${toPersianDigits(RULES.timerMinutes.min)} تا ${toPersianDigits(RULES.timerMinutes.max)} دقیقه`;
+    if (timerHint) timerHint.textContent = t('setup.limit.timer', { min: formatNumber(RULES.timerMinutes.min), max: formatNumber(RULES.timerMinutes.max) });
 
     const maxVotesHint = document.getElementById('maxvotes-limit-hint');
-    if (maxVotesHint) maxVotesHint.textContent = `بین ${toPersianDigits(RULES.emergencyVotes.min)} تا ${toPersianDigits(RULES.emergencyVotes.max)} بار`;
+    if (maxVotesHint) maxVotesHint.textContent = t('setup.limit.maxVotes', { min: formatNumber(RULES.emergencyVotes.min), max: formatNumber(RULES.emergencyVotes.max) });
 
     const spiesHint = document.getElementById('spies-limit-hint');
     if (spiesHint) {
         let c = parseInt(toLatinDigits(document.getElementById('setup-players-count').value), 10);
         if (isNaN(c)) c = RULES.players.min;
         const maxSpies = getMaxSpiesAllowed(c);
-        spiesHint.textContent = `حداکثر مجاز با ${toPersianDigits(c)} بازیکن: ${toPersianDigits(maxSpies)} جاسوس`;
+        spiesHint.textContent = tn('setup.limit.spies', c, { max: formatNumber(maxSpies) });
     }
 }
 
@@ -139,11 +140,11 @@ export function renderNameInputs(forceDefault = false) {
         let input = document.createElement('input');
         input.type = 'text';
         input.className = 'input-control mb-6';
-        input.placeholder = `نام بازیکن ${i}`;
-        input.setAttribute('aria-label', `نام بازیکن شماره ${i}`);
+        input.placeholder = t('setup.player.placeholder', { n: i });
+        input.setAttribute('aria-label', t('setup.player.aria', { n: i }));
 
         if (forceDefault) {
-            input.value = `بازیکن ${i}`;
+            input.value = t('setup.player.default', { n: i });
             input.dataset.playerId = generateId();
         } else if (currentInputs[i - 1] && currentInputs[i - 1].name) {
             input.value = currentInputs[i - 1].name;
@@ -152,7 +153,7 @@ export function renderNameInputs(forceDefault = false) {
             input.value = saved[i - 1];
             input.dataset.playerId = generateId();
         } else {
-            input.value = `بازیکن ${i}`;
+            input.value = t('setup.player.default', { n: i });
             input.dataset.playerId = generateId();
         }
         container.appendChild(input);

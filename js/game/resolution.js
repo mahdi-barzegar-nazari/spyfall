@@ -7,6 +7,7 @@ import { commitState, setPhase } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { resumeTimer, stopTimerLoop } from './timer.js';
 import { playVictoryFanfare, stopAudioKeepAlive } from '../platform/audio.js';
+import { rawHtml, t, tHtml, tn } from '../i18n/index.js';
 import { showEliminationReveal } from '../ui/wheel.js';
 import { escapeHtml } from '../utils/text.js';
 
@@ -82,8 +83,8 @@ export function processElimination(wagers) {
             s.stats.citizensEliminatedBeforeCaught = (s.stats.citizensEliminatedBeforeCaught || 0) + 1;
         });
         survivorNote = survivingSpies.length > 0
-            ? `اخراج اشتباه بود؛ همهٔ جاسوس‌های زنده ${SCORING.SPY_SURVIVE_WRONG_VOTE}+ امتیاز بقا گرفتند.`
-            : 'اخراج اشتباه بود!';
+            ? tn('elim.note.wrongSurvive', SCORING.SPY_SURVIVE_WRONG_VOTE, { count: SCORING.SPY_SURVIVE_WRONG_VOTE })
+            : t('elim.note.wrong');
     }
 
     commitState();
@@ -91,7 +92,7 @@ export function processElimination(wagers) {
     // Saves from before this option existed have no `spyLastChance`: undefined counts as on.
     const lastChanceOn = gameState.settings.spyLastChance !== false;
     // The reveal says "now the spy guesses the word" by default; that is false when there is no guess.
-    const revealNote = (wasSpy && !lastChanceOn) ? 'در این بازی جاسوس شانس آخر ندارد.' : survivorNote;
+    const revealNote = (wasSpy && !lastChanceOn) ? t('elim.note.noLastChance') : survivorNote;
 
     showEliminationReveal(sus, wasSpy, revealNote, () => {
         if (wasSpy) {
@@ -166,19 +167,20 @@ function finalizeRound(forceSpyWin=false, spyGuessed=false, sudden=false) {
 
 function formatRoundResultHtml(data) {
     let htm = "";
-    const secretWord = data.secretWord || "کلمه اصلی";
-    const suspectName = data.suspectName || "جاسوس";
+    const secretWord = data.secretWord || t('result.defaultWord');
+    const suspectName = data.suspectName || t('common.spy');
+    const wordHtml = rawHtml(`<span class="color-amber">${escapeHtml(secretWord)}</span>`);
 
     if (data.winner === 'spy') {
         if (data.reason === 'spy_guess') {
-            htm = `🎯 <strong>${escapeHtml(suspectName)}</strong> کلمه رمز اصلی (<span class="color-amber">${escapeHtml(secretWord)}</span>) را درست حدس زد!`;
+            htm = tHtml('result.spyGuessed', { suspect: rawHtml(`<strong>${escapeHtml(suspectName)}</strong>`), word: wordHtml });
         } else if (data.reason === 'sudden_death') {
-            htm = `شهروند بی‌گناه اخراج شد!<br>به دلیل قانون حذف درجا، جاسوس‌ها برنده شدند.<br>کلمه اصلی: <span class="color-amber">${escapeHtml(secretWord)}</span>`;
+            htm = tHtml('result.suddenDeath', { word: wordHtml });
         } else {
-            htm = `تعداد شهروندان ناکافی شد و جاسوس‌ها پیروز شدند!<br>کلمه اصلی: <span class="color-amber">${escapeHtml(secretWord)}</span>`;
+            htm = tHtml('result.citizensExhausted', { word: wordHtml });
         }
     } else {
-        htm = `🎉 تمام جاسوس‌ها شناسایی شدند و پیروز شدید!<br>کلمه اصلی: <span class="color-amber">${escapeHtml(secretWord)}</span>`;
+        htm = tHtml('result.spiesEliminated', { word: wordHtml });
     }
 
     if (data.tieNote) {
@@ -190,18 +192,18 @@ function formatRoundResultHtml(data) {
 function buildHostRoundResult(winner, g, s) {
     stopTimerLoop();
     stopAudioKeepAlive();
-    let tit = winner === 'spy' ? '😈 پیروزی جاسوس‌ها!' : '🎉 پیروزی شهروندان!';
+    let tit = winner === 'spy' ? t('result.title.spy') : t('result.title.citizen');
     document.getElementById('result-title').textContent = tit;
     document.getElementById('result-title').style.color = winner === 'spy' ? 'var(--brand-rose)' : 'var(--brand-emerald)';
 
     let sus = gameState.players.find(p => p.id === gameState.vote.targetId);
-    let secretWord = hostSecretState.secretWord || "کلمه اصلی";
+    let secretWord = hostSecretState.secretWord || t('result.defaultWord');
     let reason = g ? 'spy_guess' : (s ? 'sudden_death' : (winner === 'spy' ? 'citizens_exhausted' : 'spies_eliminated'));
 
     const resultPayload = {
         winner,
         reason,
-        suspectName: sus ? sus.name : 'جاسوس',
+        suspectName: sus ? sus.name : t('common.spy'),
         secretWord,
         tieNote: gameState.vote.tieNote
     };
@@ -218,7 +220,7 @@ export function handleDetectiveQueryInternal(targetId) {
     gameState.settings.detectiveUsed = true;
     // Both answers must look the same to anyone glancing at the screen: one short sentence, no emoji and no
     // colour, differing only in the role word. The stored string is what the role card shows again later.
-    const resText = `«${tar.name}» ${tar.role === 'spy' ? 'جاسوس' : 'شهروند'} است.`;
+    const resText = t(tar.role === 'spy' ? 'role.detective.result.spy' : 'role.detective.result.citizen', { name: tar.name });
     hostSecretState.detectiveInquiryResult = resText;
 
     // textContent, so a name containing HTML is shown as plain text.

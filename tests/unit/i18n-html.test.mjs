@@ -24,26 +24,31 @@ const TEXT_ATTRS = ['aria-label', 'placeholder', 'title', 'alt'];
 const ATTR_NAMES = new Set([...TEXT_ATTRS, 'content']);
 
 /**
- * Elements whose Persian text is written by JS every time it matters (the default in index.html is only
- * a placeholder), so they carry no data-i18n yet. They belong to the JS-side translation step.
+ * Elements whose text JS writes every time it matters, so the Persian in index.html is only a
+ * placeholder and they carry no data-i18n. For each one: the catalog keys JS writes into it (`keys`;
+ * empty when it only ever shows a player's name) and, when the HTML default is meant to be one of
+ * those texts, which one (`same`, with the placeholder values it is filled with).
+ *
+ * The test below checks that every key exists, that JS refers to each of them, that JS writes to the
+ * element, and that a default marked `same` equals the catalog text.
  */
-const JS_WRITTEN = new Set([
-    'handoff-action', // ui/handoff.js
-    'reveal-instruction-text', // ui/render.js
-    'votes-remaining-badge', // ui/render.js
-    'vote-instruction-text', // ui/render.js
-    'btn-submit-wagers', // ui/render.js
-    'result-title', // game/resolution.js
-    'info-modal-title', // core/dispatch.js, from t()
-    'modal-player-name', // ui/render.js
-    'modal-role-badge', // ui/render.js
-    'modal-secret-title', // ui/render.js
-    'confirm-modal-title', // app/actions.js, ui/bindings.js
-    'elim-name', // ui/wheel.js
-    'elim-badge', // ui/wheel.js
-    'tie-announce-names' // ui/wheel.js
-]);
-
+const JS_WRITTEN = {
+    'handoff-action': { keys: ['handoff.reveal.action.hold', 'handoff.reveal.action.tap', 'handoff.vote.action', 'handoff.wager.action'] }, // ui/handoff.js, text from ui/render.js
+    'reveal-instruction-text': { keys: ['reveal.instruction.immediate', 'reveal.instruction.hold', 'reveal.instruction.tap'] }, // ui/render.js
+    'votes-remaining-badge': { keys: ['timer.votes.unlimited', 'timer.votes.remaining'], same: { key: 'timer.votes.unlimited' } }, // ui/render.js
+    'vote-instruction-text': { keys: ['vote.instruction'] }, // ui/render.js
+    'btn-submit-wagers': { keys: ['wager.submit.final', 'wager.submit.next'] }, // ui/render.js
+    'result-title': { keys: ['result.title.spy', 'result.title.citizen'] }, // game/resolution.js
+    'info-modal-title': { keys: INFO_KEYS.map((key) => `info.${key}.title`) }, // core/dispatch.js
+    'modal-player-name': { keys: [] }, // ui/render.js: the player's name
+    'modal-role-badge': { keys: ['role.spectator.badge', 'role.spy.badge', 'role.citizen.badge', 'role.detective.badge'] }, // ui/render.js
+    'modal-secret-title': { keys: ['role.spectator.title', 'role.hintTitle.word'] }, // ui/render.js, plus the stored hint titles
+    'confirm-modal-title': { keys: ['confirm.endMatch.title', 'confirm.restore.title', 'confirm.discard.title'] }, // app/actions.js, ui/bindings.js
+    'elim-name': { keys: ['elim.removed'] }, // ui/wheel.js
+    'elim-badge': { keys: ['elim.badge.spy', 'elim.badge.citizen'] }, // ui/wheel.js
+    'tie-announce-names': { keys: ['tie.announce'] }, // ui/wheel.js
+    'cust-count-label': { keys: ['words.registered'], same: { key: 'words.registered', params: { count: '0' } } } // ui/customWords.js
+};
 function attrPairs(el) {
     return (el.attrs['data-i18n-attr'] || '')
         .split(';')
@@ -60,7 +65,24 @@ function listJs(dir) {
         return statSync(full).isDirectory() ? listJs(full) : full.endsWith('.js') ? [full] : [];
     });
 }
-const jsSources = listJs(join(ROOT, 'js')).map((file) => readFileSync(file, 'utf8'));
+const groups = new Set(Object.keys(fa).map((key) => key.split('.')[0]));
+// Every file under js/ except the Persian catalog itself (its keys are not uses).
+const jsFiles = listJs(join(ROOT, 'js')).filter((file) => file !== join(ROOT, 'js', 'i18n', 'fa.js'));
+const jsSources = jsFiles.map((file) => readFileSync(file, 'utf8'));
+
+/** A catalog key written as a string literal: dotted identifiers, e.g. 'setup.cat.places'. */
+const KEY_LITERAL = /(['"`])([a-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)+)\1/g;
+/** `time.seconds.one` and `time.seconds.other` are one text with two forms; code asks for `time.seconds`. */
+const baseKey = (key) => key.replace(/\.(zero|one|two|few|many|other)$/, '');
+const keyMentions = (source) => new Set([...source.matchAll(KEY_LITERAL)].map((m) => m[2]));
+/** The first argument of every call to a translation function that starts with a string literal. */
+function calledKeys(source) {
+    const calls = [];
+    for (const m of source.matchAll(/\b(t|tHtml)\(\s*(['"`])([^'"`$]+)\2/g)) calls.push({ fn: m[1], key: m[3] });
+    for (const m of source.matchAll(/\b(tn|tnHtml)\(\s*(['"`])([^'"`$]+)\2/g)) calls.push({ fn: m[1], key: m[3] });
+    for (const m of source.matchAll(/\bsetTemplate\(\s*[^,()]+,\s*(['"`])([^'"`$]+)\1/g)) calls.push({ fn: 'setTemplate', key: m[2] });
+    return calls;
+}
 
 describe('static texts in index.html', () => {
     const textEls = all.filter((el) => 'data-i18n' in el.attrs);
@@ -116,7 +138,7 @@ describe('static texts in index.html', () => {
                 if (child.type === 'el') {
                     visit(child);
                 } else if (!child.raw && LETTER.test(child.value)) {
-                    const covered = 'data-i18n' in el.attrs || closest(el, (n) => JS_WRITTEN.has(n.attrs.id));
+                    const covered = 'data-i18n' in el.attrs || closest(el, (n) => n.attrs.id in JS_WRITTEN);
                     if (!covered) offenders.push(`<${el.tag}${el.attrs.id ? '#' + el.attrs.id : ''}> ${normalizeText(child.value)}`);
                 }
             }
@@ -136,12 +158,20 @@ describe('static texts in index.html', () => {
         assert.deepEqual(offenders, []);
     });
 
-    it('the JS_WRITTEN allow-list is current: each id exists, has no data-i18n and is used by JS', () => {
-        for (const id of JS_WRITTEN) {
+    it('every JS-written element takes its text from the catalog: keys exist, JS uses them and writes to the element', () => {
+        for (const [id, { keys, same }] of Object.entries(JS_WRITTEN)) {
             const el = all.find((e) => e.attrs.id === id);
             assert.ok(el, `#${id} is not in index.html any more`);
             assert.ok(!('data-i18n' in el.attrs), `#${id} has data-i18n, so it should leave JS_WRITTEN`);
             assert.ok(jsSources.some((source) => source.includes(`'${id}'`)), `no JS under js/ mentions #${id}`);
+            for (const key of keys) {
+                assert.ok(key in fa, `#${id}: ${key} is not in the catalog`);
+                assert.ok(jsSources.some((source) => keyMentions(source).has(baseKey(key))) || key.startsWith('info.'), `#${id}: no JS refers to ${key}`);
+            }
+            if (same) {
+                const expected = fa[same.key].replace(/\{(\w+)\}/g, (m, name) => same.params?.[name] ?? m);
+                assert.equal(normalizeText(innerText(el)), normalizeText(expected), `#${id}: the HTML default differs from ${same.key}`);
+            }
         }
     });
 
@@ -194,16 +224,58 @@ describe('translation catalogs', () => {
         }
     });
 
-    it('has no orphan key: each one is used by index.html, a help button or a t() call under js/', () => {
+    it('has no orphan key: each one is used by index.html, a help button or the code under js/', () => {
         const used = new Set();
         for (const el of all) {
             if (el.attrs['data-i18n']) used.add(el.attrs['data-i18n']);
             for (const { key } of attrPairs(el)) used.add(key);
         }
         for (const key of INFO_KEYS) used.add(`info.${key}.title`).add(`info.${key}.text`);
-        for (const source of jsSources) for (const m of source.matchAll(/\bt\(\s*(['"`])([^'"`$]+)\1/g)) used.add(m[2]);
+        // A key written as a literal anywhere in the code (t('x'), a ternary of two keys, a table of keys)
+        // counts as used; for a plural text, so does its base name.
+        for (const source of jsSources) for (const literal of keyMentions(source)) used.add(literal);
+        const orphans = (catalog) => Object.keys(catalog).filter((key) => !used.has(key) && !used.has(baseKey(key)));
+        for (const [lang, catalog] of Object.entries(CATALOGS)) assert.deepEqual(orphans(catalog), [], `${lang}: unused keys`);
+    });
+
+    it('every key the code asks for exists in the Persian catalog (plural texts through their .other form)', () => {
+        const missing = [];
+        let checked = 0;
+        jsFiles.forEach((file, index) => {
+            const source = jsSources[index];
+            for (const { fn, key } of calledKeys(source)) {
+                checked++;
+                const plural = fn === 'tn' || fn === 'tnHtml';
+                if (!(plural ? `${key}.other` in fa : key in fa)) missing.push(`${file}: ${fn}('${key}')`);
+            }
+            // A ternary or a table of keys: any literal that starts like a catalog group must be a real key.
+            for (const literal of keyMentions(source)) {
+                if (groups.has(literal.split('.')[0]) && !(literal in fa) && !(`${literal}.other` in fa) && !literal.startsWith('info.')) missing.push(`${file}: '${literal}'`);
+            }
+        });
+        assert.ok(checked > 80, `only ${checked} translation calls were found; the scan may be broken`);
+        assert.deepEqual(missing, []);
+    });
+
+    it('every plural text has a .other form, and in Persian every form reads the same', () => {
+        const forms = /\.(zero|one|two|few|many)$/;
+        const lone = [];
         for (const [lang, catalog] of Object.entries(CATALOGS)) {
-            assert.deepEqual(Object.keys(catalog).filter((key) => !used.has(key)), [], `${lang}: unused keys`);
+            for (const key of Object.keys(catalog)) {
+                if (forms.test(key) && !(`${baseKey(key)}.other` in catalog)) lone.push(`${lang}: ${key} has no .other`);
+            }
+        }
+        assert.deepEqual(lone, []);
+        const plurals = Object.keys(fa).filter((key) => key.endsWith('.one'));
+        assert.ok(plurals.length >= 8, `only ${plurals.length} plural texts`);
+        for (const key of plurals) assert.equal(fa[key], fa[`${baseKey(key)}.other`], `${baseKey(key)}: Persian has one form`);
+    });
+
+    it('catalog values hold no markup, and a placeholder is a plain {name}', () => {
+        for (const [key, value] of Object.entries(fa)) {
+            assert.doesNotMatch(value, /<\/?[a-zA-Z!]/, `${key}: HTML tag in a catalog value`);
+            assert.doesNotMatch(value, /&(#\d+|#x[\da-f]+|[a-z]+);/i, `${key}: HTML entity in a catalog value`);
+            for (const m of value.matchAll(/\{([^}]*)\}/g)) assert.match(m[1], /^[A-Za-z_][A-Za-z0-9_]*$/, `${key}: odd placeholder {${m[1]}}`);
         }
     });
 

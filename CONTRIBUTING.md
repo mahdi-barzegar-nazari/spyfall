@@ -36,9 +36,16 @@ npm run build && npm run test:e2e # needs: npx playwright install chromium
 
 1. **Pick a key** in `js/i18n/fa.js`: dotted, English, grouped under the screen's comment (`setup.title`, `result.col.player`). Values are plain text; use `{name}` for a parameter. Never put HTML in a value.
 2. **Text in `index.html`:** keep the Persian text in the HTML as the default and add `data-i18n="key"` to the element (leaf elements only: it replaces the whole `textContent`; if the text sits next to other children, wrap it in `<span data-i18n="key">`). For attributes use `data-i18n-attr="aria-label:key;placeholder:key"`. The HTML text and the catalog value must be equal after whitespace is collapsed; a test fails otherwise.
-3. **Text in JS:** use `t('key', { name })`. If the result goes into `innerHTML`, escape it (and any parameter) first; `t()` returns plain text and escapes nothing. Texts that JS still writes as Persian literals are being moved to the catalog step by step.
+3. **Text in JS:** use `t('key', { name })`. There are no Persian letters, digits or comments in `js/` outside the catalogs: `npm test` fails on one (`no-hardcoded-text.test.mjs`). Which function to use:
+   - plain text (`textContent`, `showToast`, canvas): `t('key', { name })`;
+   - a number of things ("3 words added"): `tn('key', count)` with `key.one` and `key.other` in the catalog (Persian writes the same text in both). `{count}` is written with the language's digits; pass `{ count: n }` only when a place must keep its own digits;
+   - a number alone: `formatNumber(n)`; a time: `formatDuration(seconds)`;
+   - a sentence with a bold name, a `<bdi>` or a line break: one template with `{name}` / `{br}` and `setTemplate(element, 'key', { name: strongNode })`. The markup stays in the code, never in the catalog, and the name goes in as a node or a string, so it can only ever be text;
+   - text that goes into an HTML string (`innerHTML`, a table row): `tHtml('key', { name: rawHtml(`<strong>${escapeHtml(n)}</strong>`) })`. It escapes the catalog text and every parameter except a `rawHtml()` one. Plain `t()` escapes nothing, so never put its result in `innerHTML` as it is.
+   Write a name list as a template too (`names.pair`, `names.more`), not as pieces: another language may order it differently.
 4. **A new help (i) text:** add the key to `INFO_KEYS` (`js/data/infoTexts.js`), the two entries `info.<key>.title` and `info.<key>.text` to the catalog, and a `data-info="<key>"` button.
-5. Run `npm test`. It fails on a missing key, an HTML/catalog mismatch, a Persian text in `index.html` that is not translatable, and a catalog key nothing uses.
+5. **An element JS writes:** its default text in `index.html` is a harmless placeholder. Add it to `JS_WRITTEN` in `tests/unit/i18n-html.test.mjs` with the catalog keys JS writes into it.
+6. Run `npm test`. It fails on a missing key, an HTML/catalog mismatch, a Persian text in `index.html` or in the code that is not translatable, a plural text without `.other`, markup in a catalog value, and a catalog key nothing uses.
 
 ## Saved-game compatibility
 

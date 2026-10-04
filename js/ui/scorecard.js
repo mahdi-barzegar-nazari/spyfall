@@ -10,7 +10,7 @@
 
 import { gameState } from '../core/state.js';
 import { getRankedStandings } from '../game/ranking.js';
-import { toPersianDigits } from '../utils/text.js';
+import { formatNumber, t, tn } from '../i18n/index.js';
 import {
     computeScorecardLayout,
     computeHeaderLayout,
@@ -54,16 +54,16 @@ function drawRoundedRectPath(ctx, x, y, w, h, r) {
 
 function truncateCanvasText(ctx, text, maxWidth) {
     if (ctx.measureText(text).width <= maxWidth) return text;
-    let t = text;
-    while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) {
-        t = t.slice(0, -1);
+    let clipped = text;
+    while (clipped.length > 1 && ctx.measureText(clipped + '…').width > maxWidth) {
+        clipped = clipped.slice(0, -1);
     }
-    return t + '…';
+    return clipped + '…';
 }
 
 // Wraps text across up to maxLines lines (breaking on spaces), only
 // truncating with "…" on the final line if it still doesn't fit. Used
-// for podium names, where two tied players' combined names ("Alice و
+// for podium names, where two tied players' combined names ("Alice and
 // Bob") are much better shown on two lines than cut off mid-word.
 function wrapCanvasText(ctx, text, maxWidth, maxLines) {
     const words = text.split(' ');
@@ -179,8 +179,8 @@ function drawHeader(ctx, layout, accent, fontFam, { titleText, metaParts }) {
 function formatGroupNamesForCanvas(group) {
     const names = group.players.map(p => p.name);
     if (names.length === 1) return names[0];
-    if (names.length === 2) return `${names[0]} و ${names[1]}`;
-    return `${names[0]} و ${toPersianDigits(names.length - 1)} نفر دیگر`;
+    if (names.length === 2) return t('names.pair', { a: names[0], b: names[1] });
+    return tn('names.more', names.length - 1, { a: names[0] });
 }
 
 // Podium (top 3 ranks — a rank slot may hold more than one tied player).
@@ -205,7 +205,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam) {
         ctx.textAlign = 'center';
         ctx.font = `800 ${p.rankFontPx}px ${fontFam}`;
         ctx.fillStyle = 'rgba(255,255,255,0.16)';
-        ctx.fillText(toPersianDigits(g.rank), p.colX, p.rankY);
+        ctx.fillText(formatNumber(g.rank), p.colX, p.rankY);
 
         if (g.rank === 1) {
             ctx.font = `${p.crownFontPx}px sans-serif`;
@@ -226,7 +226,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam) {
         ctx.font = `800 ${p.nameFontPx}px ${fontFam}`;
         ctx.fillStyle = '#f1f5f9';
         const rawName = formatGroupNamesForCanvas(g);
-        const displayName = g.players.length > 1 ? `${rawName} (مشترک)` : rawName;
+        const displayName = g.players.length > 1 ? t('scorecard.tied', { name: rawName }) : rawName;
         const nameLines = wrapCanvasText(ctx, displayName, p.pedW - 8, 2);
         nameLines.forEach((line, li) => {
             ctx.fillText(`\u2067${line}\u2069`, p.colX, p.nameBaseY + li * p.nameLineH);
@@ -235,7 +235,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam) {
 
         ctx.font = `800 ${p.scoreFontPx}px ${fontFam}`;
         ctx.fillStyle = medalColors[p.rankIdx];
-        ctx.fillText(`${toPersianDigits(g.score)} امتیاز`, p.colX, lastNameY + p.scoreYOffset);
+        ctx.fillText(tn('score.points', g.score), p.colX, lastNameY + p.scoreYOffset);
     });
 }
 
@@ -251,7 +251,7 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam) {
     ctx.textAlign = 'right';
     ctx.font = `700 13px ${fontFam}`;
     ctx.fillStyle = '#64748b';
-    ctx.fillText('سایر بازیکنان', width - 40, y + 28);
+    ctx.fillText(t('scorecard.others'), width - 40, y + 28);
     y += layout.restHeaderH;
 
     restRows.forEach((r) => {
@@ -270,20 +270,20 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam) {
         ctx.fillStyle = '#94a3b8';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(toPersianDigits(r.rank), width - 40 - 24, y + row.rowHeight / 2 + 1);
+        ctx.fillText(formatNumber(r.rank), width - 40 - 24, y + row.rowHeight / 2 + 1);
         ctx.textBaseline = 'alphabetic';
 
         ctx.textAlign = 'right';
         ctx.font = `700 ${row.nameFontPx}px ${fontFam}`;
         ctx.fillStyle = '#e2e8f0';
-        const displayName = r.tied ? `${r.p.name} (مشترک)` : r.p.name;
+        const displayName = r.tied ? t('scorecard.tied', { name: r.p.name }) : r.p.name;
         const truncatedName = truncateCanvasText(ctx, displayName, width - 220);
         ctx.fillText(`\u2067${truncatedName}\u2069`, width - 40 - 48, y + row.rowHeight / 2 + 5);
 
         ctx.textAlign = 'left';
         ctx.fillStyle = accent.primary;
         ctx.font = `800 ${row.scoreFontPx}px ${fontFam}`;
-        ctx.fillText(`${toPersianDigits(r.p.score)} امتیاز`, 56, y + row.rowHeight / 2 + 5);
+        ctx.fillText(tn('score.points', r.p.score), 56, y + row.rowHeight / 2 + 5);
 
         y += layout.restRowStep;
     });
@@ -297,7 +297,7 @@ function drawClosingLine(ctx, layout, fontFam) {
     ctx.textAlign = 'center';
     ctx.font = `700 16px ${fontFam}`;
     ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
-    ctx.fillText('🎉 امیدوارم از بازی لذت برده باشید', layout.width / 2, layout.blockBottom + layout.bottomGap / 2);
+    ctx.fillText(t('scorecard.closing'), layout.width / 2, layout.blockBottom + layout.bottomGap / 2);
 }
 
 // Footer credit — subtle divider + small, low-opacity, non-bold signature,
@@ -313,7 +313,7 @@ function drawFooter(ctx, layout, fontFam) {
     ctx.textAlign = 'center';
     ctx.font = `400 10px ${fontFam}`;
     ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
-    ctx.fillText('ساخته شده توسط مهدی', layout.width / 2, layout.height - 20);
+    ctx.fillText(t('welcome.credit.author'), layout.width / 2, layout.height - 20);
 }
 
 export function exportScorecardImage() {
@@ -348,10 +348,10 @@ export function exportScorecardImage() {
         try { dateStr = new Date().toLocaleDateString('fa-IR'); } catch(e) {}
         const metaParts = [
             dateStr,
-            `${toPersianDigits(gameState.round.num)} دست`,
-            `${toPersianDigits(totalPlayers)} بازیکن`
+            tn('scorecard.meta.rounds', gameState.round.num),
+            tn('scorecard.meta.players', totalPlayers)
         ].filter(Boolean);
-        drawHeader(ctx, layout, accent, fontFam, { titleText: 'کارنامه نهایی بازی جاسوس', metaParts });
+        drawHeader(ctx, layout, accent, fontFam, { titleText: t('scorecard.title'), metaParts });
 
         drawPodium(ctx, layout, podiumGroups, fontFam);
         drawRestRows(ctx, layout, restRows, accent, fontFam);

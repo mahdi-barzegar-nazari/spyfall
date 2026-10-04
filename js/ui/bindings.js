@@ -7,6 +7,7 @@ import { gameState, hostSecretState, session } from '../core/state.js';
 import { persist } from '../core/storage.js';
 import { runTick } from '../game/timer.js';
 import { resumeAudioIfSuspended } from '../platform/audio.js';
+import { t } from '../i18n/index.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
 import { renderPlayerDetails } from './results.js';
 import { renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
@@ -136,15 +137,15 @@ export function bindEvents() {
     })();
 
     document.getElementById('btn-restore-game').onclick = () => {
-        document.getElementById('confirm-modal-title').textContent = 'ادامه مسابقه نیمه‌کاره';
-        document.getElementById('confirm-modal-text').textContent = 'مسابقه‌ای که قبلاً شروع شده بود ادامه پیدا کند؟';
+        document.getElementById('confirm-modal-title').textContent = t('confirm.restore.title');
+        document.getElementById('confirm-modal-text').textContent = t('confirm.restore.text');
         session.pendingConfirmAction = () => dispatch({type: 'RESTORE_GAME'});
         dispatch({type: 'OPEN_MODAL', payload: 'confirm-modal'});
     };
 
     document.getElementById('btn-discard-game').onclick = () => {
-        document.getElementById('confirm-modal-title').textContent = 'شروع مسابقه تازه';
-        document.getElementById('confirm-modal-text').textContent = 'مسابقهٔ نیمه‌کارهٔ قبلی برای همیشه پاک شود و یک مسابقهٔ تازه شروع شود؟';
+        document.getElementById('confirm-modal-title').textContent = t('confirm.discard.title');
+        document.getElementById('confirm-modal-text').textContent = t('confirm.discard.text');
         session.pendingConfirmAction = () => dispatch({type: 'DISCARD_GAME'});
         dispatch({type: 'OPEN_MODAL', payload: 'confirm-modal'});
     };
