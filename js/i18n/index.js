@@ -20,10 +20,10 @@ import { CATALOGS } from './catalogs.js';
 export const DEFAULT_LANG = 'fa';
 
 /** Languages the app can switch to. A new one also needs a catalog in `catalogs.js` and a direction below. */
-export const SUPPORTED_LANGS = ['fa'];
+export const SUPPORTED_LANGS = ['fa', 'en'];
 
 /** Value written to `<html dir>` for each language. */
-export const LANG_DIRECTIONS = { fa: 'rtl' };
+export const LANG_DIRECTIONS = { fa: 'rtl', en: 'ltr' };
 
 /** Numeral system of each language: `persian` writes 0-9 as ۰-۹, a language not listed keeps Latin digits. */
 export const NUMERALS = { fa: 'persian' };

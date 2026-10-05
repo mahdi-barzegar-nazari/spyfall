@@ -49,7 +49,7 @@ The countdown never compares wall-clock times. `gameState.timer.pausedSec` is de
 | `game/` | `timer`, `rounds`, `voting`, `resolution`, `ranking` | `ranking` is pure. `timer`, `rounds`, `voting` and `resolution` read and write `gameState`; they are unit-tested against the fake browser in `tests/unit/helpers/`. |
 | `ui/` | `render`, `results`, `setup`, `wheel`, `handoff`, `scorecard`, `customWords`, `bindings`, `feedback`, `focusTrap`, `theme` | All DOM code lives here (plus `timer.js` for the countdown text). |
 | `platform/` | `audio`, `wakeLock`, `antiZoom`, `install`, `serviceWorker` | Browser capabilities. |
-| `i18n/` | `index`, `catalogs`, `fa` | Translation core and the Persian catalog (see [Translations](#translations)). It imports nothing from `game/`, `ui/` or `app/`. |
+| `i18n/` | `index`, `catalogs`, `fa`, `en` | Translation core and the Persian and English catalogs (see [Translations](#translations)). It imports nothing from `game/`, `ui/` or `app/`. |
 | `data/`, `utils/` | word bank, side quests, help-text keys; text and random helpers | `utils/` and `data/` are pure and unit-tested. |
 
 ## Dependency direction
@@ -59,7 +59,7 @@ main.js -> app/wire.js -> app/actions.js -> game/, ui/, platform/, data/, utils/
 game/, ui/ -> core/dispatch.js (port), core/phase.js, core/state.js, ...
 core/dispatch.js, core/phase.js -> core/state.js, core/storage.js, core/config.js, platform/wakeLock.js, data/
 core/, ui/, game/, platform/, app/, utils/text.js -> i18n/index.js (t, tn, tHtml, setTemplate, formatNumber, ...)
-i18n/index.js -> i18n/catalogs.js -> i18n/fa.js            (nothing else)
+i18n/index.js -> i18n/catalogs.js -> i18n/fa.js, i18n/en.js (nothing else)
 ```
 
 Two things used to point upward from `core/` into `game/` and `ui/`, which is what made the cycles. Both are now injected by `app/wire.js` when the app starts:
@@ -76,7 +76,7 @@ The seams are plain synchronous callbacks rather than `EventTarget` events on pu
 
 ## Translations
 
-**Every text a player can see comes from `t(key)` (in JS) or from a `data-i18n` attribute (in `index.html`).** The catalogs in `js/i18n/` hold the texts; `fa.js` is the Persian one and the last fallback.
+**Every text a player can see comes from `t(key)` (in JS) or from a `data-i18n` attribute (in `index.html`).** The catalogs in `js/i18n/` hold the texts; `fa.js` is the Persian one and the last fallback, `en.js` is the English one.
 
 - **Catalog:** a flat object of dotted English keys grouped by screen (`setup.title`, `info.detective.text`). Values are plain text with optional `{name}` parameters, never HTML. `catalogs.js` lists every catalog, and the tests walk that list.
 - **Tools.** `tn(key, count, params)` picks `key.one` / `key.other` (or the other plural categories) by `Intl.PluralRules` of the active language and fills `{count}` with `formatNumber(count)`; Persian has the same text in both forms. `formatNumber(n)` writes the digits of the language (table `NUMERALS`, next to `LANG_DIRECTIONS`). `formatDuration(seconds)` uses `time.minutes.*`, `time.seconds.*` and `time.minutesAndSeconds`, so the language decides the wording and the order. `setTemplate(element, key, slots, params)` writes one whole sentence into an element without `innerHTML`: each `{name}` is replaced by a node or a string from `slots`, the rest is text, `{br}` is a line break. `tHtml` / `tnHtml` do the same for an HTML string, escaping the catalog text and every parameter except one wrapped in `rawHtml()`.
@@ -87,6 +87,13 @@ The seams are plain synchronous callbacks rather than `EventTarget` events on pu
 - **Elements JS writes.** Some elements in `index.html` have Persian default text that JS overwrites on every use (the hand-over gate, the role card, the result title, the elimination reveal, and so on). They carry no `data-i18n`; JS writes their texts from the catalog (and a sentence with a name is one element that `setTemplate` fills). `tests/unit/i18n-html.test.mjs` keeps that list explicit (`JS_WRITTEN`, with the catalog keys each element receives, and which default equals which text) and fails on any other Persian text in `index.html` that is not translatable.
 
 `tests/unit/i18n-format.test.mjs` covers the tools above (plurals, digits, durations, templates, the HTML variants, with a fake second language). `tests/unit/i18n.test.mjs` covers `t`, the fallback chain, `setLang`, `initI18n` and the static translator. `tests/unit/i18n-html.test.mjs` checks that every key in the HTML exists, that the Persian text in `index.html` equals the catalog value (so the two sources cannot drift apart), that all catalogs have the same keys and placeholders, and that no catalog key is unused.
+
+### Adding a language
+
+1. **Catalog.** Copy `js/i18n/en.js` to `js/i18n/<code>.js` and translate every value. Keep every key, every `{placeholder}` and every emoji; values stay plain text; every plural text needs `.one` and `.other` plus whatever other categories `Intl.PluralRules('<code>')` can return. Put a glossary comment at the top: one term per game idea, used everywhere (the English file is the model). Write for the language, not word for word: placeholders may move where the sentence needs them.
+2. **Registry.** Import the catalog in `js/i18n/catalogs.js`, add the code to `SUPPORTED_LANGS` and its direction (`'rtl'` or `'ltr'`) to `LANG_DIRECTIONS` in `js/i18n/index.js`. A language that writes its own digits also gets an entry in `NUMERALS`.
+3. **Build.** Nothing to do: `scripts/build.mjs` copies all of `js/` and puts every file in the service-worker precache, so the new catalog is available offline after the first visit.
+4. **Tests.** The parity tests (`i18n-html.test.mjs`) walk `CATALOGS`, so a missing key or a changed placeholder fails at once. Copy `tests/unit/i18n-en.test.mjs` for the language-specific checks (script, plurals, digits, direction).
 
 ## Service worker
 

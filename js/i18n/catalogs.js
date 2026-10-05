@@ -7,5 +7,6 @@
  */
 
 import { fa } from './fa.js';
+import { en } from './en.js';
 
-export const CATALOGS = { fa };
+export const CATALOGS = { fa, en };

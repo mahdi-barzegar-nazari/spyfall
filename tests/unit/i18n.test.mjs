@@ -143,7 +143,7 @@ describe('setLang', () => {
     it('ignores an unsupported language and changes nothing', () => {
         const calls = [];
         listen((lang) => calls.push(lang));
-        for (const bad of ['en', '', 'FA', '__proto__', 'constructor', undefined, null, 42, {}]) {
+        for (const bad of ['de', '', 'FA', '__proto__', 'constructor', undefined, null, 42, {}]) {
             assert.equal(setLang(bad), false, String(bad));
         }
         assert.equal(getLang(), 'fa');
