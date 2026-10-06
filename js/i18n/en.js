@@ -237,6 +237,7 @@ export const en = {
     'result.col.player': 'Player',
     'result.col.change': 'Change',
     'result.col.total': 'Total',
+    'result.change.positive': '+{count}',
     'result.next': 'Next round 🔁',
     'result.end': 'End match & final scorecard 🏆',
     'result.title.spy': '😈 Spies win!',

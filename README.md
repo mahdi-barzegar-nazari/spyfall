@@ -59,7 +59,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 421 unit tests (built-in node:test, no dependencies)
+npm test               # 453 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser smoke test of the production build, including offline mode
 npm run lint

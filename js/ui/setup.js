@@ -139,7 +139,7 @@ export function renderNameInputs(forceDefault = false) {
     for (let i = 1; i <= count; i++) {
         let input = document.createElement('input');
         input.type = 'text';
-        input.className = 'input-control mb-6';
+        input.className = 'input-control name-input mb-6';
         input.placeholder = t('setup.player.placeholder', { n: i });
         input.setAttribute('aria-label', t('setup.player.aria', { n: i }));
 

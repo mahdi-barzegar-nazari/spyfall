@@ -210,6 +210,7 @@ export const fa = {
     'result.col.player': 'بازیکن',
     'result.col.change': 'تغییر',
     'result.col.total': 'مجموع',
+    'result.change.positive': '{count}+',
     'result.next': 'دست بعدی 🔁',
     'result.end': 'اتمام مسابقه و کارنامه نهایی 🏆',
     'result.title.spy': '😈 پیروزی جاسوس‌ها!',

@@ -6,7 +6,7 @@ import { dispatch } from '../core/dispatch.js';
 import { gameState } from '../core/state.js';
 import { playCardFlip } from '../platform/audio.js';
 import { getRandomCryptoInt } from '../utils/random.js';
-import { t, tHtml } from '../i18n/index.js';
+import { t, tHtml, isolate } from '../i18n/index.js';
 
 let elimRevealTimeoutId = null;
 
@@ -16,7 +16,7 @@ export function showEliminationReveal(player, wasSpy, note, onDone) {
     const badge = document.getElementById('elim-badge');
     const noteEl = document.getElementById('elim-note');
 
-    nameEl.textContent = t('elim.removed', { name: player.name });
+    nameEl.textContent = t('elim.removed', { name: isolate(player.name) });
     if (wasSpy) {
         icon.textContent = '🕵️';
         badge.className = 'role-badge role-spy';
@@ -98,7 +98,7 @@ function spinWheel(names, winnerIndex, onDone) {
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'middle');
         text.setAttribute('class', 'wheel-label');
-        text.textContent = truncateWheelName(names[i], n);
+        text.textContent = isolate(truncateWheelName(names[i], n));
         segGroup.appendChild(text);
     }
 
@@ -135,7 +135,7 @@ export function runTieBreakerWheel(candidateIds, onResolved) {
     const winnerIndex = getRandomCryptoInt(candidateIds.length);
     const winnerId = candidateIds[winnerIndex];
 
-    const quotedNames = names.map(n => t('names.quoted', { name: n }));
+    const quotedNames = names.map(n => t('names.quoted', { name: isolate(n) }));
     const joinedNames = quotedNames.length ? quotedNames.reduce((joined, next) => t('names.pair', { a: joined, b: next })) : '';
     document.getElementById('tie-announce-names').innerHTML = tHtml('tie.announce', { names: joinedNames });
     document.getElementById('tie-announce-stage').classList.remove('hidden');
@@ -155,7 +155,7 @@ export function runTieBreakerWheel(candidateIds, onResolved) {
         document.getElementById('tie-announce-stage').classList.add('hidden');
         document.getElementById('tie-wheel-stage').classList.remove('hidden');
         spinWheel(names, winnerIndex, () => {
-            document.getElementById('tie-wheel-result').textContent = t('tie.winner', { name: names[winnerIndex] });
+            document.getElementById('tie-wheel-result').textContent = t('tie.winner', { name: isolate(names[winnerIndex]) });
             setTimeout(() => {
                 dispatch({type: 'CLOSE_MODAL', payload: 'tie-breaker-modal'});
                 onResolved(winnerId);

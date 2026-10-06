@@ -3,7 +3,8 @@
  * ------------------------------------------------------------------
  * Design tokens live in :root (default theme) and body[data-theme="..."]
  * overrides. Eight themes: default, noir, classic, emerald, crimson,
- * sunset, cyber, ocean. Direction is RTL (set on <html dir="rtl">).
+ * sunset, cyber, ocean. Persian (RTL) is the default; the direction follows <html dir> (set by
+ * setLang), so layout uses logical properties and never assumes a side (see tests/unit/css-direction.test.mjs).
  */
 
 @font-face {
@@ -130,6 +131,12 @@ html {
     touch-action: pan-y;
 }
 
+/* Direction sign for the few offsets that must follow the reading direction (the toggle knob, the
+   pass-the-phone icon, the ambient glow drift): +1 in LTR, -1 in RTL. Everything else uses logical
+   properties (text-align: start, inset-inline-*, margin-inline-*) and needs no sign. */
+:root { --dir: 1; }
+:root[dir="rtl"] { --dir: -1; }
+
 body {
     font-family: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
     background: var(--bg-gradient);
@@ -250,7 +257,7 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
     margin-bottom: 12px;
     cursor: pointer;
     transition: all 0.25s ease;
-    text-align: right;
+    text-align: start;
     color: inherit;
 }
 .card-menu:hover, .card-menu:focus-visible {
@@ -260,7 +267,7 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
 }
 .card-menu-title {
     display: block;
-    text-align: right;
+    text-align: start;
     margin-bottom: 4px;
     font-size: 1.05rem;
     font-weight: 800;
@@ -268,7 +275,7 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
 }
 .card-menu-desc {
     display: block;
-    text-align: right;
+    text-align: start;
     margin-bottom: 0;
     font-size: 0.8rem;
     color: var(--text-secondary);
@@ -319,7 +326,7 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
     flex-shrink: 0;
 }
 
-.hint-note { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.6; text-align: right; }
+.hint-note { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.6; text-align: start; }
 .hint-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -406,8 +413,7 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
     background-color: white; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%;
 }
 input:checked + .slider { background-color: var(--brand-primary); }
-input:checked + .slider:before { transform: translateX(20px); }
-[dir="rtl"] input:checked + .slider:before { transform: translateX(-20px); }
+input:checked + .slider:before { transform: translateX(calc(20px * var(--dir))); }
 
 .player-card {
     background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border-glow);
@@ -460,12 +466,12 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .secret-box { background: var(--surface-input); padding: 14px; border-radius: 16px; margin: 14px 0; border: 1px dashed rgba(255, 255, 255, 0.15); }
 .secret-word { font-size: 1.45rem; font-weight: 800; color: var(--brand-amber); margin-top: 4px; }
-.quest-box { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; color: var(--brand-primary); text-align: right; }
+.quest-box { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; color: var(--brand-primary); text-align: start; }
 
 .score-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
 .score-table th { color: var(--text-secondary); font-size: 0.78rem; padding: 8px; border-bottom: 1px solid var(--border-glow); }
 .score-table td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); text-align: center; }
-.score-table th[scope="row"] { text-align: right; font-weight: 600; color: var(--text-primary); }
+.score-table th[scope="row"] { text-align: start; font-weight: 600; color: var(--text-primary); }
 .score-table .rank-cell { font-size: 1rem; white-space: nowrap; }
 .tie-note { display: block; font-size: 0.68rem; color: var(--text-secondary); font-weight: 500; opacity: 0.8; }
 
@@ -536,9 +542,9 @@ input:checked + .slider:before { transform: translateX(20px); }
     width: 100%;
     flex-shrink: 0;
 }
-/* Gold stays centered; silver moves to the visual left, bronze to
-   the visual right (order is start→end, and this layout is RTL, so
-   the lowest order sits on the physical right). */
+/* The podium reads silver, gold, bronze from the physical left to the physical right in both
+   directions. Flex order runs from the inline start, so the default (LTR) order is 2nd, 1st, 3rd and
+   the RTL override reverses the two outer columns (the lowest order sits on the physical right). */
 .podium-item[data-rank="1"] { order: 2; }
 .podium-item[data-rank="1"] .podium-pillar {
     background: linear-gradient(180deg, rgba(245, 158, 11, 0.24) 0%, rgba(245, 158, 11, 0.3) 100%);
@@ -546,14 +552,16 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 .podium-item[data-rank="1"] .podium-score { color: #f59e0b; }
 .podium-item[data-rank="1"] .podium-riser { height: 66px; }
-.podium-item[data-rank="2"] { order: 3; }
+.podium-item[data-rank="2"] { order: 1; }
+:root[dir="rtl"] .podium-item[data-rank="2"] { order: 3; }
 .podium-item[data-rank="2"] .podium-pillar {
     background: linear-gradient(180deg, rgba(203, 213, 225, 0.18) 0%, rgba(203, 213, 225, 0.22) 100%);
     border-color: rgba(203, 213, 225, 0.4);
 }
 .podium-item[data-rank="2"] .podium-score { color: #cbd5e1; }
 .podium-item[data-rank="2"] .podium-riser { height: 44px; }
-.podium-item[data-rank="3"] { order: 1; }
+.podium-item[data-rank="3"] { order: 3; }
+:root[dir="rtl"] .podium-item[data-rank="3"] { order: 1; }
 .podium-item[data-rank="3"] .podium-pillar {
     background: linear-gradient(180deg, rgba(217, 119, 6, 0.22) 0%, rgba(217, 119, 6, 0.28) 100%);
     border-color: rgba(217, 119, 6, 0.45);
@@ -580,7 +588,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     animation: fieldErrorPulse 0.6s ease-in-out 2;
 }
 
-.accolade-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glow); border-radius: 16px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; text-align: right; }
+.accolade-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glow); border-radius: 16px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; text-align: start; }
 .accolade-icon { font-size: 1.8rem; }
 
 .panic-btn-floating {
@@ -629,7 +637,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 #handoff-gate:not(.hidden) { animation: modalOverlayFadeIn 0.2s ease both; }
 .handoff-card { text-align: center; max-width: 320px; width: 100%; margin: auto; }
 .handoff-icon { font-size: 2.8rem; margin-bottom: 6px; animation: handoffPass 1.6s ease-in-out infinite; }
-@keyframes handoffPass { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+@keyframes handoffPass { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(calc(6px * var(--dir) * -1)); } }
 .handoff-caption { margin-bottom: 2px; font-size: 0.8rem; }
 #handoff-name { color: var(--brand-primary); font-size: 1.6rem; }
 .handoff-subtitle { font-size: 0.85rem; margin: 6px 0 22px; }
@@ -654,7 +662,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 .flex-row-gap-8 { display: flex; gap: 8px; }
 .flex-1 { flex: 1; }
 .text-center { text-align: center; }
-.text-right { text-align: right; }
+.text-start { text-align: start; }
 .w-auto { width: auto; }
 .m-0 { margin: 0; }
 .mt-4 { margin-top: 4px; }
@@ -765,12 +773,21 @@ body::after {
 }
 @keyframes ambientDrift1 {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(6%, 8%) scale(1.18); }
+    100% { transform: translate(calc(6% * var(--dir) * -1), 8%) scale(1.18); }
 }
 @keyframes ambientDrift2 {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(-8%, -6%) scale(1.12); }
+    100% { transform: translate(calc(8% * var(--dir)), -6%) scale(1.12); }
 }
+
+/* Player names are user text in either script, so a Latin name inside the Persian UI (or a Persian name
+   inside the English UI) must not take the page direction and scramble its punctuation or its
+   neighbours. `plaintext` isolates the element and picks its direction from its own first strong
+   letter. Use it only where the element holds nothing but the name (a field, a button, a centred title,
+   an inline <strong>): with no strong letter at all (a name that is only a number, a cell that holds just
+   a <bdi>) Chrome resolves it as LTR, which would flip the alignment of a table cell or heading. Block
+   text that must keep following the page direction (table cells, headings) wraps the name in <bdi>. */
+.name-input, .player-card, #handoff-name, #modal-player-name, strong, option { unicode-bidi: plaintext; }
 
 /* Welcome screen play button */
 .play-hero {
@@ -810,6 +827,7 @@ body::after {
     height: 0;
     border-top: 19px solid transparent;
     border-bottom: 19px solid transparent;
+    /* The play symbol points right in both directions, like every media control, so these two stay physical. */
     border-left: 30px solid #ffffff;
     margin-left: 6px;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));

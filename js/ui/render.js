@@ -8,7 +8,7 @@ import { comparePlayersForRank, getRankedStandings } from '../game/ranking.js';
 import { generateWagerOptionsHtml, getCurrentVoter } from '../game/voting.js';
 import { hideHandoffGate, openHandoffGate } from './handoff.js';
 import { PODIUM_RANK_META, renderAccolades, renderPodium } from './results.js';
-import { rawHtml, setTemplate, t, tHtml } from '../i18n/index.js';
+import { rawHtml, setTemplate, t, tHtml, isolate } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
 export function renderTimer(sec) {
@@ -97,7 +97,7 @@ export function renderUI() {
             let last = gameState.round.history[gameState.round.history.length - 1];
             let aP = gameState.players.find(x => x.id === last.a), tP = gameState.players.find(x => x.id === last.t);
             if (aP && tP) {
-                document.getElementById('director-text').textContent = t('timer.director.turn', { asker: aP.name, target: tP.name });
+                document.getElementById('director-text').textContent = t('timer.director.turn', { asker: isolate(aP.name), target: isolate(tP.name) });
             }
         }
         renderTimer(gameState.timer.pausedSec);
@@ -120,7 +120,7 @@ export function renderUI() {
                 d.type = 'button';
                 let isSelf = p.id === currentVoter.id;
                 d.className = `player-card ${isSelf ? 'disabled' : ''}`;
-                d.textContent = isSelf ? t('vote.option.self', { name: p.name }) : p.name;
+                d.textContent = isSelf ? t('vote.option.self', { name: isolate(p.name) }) : p.name;
                 if (isSelf) {
                     d.disabled = true;
                 } else {
@@ -191,9 +191,10 @@ export function renderUI() {
         [...gameState.players].sort(comparePlayersForRank).forEach(p => {
             let c = gameState.round.pointsMap[p.id] || 0;
             let tr = document.createElement('tr');
-            const signed = c > 0 ? `${c}+` : `${c}`;
+            // The plus sign belongs to the language: Persian writes "3+" (an RTL line shows it as +3), English "+3". Latin digits in both, as before.
+            const signed = c > 0 ? t('result.change.positive', { count: c }) : `${c}`;
             const pointsClass = c > 0 ? 'color-emerald' : (c < 0 ? 'color-rose' : 'color-secondary');
-            tr.innerHTML = `<th scope="row">${escapeHtml(p.name)}</th><td class="${pointsClass}">${signed}</td><td class="color-amber">${Number(p.score) || 0}</td>`;
+            tr.innerHTML = `<th scope="row"><bdi>${escapeHtml(p.name)}</bdi></th><td class="${pointsClass}">${signed}</td><td class="color-amber">${Number(p.score) || 0}</td>`;
             tb.appendChild(tr);
         });
     }
@@ -279,7 +280,7 @@ export function renderRoleModalContent(id) {
         c.textContent = secretWord;
         if (gameState.settings.knownSpies && fellowSpies.length > 0) {
             f.classList.remove('hidden');
-            document.getElementById('modal-fellow-spies-text').textContent = fellowSpies.reduce((list, name) => t('role.fellowSpies.join', { a: list, b: name }));
+            document.getElementById('modal-fellow-spies-text').textContent = fellowSpies.map(isolate).reduce((list, name) => t('role.fellowSpies.join', { a: list, b: name }));
         }
     } else if (role === 'fool') {
         b.className = 'role-badge role-citizen';

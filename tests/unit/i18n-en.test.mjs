@@ -149,6 +149,15 @@ describe('switching to English', () => {
     });
 });
 
+describe('the sign of a score change belongs to the language', () => {
+    it('English puts the plus first, Persian keeps "3+" (an RTL line shows it as +3)', () => {
+        setLang('en');
+        assert.equal(t('result.change.positive', { count: 3 }), '+3');
+        setLang('fa');
+        assert.equal(t('result.change.positive', { count: 3 }), '3+');
+    });
+});
+
 describe('English plurals and durations', () => {
     it('tn() picks the English plural form', () => {
         setLang('en');

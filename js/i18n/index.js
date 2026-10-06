@@ -12,6 +12,9 @@
  *  - The Persian text written in index.html stays as the default, so the first paint, the offline path
  *    and the Persian experience never wait for JS. Static translations are applied only when the
  *    language is not the default, and again on every `setLang`.
+ *  - Direction and locale come from the active language too: `getDirection()` for `<html dir>`-style decisions
+ *    in JS (the scorecard canvas), `getLocale()` / `formatDate()` for `Intl`. Player names are user text in
+ *    either script: wrap one that goes into a plain-text sentence with `isolate()`, or into HTML with `<bdi>`.
  *  - This module imports nothing from game/, ui/ or app/ (tests/unit/import-cycles.test.mjs).
  */
 
@@ -19,11 +22,21 @@ import { CATALOGS } from './catalogs.js';
 
 export const DEFAULT_LANG = 'fa';
 
-/** Languages the app can switch to. A new one also needs a catalog in `catalogs.js` and a direction below. */
+/** Languages the app can switch to. A new one also needs a catalog in `catalogs.js`, a direction and a locale below. */
 export const SUPPORTED_LANGS = ['fa', 'en'];
 
 /** Value written to `<html dir>` for each language. */
 export const LANG_DIRECTIONS = { fa: 'rtl', en: 'ltr' };
+
+/** BCP 47 locale tag of each language, for `Intl` and date formatting (see `getLocale`, `formatDate`). */
+export const LANG_LOCALES = { fa: 'fa-IR', en: 'en-US' };
+
+/**
+ * Options `formatDate` passes to `toLocaleDateString`, per language. Persian lists none, so its date is the
+ * plain `fa-IR` one the scorecard has always shown; English spells the month ("Oct 4, 2026") because
+ * 10/4/2026 reads as two different days in different countries.
+ */
+const DATE_OPTIONS = { en: { year: 'numeric', month: 'short', day: 'numeric' } };
 
 /** Numeral system of each language: `persian` writes 0-9 as ۰-۹, a language not listed keeps Latin digits. */
 export const NUMERALS = { fa: 'persian' };
@@ -40,6 +53,35 @@ const listeners = new Set();
 
 export function getLang() {
     return currentLang;
+}
+
+/** `'rtl'` or `'ltr'`: the direction of the active language (`LANG_DIRECTIONS`; `'ltr'` for one not listed). */
+export function getDirection() {
+    return hasOwn(LANG_DIRECTIONS, currentLang) ? LANG_DIRECTIONS[currentLang] : 'ltr';
+}
+
+/** Locale tag of the active language (`fa-IR`, `en-US`); the language code itself if it has no entry. */
+export function getLocale() {
+    return hasOwn(LANG_LOCALES, currentLang) ? LANG_LOCALES[currentLang] : currentLang;
+}
+
+/** `date` (today by default) written for the active language, or '' if the runtime cannot format it. */
+export function formatDate(date = new Date()) {
+    try {
+        return date.toLocaleDateString(getLocale(), hasOwn(DATE_OPTIONS, currentLang) ? DATE_OPTIONS[currentLang] : undefined);
+    } catch (e) {
+        return '';
+    }
+}
+
+/**
+ * Wrap `text` in a first-strong isolate (U+2068 ... U+2069) so it takes its direction from its own first
+ * letter and cannot reorder the text around it. Use it for user text (a player's name) that is put into a
+ * sentence as plain text, where `<bdi>` is not available: a Persian name inside an English sentence, an
+ * English one inside a Persian sentence. The marks are invisible and cannot be typed into a name field.
+ */
+export function isolate(text) {
+    return `\u2068${text}\u2069`;
 }
 
 /**

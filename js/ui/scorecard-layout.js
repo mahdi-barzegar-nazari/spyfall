@@ -101,6 +101,7 @@ export function computeHeaderLayout(layout) {
 // Podium column layout for one rank (1, 2 or 3) — pedestal box, avatar
 // circle, and every text baseline stacked underneath it, all in terms of
 // the shared scale for this export.
+// The podium reads silver, gold, bronze from the physical left to the physical right in both directions.
 const RANK_TO_SLOT = { 1: 1, 2: 0, 3: 2 }; // silver-left, gold-center, bronze-right
 const PEDESTAL_HEIGHT_FACTORS = [140, 100, 74]; // [rank 1, rank 2, rank 3]: the first must be the tallest
 
@@ -156,4 +157,74 @@ export function computeRestRowLayout(layout) {
         circleR: Math.min(16 * s, rowHeight / 2 - 2),
         cornerR: Math.min(14 * s, rowHeight / 2)
     };
+}
+
+// Horizontal placement of the "rest of players" rows, mirrored for the reading direction. The distances
+// are the ones the Persian image has always used: 40px from the outer edge, the rank circle 24px in, the
+// name 48px in, and the score 56px in from the opposite edge. `direction` is passed in (the layout stays
+// pure); anything but an explicit 'ltr' keeps the right-to-left placement.
+//   RTL: header and name right-aligned at the right, rank circle at the right, score at the left edge.
+//   LTR: the mirror image.
+export function computeRestRowColumns(layout, direction) {
+    const { width } = layout;
+    if (direction === 'ltr') {
+        return {
+            direction: 'ltr',
+            headerX: 40,
+            headerAlign: 'left',
+            circleX: 40 + 24,
+            nameX: 40 + 48,
+            nameAlign: 'left',
+            scoreX: width - 56,
+            scoreAlign: 'right'
+        };
+    }
+    return {
+        direction: 'rtl',
+        headerX: width - 40,
+        headerAlign: 'right',
+        circleX: width - 40 - 24,
+        nameX: width - 40 - 48,
+        nameAlign: 'right',
+        scoreX: 56,
+        scoreAlign: 'left'
+    };
+}
+
+// ---- Bidi marks for canvas text (pure string helpers) ----------------------------------------------
+// A line of canvas text is wrapped in one isolate that carries the reading direction of the UI (RLI for
+// RTL, LRI for LTR), and every player name inside it is isolated on its own (first-strong, see
+// i18n `isolate`). So the line reads in the UI direction while a name keeps its own direction and cannot
+// reorder the words or punctuation around it. For Persian the line mark is the RLI the image has always used.
+const FSI = '\u2068';
+const PDI = '\u2069';
+const LINE_MARKS = { rtl: '\u2067', ltr: '\u2066' };
+
+/** The isolate-opening mark for a whole line in `direction` (anything but 'ltr' is right-to-left). */
+export function lineMark(direction) {
+    return direction === 'ltr' ? LINE_MARKS.ltr : LINE_MARKS.rtl;
+}
+
+/** `line` wrapped in a line-level isolate for `direction`. */
+export function isolateLine(line, direction) {
+    return `${lineMark(direction)}${line}${PDI}`;
+}
+
+/**
+ * Make the first-strong isolates of every wrapped line balanced. Wrapping cuts a text on spaces, so a name
+ * that contains a space can be split over two lines: the first line is closed with PDI and the next one
+ * reopens with FSI. Line breaks stay exactly where the unmarked text put them (the marks have no width).
+ */
+export function balanceIsolates(lines) {
+    let open = 0;
+    return lines.map((line) => {
+        let text = FSI.repeat(open) + line;
+        let depth = open;
+        for (const ch of line) {
+            if (ch === FSI) depth++;
+            else if (ch === PDI && depth > 0) depth--;
+        }
+        open = depth;
+        return text + PDI.repeat(depth);
+    });
 }

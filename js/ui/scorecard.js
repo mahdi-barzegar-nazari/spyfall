@@ -10,12 +10,15 @@
 
 import { gameState } from '../core/state.js';
 import { getRankedStandings } from '../game/ranking.js';
-import { formatNumber, t, tn } from '../i18n/index.js';
+import { formatDate, formatNumber, getDirection, isolate, t, tn } from '../i18n/index.js';
 import {
     computeScorecardLayout,
     computeHeaderLayout,
     computePodiumSlotLayout,
-    computeRestRowLayout
+    computeRestRowLayout,
+    computeRestRowColumns,
+    balanceIsolates,
+    isolateLine
 } from './scorecard-layout.js';
 
 const SCORECARD_THEME_ACCENTS = {
@@ -177,14 +180,15 @@ function drawHeader(ctx, layout, accent, fontFam, { titleText, metaParts }) {
 }
 
 function formatGroupNamesForCanvas(group) {
-    const names = group.players.map(p => p.name);
+    // Each name is isolated on its own, so a name in the other script cannot reorder its neighbours.
+    const names = group.players.map(p => isolate(p.name));
     if (names.length === 1) return names[0];
     if (names.length === 2) return t('names.pair', { a: names[0], b: names[1] });
     return tn('names.more', names.length - 1, { a: names[0] });
 }
 
 // Podium (top 3 ranks — a rank slot may hold more than one tied player).
-function drawPodium(ctx, layout, podiumGroups, fontFam) {
+function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
     if (podiumGroups.length === 0) return;
     const medalColors = ['#f59e0b', '#cbd5e1', '#d97706'];
     const medalEmoji = ['🥇', '🥈', '🥉'];
@@ -227,9 +231,9 @@ function drawPodium(ctx, layout, podiumGroups, fontFam) {
         ctx.fillStyle = '#f1f5f9';
         const rawName = formatGroupNamesForCanvas(g);
         const displayName = g.players.length > 1 ? t('scorecard.tied', { name: rawName }) : rawName;
-        const nameLines = wrapCanvasText(ctx, displayName, p.pedW - 8, 2);
+        const nameLines = balanceIsolates(wrapCanvasText(ctx, displayName, p.pedW - 8, 2));
         nameLines.forEach((line, li) => {
-            ctx.fillText(`\u2067${line}\u2069`, p.colX, p.nameBaseY + li * p.nameLineH);
+            ctx.fillText(isolateLine(line, direction), p.colX, p.nameBaseY + li * p.nameLineH);
         });
         const lastNameY = p.nameBaseY + (nameLines.length - 1) * p.nameLineH;
 
@@ -242,16 +246,17 @@ function drawPodium(ctx, layout, podiumGroups, fontFam) {
 // Remaining players (rank 4 onward — shared ranks stay in sync with the
 // podium). Row step (and, only if truly necessary, font size) compress to
 // guarantee everything fits inside the fixed canvas without clipping.
-function drawRestRows(ctx, layout, restRows, accent, fontFam) {
+function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
     if (restRows.length === 0) return;
     const { width } = layout;
     const row = computeRestRowLayout(layout);
+    const col = computeRestRowColumns(layout, direction);
 
     let y = layout.blockTop + layout.podiumH;
-    ctx.textAlign = 'right';
+    ctx.textAlign = col.headerAlign;
     ctx.font = `700 13px ${fontFam}`;
     ctx.fillStyle = '#64748b';
-    ctx.fillText(t('scorecard.others'), width - 40, y + 28);
+    ctx.fillText(t('scorecard.others'), col.headerX, y + 28);
     y += layout.restHeaderH;
 
     restRows.forEach((r) => {
@@ -263,27 +268,27 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam) {
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(width - 40 - 24, y + row.rowHeight / 2, row.circleR, 0, Math.PI * 2);
+        ctx.arc(col.circleX, y + row.rowHeight / 2, row.circleR, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255,255,255,0.06)';
         ctx.fill();
         ctx.font = `700 ${row.rankFontPx}px ${fontFam}`;
         ctx.fillStyle = '#94a3b8';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(formatNumber(r.rank), width - 40 - 24, y + row.rowHeight / 2 + 1);
+        ctx.fillText(formatNumber(r.rank), col.circleX, y + row.rowHeight / 2 + 1);
         ctx.textBaseline = 'alphabetic';
 
-        ctx.textAlign = 'right';
+        ctx.textAlign = col.nameAlign;
         ctx.font = `700 ${row.nameFontPx}px ${fontFam}`;
         ctx.fillStyle = '#e2e8f0';
-        const displayName = r.tied ? t('scorecard.tied', { name: r.p.name }) : r.p.name;
-        const truncatedName = truncateCanvasText(ctx, displayName, width - 220);
-        ctx.fillText(`\u2067${truncatedName}\u2069`, width - 40 - 48, y + row.rowHeight / 2 + 5);
+        const displayName = r.tied ? t('scorecard.tied', { name: isolate(r.p.name) }) : isolate(r.p.name);
+        const [truncatedName] = balanceIsolates([truncateCanvasText(ctx, displayName, width - 220)]);
+        ctx.fillText(isolateLine(truncatedName, direction), col.nameX, y + row.rowHeight / 2 + 5);
 
-        ctx.textAlign = 'left';
+        ctx.textAlign = col.scoreAlign;
         ctx.fillStyle = accent.primary;
         ctx.font = `800 ${row.scoreFontPx}px ${fontFam}`;
-        ctx.fillText(tn('score.points', r.p.score), 56, y + row.rowHeight / 2 + 5);
+        ctx.fillText(tn('score.points', r.p.score), col.scoreX, y + row.rowHeight / 2 + 5);
 
         y += layout.restRowStep;
     });
@@ -320,8 +325,10 @@ export function exportScorecardImage() {
     const renderCanvas = () => {
         const canvas = document.getElementById('scorecard-canvas');
         const ctx = canvas.getContext('2d');
+        // The text direction of the canvas follows the active language (names are isolated one by one).
+        const direction = getDirection();
         if ('direction' in ctx) {
-            ctx.direction = 'rtl';
+            ctx.direction = direction;
         }
         const themeName = document.body.getAttribute('data-theme') || 'default';
         const accent = SCORECARD_THEME_ACCENTS[themeName] || SCORECARD_THEME_ACCENTS.default;
@@ -344,8 +351,7 @@ export function exportScorecardImage() {
         drawBackground(ctx, layout, accent);
         drawSparkles(ctx, layout, accent);
 
-        let dateStr = '';
-        try { dateStr = new Date().toLocaleDateString('fa-IR'); } catch(e) {}
+        const dateStr = formatDate(new Date());
         const metaParts = [
             dateStr,
             tn('scorecard.meta.rounds', gameState.round.num),
@@ -353,8 +359,8 @@ export function exportScorecardImage() {
         ].filter(Boolean);
         drawHeader(ctx, layout, accent, fontFam, { titleText: t('scorecard.title'), metaParts });
 
-        drawPodium(ctx, layout, podiumGroups, fontFam);
-        drawRestRows(ctx, layout, restRows, accent, fontFam);
+        drawPodium(ctx, layout, podiumGroups, fontFam, direction);
+        drawRestRows(ctx, layout, restRows, accent, fontFam, direction);
         drawClosingLine(ctx, layout, fontFam);
         drawFooter(ctx, layout, fontFam);
 

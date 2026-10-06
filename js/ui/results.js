@@ -121,7 +121,7 @@ export function renderPlayerDetails() {
 
         const card = document.createElement('div');
         card.className = 'detail-player-card';
-        card.innerHTML = `<h4>${escapeHtml(p.name)}</h4>${rows}`;
+        card.innerHTML = `<h4><bdi>${escapeHtml(p.name)}</bdi></h4>${rows}`;
         container.appendChild(card);
     });
 }
