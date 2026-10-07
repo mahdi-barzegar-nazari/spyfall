@@ -7,13 +7,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { after, afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { assertLabelMatchesBank, numberInLabel } from './helpers/bankLabel.mjs';
 import { installFakeEnv } from './helpers/fakeEnv.mjs';
 
 const env = installFakeEnv();
 const { CATALOGS } = await import('../../js/i18n/catalogs.js');
 const { fa } = await import('../../js/i18n/fa.js');
 const { en } = await import('../../js/i18n/en.js');
-const { WORD_PACKS } = await import('../../js/data/wordPacks.js');
+const { getWordPacks } = await import('../../js/data/banks.js');
 const { DEFAULT_LANG, LANG_DIRECTIONS, SUPPORTED_LANGS, formatDuration, formatNumber, getLang, setLang, t, tn } =
     await import('../../js/i18n/index.js');
 
@@ -114,9 +115,15 @@ describe('English catalog: content', () => {
         }
     });
 
-    it('the "all categories" button states the real size of the word bank, rounded down to a hundred', () => {
-        const total = Object.values(WORD_PACKS).reduce((sum, list) => sum + list.length, 0);
-        assert.ok(en['setup.categories.all'].includes(`+${Math.floor(total / 100) * 100} `), en['setup.categories.all']);
+    it('the English "all categories" button is true for the English word bank: no number, or its size rounded down to a hundred', () => {
+        assertLabelMatchesBank(en['setup.categories.all'], getWordPacks('en'));
+    });
+
+    it('while the English bank is a seed (under a hundred words) the label states no number, and not the Persian one', () => {
+        const total = Object.values(getWordPacks('en')).reduce((sum, list) => sum + list.length, 0);
+        if (total >= 100) return;
+        assert.equal(numberInLabel(en['setup.categories.all']), null, en['setup.categories.all']);
+        assert.equal(en['setup.categories.all'].includes('700'), false);
     });
 
     it('t() finds every key in English with no fallback to Persian', () => {

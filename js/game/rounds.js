@@ -5,9 +5,8 @@
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { getCustomWords } from '../core/storage.js';
-import { sideQuestsPool } from '../data/sideQuests.js';
-import { WORD_PACKS } from '../data/wordPacks.js';
-import { t } from '../i18n/index.js';
+import { getSideQuests, getWordPacks } from '../data/banks.js';
+import { getLang, t } from '../i18n/index.js';
 import { generateId, getRandomCryptoInt, shuffle } from '../utils/random.js';
 import { normalizeWord } from '../utils/text.js';
 
@@ -39,6 +38,9 @@ export function initMatchPlayers() {
 }
 
 export function startNextRound() {
+    // The word, the hint, the category label and the quests all come from the language that is active now.
+    const lang = getLang();
+    const packs = getWordPacks(lang);
     let pool = [];
     const activeCats = (gameState.settings.cats && gameState.settings.cats.length > 0) ? gameState.settings.cats : ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
     
@@ -46,14 +48,14 @@ export function startNextRound() {
         if (catKey === 'custom') {
             const customWords = getCustomWords().map(w => ({ ...w, _cat: 'custom' }));
             pool.push(...customWords);
-        } else if (WORD_PACKS[catKey]) {
-            const mapped = WORD_PACKS[catKey].map(w => ({ ...w, _cat: catKey }));
+        } else if (Object.prototype.hasOwnProperty.call(packs, catKey)) {
+            const mapped = packs[catKey].map(w => ({ ...w, _cat: catKey }));
             pool.push(...mapped);
         }
     });
 
     if (pool.length === 0) {
-        pool = WORD_PACKS.places.map(w => ({ ...w, _cat: 'places' }));
+        pool = packs.places.map(w => ({ ...w, _cat: 'places' }));
     }
 
     if (gameState.settings.diff !== 'all') {
@@ -170,7 +172,7 @@ export function startNextRound() {
     });
 
     if (gameState.settings.quests) {
-        let qPool = shuffle(sideQuestsPool);
+        let qPool = shuffle(getSideQuests(lang));
         activePlayers.forEach((p, i) => p.quest = qPool[i % qPool.length]);
     }
 

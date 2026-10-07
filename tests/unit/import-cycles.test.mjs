@@ -149,6 +149,19 @@ describe('module graph of js/', () => {
         }
         assert.deepEqual(upward, [], 'i18n/ must stay below game/, ui/ and app/');
     });
+
+    it('keeps data/ pure: it imports nothing outside data/, and never i18n/ (the language is a parameter)', () => {
+        assert.ok([...graph.keys()].some((file) => file.startsWith('js/data/')), 'js/data/ was not found in the module graph');
+        assert.ok([...graph.keys()].includes('js/data/banks.js'), 'js/data/banks.js was not found in the module graph');
+        const outside = [];
+        for (const [file, imports] of graph) {
+            if (!file.startsWith('js/data/')) continue;
+            for (const target of imports) {
+                if (!target.startsWith('js/data/')) outside.push(`${file} -> ${target}`);
+            }
+        }
+        assert.deepEqual(outside, [], 'data/ must not import from other layers: pass the language in as an argument');
+    });
 });
 
 describe('cycle detector (self-check on throwaway trees)', () => {

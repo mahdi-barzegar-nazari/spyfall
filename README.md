@@ -33,7 +33,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
-- **741 built-in words** in 8 categories with difficulty ratings, plus a custom word bank you can import and export as JSON.
+- **741 built-in words** in 8 categories with difficulty ratings (Persian; an English seed bank of 64 words and 28 side quests is in, the full English bank is still to come), plus a custom word bank you can import and export as JSON.
 - **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 
 ## Quickstart
@@ -59,7 +59,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 453 unit tests (built-in node:test, no dependencies)
+npm test               # 512 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser smoke test of the production build, including offline mode
 npm run lint
@@ -78,7 +78,7 @@ npm run lint
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
 │   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
-│   ├── data/                  # word bank, side quests, help-text keys
+│   ├── data/                  # word banks and side quests (one per language), help-text keys
 │   ├── i18n/                  # translation core (t, language switching) and the Persian and English catalogs
 │   └── utils/                 # text and random helpers (pure)
 ├── sw.js                      # service worker (versioned app-shell precache)

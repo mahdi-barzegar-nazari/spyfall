@@ -56,6 +56,8 @@ export const fa = {
     'common.unknownName': '؟',
     'names.quoted': '«{name}»',
     'names.pair': '{a} و {b}',
+    'names.list.separator': '{a} و {b}',
+    'names.list.last': '{a} و {b}',
     'names.more.one': '{a} و {count} نفر دیگر',
     'names.more.other': '{a} و {count} نفر دیگر',
     'score.points.one': '{count} امتیاز',

@@ -27,6 +27,10 @@
 
 - Unit tests for the module graph (`tests/unit/import-cycles.test.mjs`: no import cycles, no missing imports, `core/` never imports upward) and for the new `core/phase.js` and `core/dispatch.js` seams (`tests/unit/phase.test.mjs`).
 
+- **One word bank and one set of side quests per language.** `js/data/banks.js` has `getWordPacks(lang)` and `getSideQuests(lang)` (a language with no data of its own gets the Persian data); `rounds.js` passes `getLang()` to both. `WORD_PACKS` and `sideQuestsPool` are still exported, unchanged. New English **seed** data in `js/data/wordPacksEn.js` (the same 8 category ids and entry shape as Persian: 8 words per category, 64 in all, at least 2 `easy`, 2 `medium` and 2 `hard` each; one array per category so it can grow to hundreds by appending) and `js/data/sideQuestsEn.js` (28 one-sentence quests that need no props, name no role and do not depend on one culture). The full English bank is a later step. The "no words, fall back to places" path now uses the bank of the active language.
+- **`formatList(items)` and `formatListHtml(items)`** in `js/i18n/index.js`: "A, B and C" from the catalog keys `names.pair` (two items), `names.list.separator` and `names.list.last` (three or more), not from `Intl.ListFormat`. Persian has the same template in all three, so it still writes "A و B و C", exactly what the old chain of `names.pair` wrote; English writes "A, B and C" with no comma before "and". The tie announcement (`ui/wheel.js`) and the accolade titles (`ui/results.js`) use them.
+- Tests: `tests/unit/i18n-list.test.mjs` (1, 2, 3 and 5 names in both languages, Persian equal to the old chain, a made-up language that proves which template each step uses, the tie announcement and the accolades), the per-language data rules in `tests/unit/data.test.mjs` (same category ids, entry shape, length limits, no duplicates in the whole bank, `foolWord` and `hint` differ from `word`; English: named minimum constants `EN_MIN_WORDS_PER_CATEGORY` / `EN_MIN_WORDS_PER_DIFFICULTY` / `EN_MIN_SIDE_QUESTS` that the full-bank step will raise, no Persian letters, no leading article, one-word hints), per-language word and quest selection in `tests/unit/rounds.test.mjs`, and a rule in the import-graph test that `data/` imports nothing outside `data/`.
+
 ### Changed
 
 - **A correct word guess is now worth 1, 2 or 3 points on an easy, medium or hard word** (2 for custom words and any word with no rating), instead of a flat 3. `SCORING.SPY_CORRECT_GUESS` is replaced by `SPY_GUESS_BY_DIFFICULTY` and `getSpyGuessPoints()` in `core/config.js`.
@@ -44,6 +48,7 @@
 - **The scorecard image follows the language:** `ctx.direction`, the mirrored rows of the "other players" list, one line-level isolate per line (RLI for RTL, the mark the Persian image always used; LRI for LTR) plus one isolate per name, and the date from `formatDate`. The Persian image has the same SHA-256 before and after (same seed, same date, 5 players).
 - `i18n/index.js` lists `en` in `SUPPORTED_LANGS` and `LANG_DIRECTIONS`, and `i18n/catalogs.js` imports `en.js`; the one existing test that used `'en'` as an example of an unsupported language now uses `'de'`.
 - `formatSecondsFa` is now a thin alias of `formatDuration`; `toPersianDigits` stays for existing code and tests, the game itself uses `formatNumber`.
+- The English "all categories" button no longer promises "+700 words" (that is the Persian bank): the English bank is a seed of 64 words, so the text is now "All categories". The two tests that tied the label to the word bank now check each language against its own bank (a label with a number must match its bank rounded down to a hundred; a label with no number is allowed). The Persian label is unchanged.
 
 ### Fixed
 

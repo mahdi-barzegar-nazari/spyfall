@@ -3,11 +3,14 @@
  * Randomness is seeded (env.seedRandom), so every run replays the same sequences.
  */
 import assert from 'node:assert/strict';
-import { after, describe, it } from 'node:test';
+import { after, afterEach, describe, it } from 'node:test';
 import { getDifficultyMultiplier } from '../../js/core/config.js';
 import { gameState, hostSecretState, session } from '../../js/core/state.js';
 import { sideQuestsPool } from '../../js/data/sideQuests.js';
+import { sideQuestsPoolEn } from '../../js/data/sideQuestsEn.js';
 import { WORD_PACKS } from '../../js/data/wordPacks.js';
+import { WORD_PACKS_EN } from '../../js/data/wordPacksEn.js';
+import { getLang, setLang, t } from '../../js/i18n/index.js';
 import { normalizeWord } from '../../js/utils/text.js';
 import { installFakeEnv } from './helpers/fakeEnv.mjs';
 import { freshStats, makePlayer, makePlayers, useGameHarness } from './helpers/harness.mjs';
@@ -16,6 +19,8 @@ const env = installFakeEnv();
 const { calcDirectorTurn, initMatchPlayers, startNextRound } = await import('../../js/game/rounds.js');
 const harness = useGameHarness(env);
 after(() => env.uninstall());
+// A test that switches language must not leak it into the next one.
+afterEach(() => setLang('fa'));
 
 const NAME_INPUTS = '#name-inputs-container input';
 const ALL_WORDS = Object.values(WORD_PACKS).flat();
@@ -642,5 +647,197 @@ describe('calcDirectorTurn', () => {
                 }
             }
         }
+    });
+});
+
+describe('startNextRound: one word bank and one quest pool per language', () => {
+    const ALL_WORDS_EN = Object.values(WORD_PACKS_EN).flat();
+    const PERSIAN = /[\u0600-\u06FF]/;
+    const everyCategory = () => ({ cats: Object.keys(WORD_PACKS), diff: 'all' });
+
+    it('with Persian active the word comes from the Persian bank, and the category label is Persian', () => {
+        env.seedRandom(61);
+        assert.equal(getLang(), 'fa');
+        arrange({ settings: everyCategory() });
+        for (let round = 0; round < 60; round++) {
+            startNextRound();
+            const word = hostSecretState.secretWord;
+            assert.ok(ALL_WORDS.some((w) => w.word === word), word);
+            assert.ok(!ALL_WORDS_EN.some((w) => w.word === word), word);
+            assert.match(gameState.round.category, PERSIAN);
+        }
+    });
+
+    it('with English active the word comes from the English bank, and the category label is English', () => {
+        env.seedRandom(62);
+        setLang('en');
+        arrange({ settings: everyCategory() });
+        const categories = new Set();
+        for (let round = 0; round < 60; round++) {
+            startNextRound();
+            const word = hostSecretState.secretWord;
+            const entry = ALL_WORDS_EN.find((w) => w.word === word);
+            assert.ok(entry, word);
+            assert.ok(!ALL_WORDS.some((w) => w.word === word), word);
+            assert.equal(hostSecretState.foolWord, entry.foolWord);
+            assert.equal(hostSecretState.hint, entry.hint);
+            assert.equal(gameState.round.wordDifficulty, entry.diff);
+            assert.doesNotMatch(gameState.round.category, PERSIAN);
+            categories.add(gameState.round.category);
+        }
+        assert.ok(categories.size >= 4, `only ${categories.size} categories drawn`);
+    });
+
+    it('each English category draws only from its own list and shows its own English label', () => {
+        for (const category of Object.keys(WORD_PACKS_EN)) {
+            env.seedRandom(63);
+            setLang('en');
+            arrange({ settings: { cats: [category], diff: 'all' } });
+            for (let round = 0; round < 12; round++) {
+                startNextRound();
+                assert.ok(WORD_PACKS_EN[category].some((w) => w.word === hostSecretState.secretWord), `${category}: ${hostSecretState.secretWord}`);
+                assert.equal(gameState.round.category, t(`setup.cat.${category}`));
+            }
+        }
+    });
+
+    it('the difficulty filter works on the English bank too', () => {
+        env.seedRandom(64);
+        setLang('en');
+        for (const diff of ['easy', 'medium', 'hard']) {
+            arrange({ settings: { cats: Object.keys(WORD_PACKS_EN), diff } });
+            for (let round = 0; round < 25; round++) {
+                startNextRound();
+                assert.equal(gameState.round.wordDifficulty, diff);
+                assert.ok(ALL_WORDS_EN.some((w) => w.word === hostSecretState.secretWord && w.diff === diff));
+            }
+        }
+    });
+
+    it('custom words work in both languages: scored as neutral, with the custom label of that language', () => {
+        for (const lang of ['fa', 'en']) {
+            setLang(lang);
+            arrange();
+            startNextRound();
+            assert.ok(WORDS.some((w) => w.word === hostSecretState.secretWord), `${lang}: ${hostSecretState.secretWord}`);
+            assert.equal(gameState.round.wordDifficulty, null);
+            assert.equal(gameState.round.category, t('setup.cat.custom'));
+        }
+        setLang('en');
+        arrange();
+        startNextRound();
+        assert.equal(gameState.round.category, 'Custom words');
+    });
+
+    it('the used-words rule works in English: no repeat until the category is used up, then it starts over', () => {
+        env.seedRandom(65);
+        setLang('en');
+        arrange({ settings: { cats: ['places'] } });
+        const size = WORD_PACKS_EN.places.length;
+        const drawn = [];
+        for (let round = 0; round < size; round++) {
+            startNextRound();
+            drawn.push(hostSecretState.secretWord);
+        }
+        assert.equal(new Set(drawn).size, size);
+        assert.deepEqual([...drawn].sort(), WORD_PACKS_EN.places.map((w) => w.word).sort());
+        assert.equal(gameState.match.usedWordKeys.length, size);
+
+        startNextRound();
+        assert.deepEqual(gameState.match.usedWordKeys, [normalizeWord(hostSecretState.secretWord)]);
+    });
+
+    it('the used-words rule skips an English word that is already used, whatever its case', () => {
+        env.seedRandom(66);
+        setLang('en');
+        arrange({ settings: { cats: ['places'] } });
+        const [last, ...others] = WORD_PACKS_EN.places.map((w) => w.word);
+        for (let round = 0; round < 20; round++) {
+            gameState.match.usedWordKeys = others.map((w) => normalizeWord(w.toUpperCase()));
+            startNextRound();
+            assert.equal(hostSecretState.secretWord, last);
+        }
+    });
+
+    it('falls back to the places pack OF THE ACTIVE LANGUAGE when the chosen categories hold no words', () => {
+        setLang('en');
+        arrange({ words: [], settings: { cats: ['custom'] } });
+        startNextRound();
+        assert.ok(WORD_PACKS_EN.places.some((w) => w.word === hostSecretState.secretWord), hostSecretState.secretWord);
+        assert.equal(gameState.round.category, t('setup.cat.places'));
+
+        arrange({ settings: { cats: ['no-such-category'] } });
+        startNextRound();
+        assert.ok(WORD_PACKS_EN.places.some((w) => w.word === hostSecretState.secretWord));
+
+        setLang('fa');
+        arrange({ words: [], settings: { cats: ['custom'] } });
+        startNextRound();
+        assert.ok(WORD_PACKS.places.some((w) => w.word === hostSecretState.secretWord));
+    });
+
+    it('English role cards: the spy gets an English hint (the word\'s own), the others the word, the fool the fool word', () => {
+        env.seedRandom(67);
+        setLang('en');
+        arrange({ players: 6, settings: { ...everyCategory(), fool: true, detective: true } });
+        for (let round = 0; round < 30; round++) {
+            startNextRound();
+            const entry = ALL_WORDS_EN.find((w) => w.word === hostSecretState.secretWord);
+            const spy = spyEntry();
+            assert.equal(spy.hintTitle, t('role.hintTitle.related'));
+            assert.equal(spy.hint, entry.hint);
+            assert.doesNotMatch(`${spy.hintTitle}${spy.hint}`, PERSIAN);
+            assert.equal(hostSecretState.foolWord, entry.foolWord);
+            for (const p of gameState.players.filter((x) => x.role !== 'spy')) {
+                assert.equal(hostSecretState.roles[p.id].hintTitle, t('role.hintTitle.word'));
+                assert.doesNotMatch(hostSecretState.roles[p.id].hintTitle, PERSIAN);
+            }
+        }
+    });
+
+    it('English role cards: the other hint types are English as well', () => {
+        env.seedRandom(68);
+        setLang('en');
+        arrange({ settings: { ...everyCategory(), hints: ['category'] } });
+        startNextRound();
+        assert.equal(spyEntry().hint, gameState.round.category);
+        assert.doesNotMatch(spyEntry().hint, PERSIAN);
+
+        arrange({ settings: { ...everyCategory(), hints: ['first_letter'] } });
+        startNextRound();
+        assert.equal(spyEntry().hint, t('role.hint.firstLetter', { letter: hostSecretState.secretWord.charAt(0) }));
+        assert.match(spyEntry().hint, /^“[A-Z]”$/);
+
+        arrange({ settings: { ...everyCategory(), hints: ['none'] } });
+        startNextRound();
+        assert.equal(spyEntry().hint, 'No hint at all (hard)');
+    });
+
+    it('with quests on, English players get English quests (each different) and Persian players Persian ones', () => {
+        env.seedRandom(69);
+        setLang('en');
+        arrange({ players: 12, settings: { quests: true } });
+        startNextRound();
+        const english = gameState.players.map((p) => p.quest);
+        assert.ok(english.every((q) => sideQuestsPoolEn.includes(q)), english.join(' | '));
+        assert.ok(english.every((q) => !sideQuestsPool.includes(q) && !PERSIAN.test(q)));
+        assert.equal(new Set(english).size, 12);
+
+        setLang('fa');
+        arrange({ players: 12, settings: { quests: true } });
+        startNextRound();
+        const persian = gameState.players.map((p) => p.quest);
+        assert.ok(persian.every((q) => sideQuestsPool.includes(q)));
+        assert.equal(new Set(persian).size, 12);
+    });
+
+    it('a full table of 20 players gets 20 different English quests', () => {
+        env.seedRandom(70);
+        setLang('en');
+        const players = 20;
+        assert.ok(sideQuestsPoolEn.length >= players, 'this test needs a pool at least as big as the table');
+        arrange({ players, settings: { quests: true } });
+        startNextRound();
+        assert.equal(new Set(gameState.players.map((p) => p.quest)).size, players);
     });
 });

@@ -3,7 +3,7 @@
  */
 
 import { gameState } from '../core/state.js';
-import { formatDuration, formatNumber, rawHtml, t, tHtml, tn, tnHtml } from '../i18n/index.js';
+import { formatDuration, formatListHtml, formatNumber, rawHtml, t, tHtml, tn, tnHtml } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
 export const PODIUM_RANK_META = {
@@ -137,11 +137,9 @@ function getTopPlayersForAccolade(statKey) {
     return tops;
 }
 
-// "a, b and c": the names are joined with the language's own "and" (see `names.pair`).
+// "a, b and c": the names are joined the way the language writes a list (see `formatListHtml`).
 function joinNames(players) {
-    return players
-        .map(p => `<bdi>${escapeHtml(p.name)}</bdi>`)
-        .reduce((joined, next) => tHtml('names.pair', { a: rawHtml(joined), b: rawHtml(next) }));
+    return formatListHtml(players.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`));
 }
 
 function accoladeCard(icon, colorClass, titleKey, descKey, players) {

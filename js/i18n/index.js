@@ -237,6 +237,42 @@ export function tnHtml(key, count, params) {
 }
 
 /**
+ * Join `items` into one list, one catalog template per step. Two items use `names.pair`; three or more
+ * chain `names.list.separator` up to the last item, which is added with `names.list.last`. A template
+ * gets `{a}` (the list so far) and `{b}` (the next item), so a language decides its own separator and
+ * its own last word, and Persian (all three templates alike) reads exactly like the old chain of
+ * `names.pair`. `fillStep(key, a, b)` fills one template: plain text for `formatList`, HTML for
+ * `formatListHtml`. This is catalog-driven on purpose, not `Intl.ListFormat`.
+ */
+function joinList(items, fillStep) {
+    const last = items.length - 1;
+    if (last < 0) return '';
+    if (last === 0) return items[0];
+    if (last === 1) return fillStep('names.pair', items[0], items[1]);
+    let joined = items[0];
+    for (let i = 1; i < last; i++) joined = fillStep('names.list.separator', joined, items[i]);
+    return fillStep('names.list.last', joined, items[last]);
+}
+
+/**
+ * "A, B and C" in the active language (Persian: "A و B و C"; two items: `names.pair`; one item: itself;
+ * none: ''). `items` are plain texts, put into the result as they are: wrap a name that can be in another
+ * script with `isolate()` first, or quote it.
+ */
+export function formatList(items) {
+    return joinList(Array.from(items || [], String), (key, a, b) => t(key, { a, b }));
+}
+
+/**
+ * `formatList` for HTML. `items` are HTML strings that are already safe (a name wrapped in `<bdi>` after
+ * escaping, say); they are inserted as they are and the catalog text is escaped. The result is safe HTML.
+ */
+export function formatListHtml(items) {
+    const joined = joinList(Array.from(items || [], (item) => rawHtml(item)), (key, a, b) => rawHtml(tHtml(key, { a, b })));
+    return joined instanceof RawHtml ? joined.html : joined;
+}
+
+/**
  * Write the text of `key` into `element` without `innerHTML`. Each `{name}` in the text is replaced by
  * `slots[name]`: a Node (a bold `<strong>` holding a player's name, say) is inserted, a string or a
  * number becomes text. A placeholder that has no slot takes `params[name]` as text, like `t()` would.

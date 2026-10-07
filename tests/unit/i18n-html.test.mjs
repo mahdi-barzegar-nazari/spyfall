@@ -10,9 +10,11 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { INFO_KEYS } from '../../js/data/infoTexts.js';
+import { getWordPacks } from '../../js/data/banks.js';
 import { WORD_PACKS } from '../../js/data/wordPacks.js';
 import { CATALOGS } from '../../js/i18n/catalogs.js';
 import { fa } from '../../js/i18n/fa.js';
+import { assertLabelMatchesBank } from './helpers/bankLabel.mjs';
 import { closest, elements, innerText, normalizeText, parseHtml } from './helpers/htmlScan.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -279,9 +281,8 @@ describe('translation catalogs', () => {
         }
     });
 
-    it('the "all categories" button states the real size of the word bank, rounded down to a hundred', () => {
-        const total = Object.values(WORD_PACKS).reduce((sum, list) => sum + list.length, 0);
-        assert.ok(total > 0);
-        assert.ok(fa['setup.categories.all'].includes(`+${Math.floor(total / 100) * 100} `), `${total} words, label: ${fa['setup.categories.all']}`);
+    it('the Persian "all categories" button states the real size of the Persian word bank, rounded down to a hundred', () => {
+        assertLabelMatchesBank(fa['setup.categories.all'], getWordPacks('fa'));
+        assert.equal(getWordPacks('fa'), WORD_PACKS);
     });
 });

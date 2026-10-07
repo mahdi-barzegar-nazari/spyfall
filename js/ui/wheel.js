@@ -6,7 +6,7 @@ import { dispatch } from '../core/dispatch.js';
 import { gameState } from '../core/state.js';
 import { playCardFlip } from '../platform/audio.js';
 import { getRandomCryptoInt } from '../utils/random.js';
-import { t, tHtml, isolate } from '../i18n/index.js';
+import { formatList, t, tHtml, isolate } from '../i18n/index.js';
 
 let elimRevealTimeoutId = null;
 
@@ -136,7 +136,7 @@ export function runTieBreakerWheel(candidateIds, onResolved) {
     const winnerId = candidateIds[winnerIndex];
 
     const quotedNames = names.map(n => t('names.quoted', { name: isolate(n) }));
-    const joinedNames = quotedNames.length ? quotedNames.reduce((joined, next) => t('names.pair', { a: joined, b: next })) : '';
+    const joinedNames = formatList(quotedNames);
     document.getElementById('tie-announce-names').innerHTML = tHtml('tie.announce', { names: joinedNames });
     document.getElementById('tie-announce-stage').classList.remove('hidden');
     document.getElementById('tie-wheel-stage').classList.add('hidden');
