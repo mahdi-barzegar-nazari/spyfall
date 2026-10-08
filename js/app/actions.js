@@ -15,7 +15,7 @@ import { calcDirectorTurn, initMatchPlayers, startNextRound } from '../game/roun
 import { pauseTimer, resumeTimer, startTimer, stopTimerLoop } from '../game/timer.js';
 import { getCurrentVoter, handleLocalVote } from '../game/voting.js';
 import { stopAudioKeepAlive, toggleMute } from '../platform/audio.js';
-import { setTemplate, t } from '../i18n/index.js';
+import { getLang, normalizeLang, setLang, setTemplate, t } from '../i18n/index.js';
 import { addCustomWordDOM, exportCustomWordsJSON, importCustomWordsJSON } from '../ui/customWords.js';
 import { showToast } from '../ui/feedback.js';
 import { trapFocus } from '../ui/focusTrap.js';
@@ -250,7 +250,15 @@ export function handleAction(action) {
                 if (rawCombined) {
                     const parsed = JSON.parse(rawCombined);
                     if (parsed.state && parsed.state.version === SAVE_VERSION && Array.isArray(parsed.state.players)) {
+                        // The saved texts (hint titles, hints, the category label, the detective's answer) are in
+                        // the language the match was started in, so switch to it BEFORE anything is rendered.
+                        // A save with no language (every save made before it was recorded) is Persian, and so is
+                        // one with an unsupported or malformed value.
+                        const savedLang = normalizeLang(parsed.state.match && parsed.state.match.lang);
+                        if (savedLang !== getLang()) setLang(savedLang);
                         replaceGameState(parsed.state);
+                        const match = gameState.match;
+                        if (match && typeof match === 'object' && !Array.isArray(match)) match.lang = savedLang;
                         replaceHostSecrets(restoreSecrets(parsed.secrets));
                     }
                 }

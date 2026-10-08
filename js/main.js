@@ -4,7 +4,7 @@
 
 import { wireApp } from './app/wire.js';
 import { SAVE_VERSION } from './core/state.js';
-import { initI18n } from './i18n/index.js';
+import { initI18n, onLangChange } from './i18n/index.js';
 import { initAntiZoom } from './platform/antiZoom.js';
 import { setupAudio } from './platform/audio.js';
 import { initInstallPrompt } from './platform/install.js';
@@ -46,7 +46,19 @@ function start() {
     } catch(e){}
 }
 
+/**
+ * The setup form writes a few texts from JS only once (the default names, the limit hints, the custom-word
+ * count). Redo them when the language changes, which happens when a saved match is restored in the language
+ * it was started in.
+ */
+function refreshSetupTexts() {
+    updateSetupLimitHints();
+    renderNameInputs(false, true);
+    renderCustomWordsList();
+}
+
 initI18n();
+onLangChange(refreshSetupTexts);
 wireApp();
 initAntiZoom();
 setupAudio();

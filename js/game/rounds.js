@@ -4,7 +4,7 @@
 
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
-import { getCustomWords } from '../core/storage.js';
+import { displayHint, getCustomWords } from '../core/storage.js';
 import { getSideQuests, getWordPacks } from '../data/banks.js';
 import { getLang, t } from '../i18n/index.js';
 import { generateId, getRandomCryptoInt, shuffle } from '../utils/random.js';
@@ -41,6 +41,9 @@ export function startNextRound() {
     // The word, the hint, the category label and the quests all come from the language that is active now.
     const lang = getLang();
     const packs = getWordPacks(lang);
+    // The texts stored from here on (hint titles, hints, the category label) are in this language, so the save
+    // records it and a restore switches back to it (RESTORE_GAME in app/actions.js).
+    gameState.match.lang = lang;
     let pool = [];
     const activeCats = (gameState.settings.cats && gameState.settings.cats.length > 0) ? gameState.settings.cats : ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
     
@@ -125,7 +128,9 @@ export function startNextRound() {
 
     hostSecretState.secretWord = chosen.word;
     hostSecretState.foolWord = chosen.foolWord || chosen.word;
-    hostSecretState.hint = chosen.hint;
+    // A custom word with no hint (or one saved with another language's "no hint" text) reads in this language.
+    const wordHint = displayHint(chosen.hint);
+    hostSecretState.hint = wordHint;
     hostSecretState.roles = {};
 
     let activePlayers = gameState.players.filter(p => !p.isSpectator);
@@ -165,7 +170,7 @@ export function startNextRound() {
                 hint = t('role.hint.firstLetter', { letter: chosen.word.charAt(0) });
             } else {
                 hintTitle = t('role.hintTitle.related');
-                hint = chosen.hint;
+                hint = wordHint;
             }
         }
         hostSecretState.roles[p.id] = { role: p.role, team: p.team, hint, hintTitle };

@@ -4,7 +4,7 @@
 
 import { RULES, getMaxSpiesAllowed } from '../core/config.js';
 import { gameState } from '../core/state.js';
-import { loadSavedNames, saveCurrentNames } from '../core/storage.js';
+import { isDefaultPlayerNameOfOtherLanguage, loadSavedNames, saveCurrentNames } from '../core/storage.js';
 import { flagFieldError, pulseInvalidField, showToast } from './feedback.js';
 import { formatNumber, t, tn } from '../i18n/index.js';
 import { generateId } from '../utils/random.js';
@@ -121,7 +121,13 @@ export function updateSetupLimitHints() {
     }
 }
 
-export function renderNameInputs(forceDefault = false) {
+/**
+ * Draw the name inputs. `forceDefault` puts the default name in every slot. `relocalize` is for a language
+ * change: an input that still holds the default name of ANOTHER language ("Player 3" after switching to
+ * Persian) is given the active language's default (or the saved typed name); it keeps its player id. Names
+ * the user typed, and the active language's own defaults, are never touched.
+ */
+export function renderNameInputs(forceDefault = false, relocalize = false) {
     let countInput = document.getElementById('setup-players-count');
     let count = parseInt(toLatinDigits(countInput.value), 10) || 4;
     if (count < RULES.players.min) count = RULES.players.min;
@@ -143,18 +149,23 @@ export function renderNameInputs(forceDefault = false) {
         input.placeholder = t('setup.player.placeholder', { n: i });
         input.setAttribute('aria-label', t('setup.player.aria', { n: i }));
 
+        const current = currentInputs[i - 1];
+        // The default of another language is "no name" when the language has just changed; the slot stays
+        // the same player, so its id is kept.
+        const staleDefault = relocalize && current && current.name && isDefaultPlayerNameOfOtherLanguage(current.name);
+
         if (forceDefault) {
             input.value = t('setup.player.default', { n: i });
             input.dataset.playerId = generateId();
-        } else if (currentInputs[i - 1] && currentInputs[i - 1].name) {
-            input.value = currentInputs[i - 1].name;
-            input.dataset.playerId = currentInputs[i - 1].pId || generateId();
+        } else if (current && current.name && !staleDefault) {
+            input.value = current.name;
+            input.dataset.playerId = current.pId || generateId();
         } else if (saved[i - 1]) {
             input.value = saved[i - 1];
-            input.dataset.playerId = generateId();
+            input.dataset.playerId = (staleDefault && current.pId) || generateId();
         } else {
             input.value = t('setup.player.default', { n: i });
-            input.dataset.playerId = generateId();
+            input.dataset.playerId = (staleDefault && current.pId) || generateId();
         }
         container.appendChild(input);
     }

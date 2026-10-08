@@ -2,7 +2,7 @@
  * Custom word bank UI: add, delete, JSON export/import.
  */
 
-import { cleanCustomWord, getCustomWords, saveCustomWords } from '../core/storage.js';
+import { cleanCustomWord, displayHint, getCustomWords, saveCustomWords } from '../core/storage.js';
 import { showToast } from './feedback.js';
 import { formatNumber, t, tn } from '../i18n/index.js';
 import { escapeHtml, normalizeWord } from '../utils/text.js';
@@ -13,7 +13,8 @@ const MAX_TEXT_LENGTH = 30;
 export function addCustomWordDOM() {
     let w = document.getElementById('cust-word').value.trim();
     let f = document.getElementById('cust-fool').value.trim() || w;
-    let h = document.getElementById('cust-hint').value.trim() || t('setup.hint.none');
+    // No hint is stored as '' and worded in the active language when it is shown (see displayHint).
+    let h = document.getElementById('cust-hint').value.trim();
     
     if (!w) { showToast(t('toast.wordRequired')); return; }
     if (w.length > MAX_TEXT_LENGTH || f.length > MAX_TEXT_LENGTH) { showToast(t('toast.wordTooLong', { max: formatNumber(MAX_TEXT_LENGTH) })); return; }
@@ -51,7 +52,7 @@ export function renderCustomWordsList() {
         
         let infoDiv = document.createElement('div');
         infoDiv.className = 'flex-1';
-        infoDiv.innerHTML = `<strong>${escapeHtml(item.word)}</strong> <span class="color-secondary u-fs-075">(${escapeHtml(item.hint||'')})</span>`;
+        infoDiv.innerHTML = `<strong>${escapeHtml(item.word)}</strong> <span class="color-secondary u-fs-075">(${escapeHtml(displayHint(item.hint))})</span>`;
         
         let delBtn = document.createElement('button');
         delBtn.type = 'button';

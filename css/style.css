@@ -615,6 +615,14 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 }
 .install-btn-floating:active { transform: scale(0.97); }
 
+/* In RTL the inline edges swap sides, so each button must read the inset of the side it is now on:
+   the cover-mode button (inline-start) sits on the physical right, the install button (inline-end) on the
+   physical left. The two rules above read the LTR sides; without these overrides a notch on the right
+   (landscape) would cover the Persian cover-mode button while a left inset pushed it away for nothing.
+   With no inset every value is still max(16px, 0) = 16px, so the Persian layout is unchanged. */
+:root[dir="rtl"] .panic-btn-floating { inset-inline-start: max(16px, env(safe-area-inset-right)); }
+:root[dir="rtl"] .install-btn-floating { inset-inline-end: max(16px, env(safe-area-inset-left)); }
+
 #panic-shield {
     position: fixed; inset: 0; background: #000000; z-index: 99999;
     display: flex; flex-direction: column; justify-content: center; align-items: center;

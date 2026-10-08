@@ -23,8 +23,10 @@ const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
  */
 const ALLOWED = {
     'body :: padding': 'The four safe-area insets describe the physical screen (a notch on the left or the right), so the physical padding that matches them is correct in both directions.',
-    '.panic-btn-floating :: inset-inline-start': 'Logical edge with the physical left inset: exactly right in LTR (start = left). In Persian (RTL) the rule is kept as it always was, to keep the Persian layout identical; the inset is 0 except in landscape on a notched phone. Noticed, left alone: see CHANGELOG.',
-    '.install-btn-floating :: inset-inline-end': 'Logical edge with the physical right inset: exactly right in LTR (end = right). Persian (RTL) is kept as it always was, same reason as the cover-mode button.',
+    '.panic-btn-floating :: inset-inline-start': 'Logical edge with the physical left inset: exactly right in LTR (start = left). The RTL rule below reads the right inset instead.',
+    ':root[dir="rtl"] .panic-btn-floating :: inset-inline-start': 'RTL override of the rule above: in RTL the start edge is the physical right, so it reads the physical right inset (landscape on a notched phone). With no inset it is the same 16px.',
+    '.install-btn-floating :: inset-inline-end': 'Logical edge with the physical right inset: exactly right in LTR (end = right). The RTL rule below reads the left inset instead.',
+    ':root[dir="rtl"] .install-btn-floating :: inset-inline-end': 'RTL override of the rule above: in RTL the end edge is the physical left, so it reads the physical left inset. With no inset it is the same 16px.',
     '.play-button-icon :: border-left': 'The play triangle points right in both directions, like every media control; a CSS border triangle can only be drawn with a physical side.',
     '.play-button-icon :: margin-left': 'Optical centring of that right-pointing triangle (it needs a nudge to the right in both directions).',
     '#toast-container :: left': 'Centring (left: 50% with translateX(-50%)), identical in both directions.',
@@ -153,6 +155,21 @@ describe('css/style.css works in both directions', () => {
         for (const [key, reason] of Object.entries(ALLOWED)) {
             assert.ok(flagged.has(key), `${key} is no longer flagged: drop it from ALLOWED`);
             assert.ok(reason.length > 30, `${key}: say why it is legitimate`);
+        }
+    });
+
+    it('the floating cover-mode and install buttons read the inset of the side they are on, in both directions', () => {
+        const value = (selector, prop) => declarations.find((d) => d.selector === selector && d.prop === prop)?.value ?? '';
+        // LTR: start = left, end = right.
+        assert.match(value('.panic-btn-floating', 'inset-inline-start'), /safe-area-inset-left/);
+        assert.match(value('.install-btn-floating', 'inset-inline-end'), /safe-area-inset-right/);
+        // RTL: start = right, end = left, so the insets swap.
+        assert.match(value(':root[dir="rtl"] .panic-btn-floating', 'inset-inline-start'), /safe-area-inset-right/);
+        assert.match(value(':root[dir="rtl"] .install-btn-floating', 'inset-inline-end'), /safe-area-inset-left/);
+        // With no inset the override must give the same 16px the plain rule gives.
+        for (const [selector, prop] of [['.panic-btn-floating', 'inset-inline-start'], ['.install-btn-floating', 'inset-inline-end']]) {
+            assert.match(value(selector, prop), /^max\(16px, env\(/);
+            assert.match(value(`:root[dir="rtl"] ${selector}`, prop), /^max\(16px, env\(/);
         }
     });
 

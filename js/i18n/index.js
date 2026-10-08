@@ -55,6 +55,15 @@ export function getLang() {
     return currentLang;
 }
 
+/**
+ * `value` if it is a supported language code, else the default language. For a language read from stored
+ * data (a saved match, say), where a missing, odd or unsupported value has to mean "Persian" and never
+ * throw. Only a real string counts: `normalizeLang(['en'])` is the default, not `'en'`.
+ */
+export function normalizeLang(value) {
+    return typeof value === 'string' && SUPPORTED_LANGS.includes(value) ? value : DEFAULT_LANG;
+}
+
 /** `'rtl'` or `'ltr'`: the direction of the active language (`LANG_DIRECTIONS`; `'ltr'` for one not listed). */
 export function getDirection() {
     return hasOwn(LANG_DIRECTIONS, currentLang) ? LANG_DIRECTIONS[currentLang] : 'ltr';
@@ -101,6 +110,20 @@ function lookupFirst(keys) {
 }
 
 const lookup = (key) => lookupFirst([key]);
+
+/**
+ * The text of `key` in every supported language that has one of its own: `{ fa: '...', en: '...' }`.
+ * There is no fallback here, so a key one catalog lacks is simply absent. For recognising stored text that
+ * was written in another language (a default player name, the "no hint" text) without knowing which.
+ */
+export function translationsOf(key) {
+    const found = {};
+    for (const lang of SUPPORTED_LANGS) {
+        const catalog = hasOwn(CATALOGS, lang) ? CATALOGS[lang] : null;
+        if (catalog && hasOwn(catalog, key) && typeof catalog[key] === 'string') found[lang] = catalog[key];
+    }
+    return found;
+}
 
 /** True when `key` has a text in the active language or in the Persian fallback. */
 export function hasTranslation(key) {
