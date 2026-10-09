@@ -14,6 +14,7 @@ import { getWordPacks } from '../../js/data/banks.js';
 import { WORD_PACKS } from '../../js/data/wordPacks.js';
 import { CATALOGS } from '../../js/i18n/catalogs.js';
 import { fa } from '../../js/i18n/fa.js';
+import { SUPPORTED_LANGS } from '../../js/i18n/index.js';
 import { assertLabelMatchesBank } from './helpers/bankLabel.mjs';
 import { closest, elements, innerText, normalizeText, parseHtml } from './helpers/htmlScan.mjs';
 
@@ -50,6 +51,17 @@ const JS_WRITTEN = {
     'elim-badge': { keys: ['elim.badge.spy', 'elim.badge.citizen'] }, // ui/wheel.js
     'tie-announce-names': { keys: ['tie.announce'] }, // ui/wheel.js
     'cust-count-label': { keys: ['words.registered'], same: { key: 'words.registered', params: { count: '0' } } } // ui/customWords.js
+};
+
+/**
+ * Text that is deliberately NOT translated: the names of the two languages on the switch, each written in its
+ * own language so a person who cannot read the current one can still find his own. They carry no data-i18n and
+ * no catalog key; instead each button states its language with `lang` (checked below), so screen readers and
+ * fonts treat it right. Nothing else may join this list without a reason written next to it.
+ */
+const FIXED_TEXT = {
+    'btn-lang-fa': { lang: 'fa', label: 'فارسی' },
+    'btn-lang-en': { lang: 'en', label: 'English' }
 };
 function attrPairs(el) {
     return (el.attrs['data-i18n-attr'] || '')
@@ -140,7 +152,7 @@ describe('static texts in index.html', () => {
                 if (child.type === 'el') {
                     visit(child);
                 } else if (!child.raw && LETTER.test(child.value)) {
-                    const covered = 'data-i18n' in el.attrs || closest(el, (n) => n.attrs.id in JS_WRITTEN);
+                    const covered = 'data-i18n' in el.attrs || el.attrs.id in FIXED_TEXT || closest(el, (n) => n.attrs.id in JS_WRITTEN);
                     if (!covered) offenders.push(`<${el.tag}${el.attrs.id ? '#' + el.attrs.id : ''}> ${normalizeText(child.value)}`);
                 }
             }
@@ -175,6 +187,33 @@ describe('static texts in index.html', () => {
                 assert.equal(normalizeText(innerText(el)), normalizeText(expected), `#${id}: the HTML default differs from ${same.key}`);
             }
         }
+    });
+
+    it('the language switch has one button per supported language, each in its own language and never translated', () => {
+        const buttons = all.filter((el) => el.tag === 'button' && 'data-lang' in el.attrs);
+        assert.deepEqual(buttons.map((el) => el.attrs['data-lang']), SUPPORTED_LANGS, 'one button per language, in the order of SUPPORTED_LANGS');
+        for (const el of buttons) {
+            const fixed = FIXED_TEXT[el.attrs.id];
+            assert.ok(fixed, `#${el.attrs.id} is not listed in FIXED_TEXT`);
+            assert.equal(el.attrs.lang, fixed.lang, `#${el.attrs.id} must carry lang="${fixed.lang}"`);
+            assert.equal(el.attrs['data-lang'], fixed.lang);
+            assert.equal(normalizeText(innerText(el)), fixed.label);
+            assert.ok(!('data-i18n' in el.attrs) && !('data-i18n-attr' in el.attrs), `#${el.attrs.id} must not be translated`);
+            assert.ok(el.attrs.class.split(/\s+/).includes('lang-btn'), `#${el.attrs.id} needs the lang-btn class`);
+            assert.ok(el.attrs['aria-pressed'] === 'true' || el.attrs['aria-pressed'] === 'false', `#${el.attrs.id} needs aria-pressed`);
+        }
+        assert.deepEqual(Object.keys(FIXED_TEXT).sort(), buttons.map((el) => el.attrs.id).sort(), 'FIXED_TEXT lists exactly the switch buttons');
+        // The page is Persian before any JS runs, so only the Persian button starts pressed.
+        assert.deepEqual(buttons.map((el) => el.attrs['aria-pressed']), SUPPORTED_LANGS.map((lang) => String(lang === 'fa')));
+    });
+
+    it('the switch sits in a dir="ltr" wrapper on the welcome screen only and has an accessible name from the catalog', () => {
+        const group = all.find((el) => el.attrs.role === 'group' && el.children.some((c) => c.type === 'el' && 'data-lang' in c.attrs));
+        assert.ok(group, 'the role="group" around the buttons is missing');
+        assert.deepEqual(attrPairs(group), [{ attr: 'aria-label', key: 'welcome.lang.aria' }]);
+        assert.equal(closest(group.parent, (n) => n.attrs.dir === 'ltr')?.attrs.dir, 'ltr', 'the buttons must keep their visual order in both directions');
+        assert.equal(closest(group, (n) => n.attrs.id === 'screen-welcome')?.attrs.id, 'screen-welcome', 'the switch belongs on the welcome screen');
+        assert.equal(closest(group, (n) => n.tag === 'header'), null, 'not in the header, which is on every screen');
     });
 
     it('translates the document title and the meta description too', () => {

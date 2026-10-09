@@ -61,6 +61,10 @@ export function bindEvents() {
 
     document.getElementById('setup-players-count').addEventListener('input', updateSetupLimitHints);
 
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.onclick = () => dispatch({type: 'SET_LANG', payload: btn.dataset.lang});
+    });
+
     document.getElementById('btn-sound-toggle').onclick = () => dispatch({type: 'TOGGLE_AUDIO'});
 
     document.getElementById('theme-selector').onchange = (e) => dispatch({type: 'CHANGE_THEME', payload: e.target.value});

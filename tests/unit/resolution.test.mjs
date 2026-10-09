@@ -5,7 +5,7 @@
  * "after the reveal" half of processElimination.
  */
 import assert from 'node:assert/strict';
-import { after, describe, it } from 'node:test';
+import { after, afterEach, describe, it } from 'node:test';
 import {
     HIDDEN_TIEBREAK,
     SCORING,
@@ -22,6 +22,7 @@ const { handleDetectiveQueryInternal, handleSpyGuessVerdict, processElimination 
 );
 const { isTimerLoopActive, runTick, stopTimerLoop } = await import('../../js/game/timer.js');
 const { stopAudioKeepAlive } = await import('../../js/platform/audio.js');
+const { setLang } = await import('../../js/i18n/index.js');
 const harness = useGameHarness(env, {
     setup: () => {
         for (const id of ['elim-icon', 'elim-name', 'elim-badge', 'elim-note', 'btn-elim-continue']) env.el(id);
@@ -34,6 +35,7 @@ const harness = useGameHarness(env, {
     }
 });
 after(() => env.uninstall());
+afterEach(() => setLang('fa'));
 
 // UI TEXT: the only interface strings this file depends on. They are short markers taken from
 // game/resolution.js, one per way a round can end. Update them when the interface is translated;
@@ -48,6 +50,11 @@ const RESULT_TEXT = {
 // Update these when the interface is translated.
 const ROLE_WORD = { spy: 'جاسوس', citizen: 'شهروند' };
 const detectiveAnswer = (name, role) => `«${name}» ${ROLE_WORD[role]} است.`;
+// The code puts the name inside a bidi isolate (U+2068 ... U+2069, `isolate()` in i18n/index.js), so that a name in
+// the other script cannot scramble the sentence. The tests below that pin the words and the quotes compare the
+// text AFTER stripping the bidi controls U+2066-U+2069 from it (`bare`); the isolate itself is pinned, exactly,
+// by the test "wraps the name in a bidi isolate" below.
+const bare = (text) => text.replace(/[\u2066-\u2069]/g, '');
 const SPY_WON = { emoji: '😈', color: 'var(--brand-rose)' };
 const CITIZENS_WON = { emoji: '🎉', color: 'var(--brand-emerald)' };
 
@@ -905,8 +912,8 @@ describe('handleDetectiveQueryInternal', () => {
         handleDetectiveQueryInternal('S1');
         assert.equal(hostSecretState.detectiveUsed, true);
         assert.equal(gameState.settings.detectiveUsed, true);
-        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Sara', 'spy'));
-        assert.equal(box.textContent, detectiveAnswer('Sara', 'spy'));
+        assert.equal(bare(hostSecretState.detectiveInquiryResult), detectiveAnswer('Sara', 'spy'));
+        assert.equal(bare(box.textContent), detectiveAnswer('Sara', 'spy'));
         assert.equal(env.el('btn-detective-inquiry').disabled, true);
         assert.equal(env.el('detective-target-select').disabled, true);
         assert.deepEqual(harness.renders, ['vote']);
@@ -915,13 +922,13 @@ describe('handleDetectiveQueryInternal', () => {
     it('tells the detective a citizen or a fool is a citizen (a fool is not told apart)', () => {
         const box = arrangeInquiry();
         handleDetectiveQueryInternal('C1');
-        assert.equal(box.textContent, detectiveAnswer('Cyrus', 'citizen'));
-        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Cyrus', 'citizen'));
+        assert.equal(bare(box.textContent), detectiveAnswer('Cyrus', 'citizen'));
+        assert.equal(bare(hostSecretState.detectiveInquiryResult), detectiveAnswer('Cyrus', 'citizen'));
 
         arrangeInquiry();
         handleDetectiveQueryInternal('F');
-        assert.equal(box.textContent, detectiveAnswer('Farid', 'citizen'));
-        assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer('Farid', 'citizen'));
+        assert.equal(bare(box.textContent), detectiveAnswer('Farid', 'citizen'));
+        assert.equal(bare(hostSecretState.detectiveInquiryResult), detectiveAnswer('Farid', 'citizen'));
     });
 
     it('shows a spy, a citizen and a fool in exactly the same way: only the role word differs', () => {
@@ -965,9 +972,31 @@ describe('handleDetectiveQueryInternal', () => {
             box.textContent = '';
             box.innerHTML = '';
             handleDetectiveQueryInternal('T');
-            assert.equal(box.textContent, detectiveAnswer(evil, role), role);
+            assert.equal(bare(box.textContent), detectiveAnswer(evil, role), role);
             assert.equal(box.innerHTML, '', `${role}: never interpreted as HTML`);
-            assert.equal(hostSecretState.detectiveInquiryResult, detectiveAnswer(evil, role), role);
+            assert.equal(bare(hostSecretState.detectiveInquiryResult), detectiveAnswer(evil, role), role);
+        }
+    });
+
+    it('wraps the name in a bidi isolate (U+2068 ... U+2069), the same way for a spy and a citizen, in both languages', () => {
+        const NAMES = ['Sara', 'Dr. Ali!', 'سارا'];
+        const EXPECTED = {
+            fa: { spy: (name) => `«\u2068${name}\u2069» جاسوس است.`, citizen: (name) => `«\u2068${name}\u2069» شهروند است.` },
+            en: { spy: (name) => `\u2068${name}\u2069 is a spy.`, citizen: (name) => `\u2068${name}\u2069 is a citizen.` }
+        };
+        for (const lang of ['fa', 'en']) {
+            setLang(lang);
+            for (const name of NAMES) {
+                for (const [role, target] of [['spy', spy('T', { name })], ['citizen', cit('T', { name })]]) {
+                    arrange({ seats: [makePlayer('Q', { role: 'detective' }), target], target: null });
+                    const box = env.el('detective-result-box');
+                    box.textContent = '';
+                    handleDetectiveQueryInternal('T');
+                    const expected = EXPECTED[lang][role](name);
+                    assert.equal(hostSecretState.detectiveInquiryResult, expected, `${lang} ${role} ${name}: stored`);
+                    assert.equal(box.textContent, expected, `${lang} ${role} ${name}: shown`);
+                }
+            }
         }
     });
 });

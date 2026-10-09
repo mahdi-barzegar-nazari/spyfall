@@ -120,6 +120,7 @@ export const en = {
     'welcome.start.label': 'Start game',
     'welcome.start.caption': 'One phone, passed around the group',
     'welcome.words': '✏️ Custom word bank',
+    'welcome.lang.aria': 'Language',
     'welcome.credit.author.aria': 'Creator’s page',
     'welcome.credit.author': 'Made by Mahdi',
     'welcome.credit.support.aria': 'Support the creator',

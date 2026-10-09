@@ -7,7 +7,7 @@ import { commitState, setPhase } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { resumeTimer, stopTimerLoop } from './timer.js';
 import { playVictoryFanfare, stopAudioKeepAlive } from '../platform/audio.js';
-import { rawHtml, t, tHtml, tn } from '../i18n/index.js';
+import { isolate, rawHtml, t, tHtml, tn } from '../i18n/index.js';
 import { showEliminationReveal } from '../ui/wheel.js';
 import { escapeHtml } from '../utils/text.js';
 
@@ -220,7 +220,9 @@ export function handleDetectiveQueryInternal(targetId) {
     gameState.settings.detectiveUsed = true;
     // Both answers must look the same to anyone glancing at the screen: one short sentence, no emoji and no
     // colour, differing only in the role word. The stored string is what the role card shows again later.
-    const resText = t(tar.role === 'spy' ? 'role.detective.result.spy' : 'role.detective.result.citizen', { name: tar.name });
+    // The name is user text in either script, inside a plain-text sentence: isolate() keeps its own direction
+    // (a Latin name with punctuation in the Persian sentence, a Persian name in the English one).
+    const resText = t(tar.role === 'spy' ? 'role.detective.result.spy' : 'role.detective.result.citizen', { name: isolate(tar.name) });
     hostSecretState.detectiveInquiryResult = resText;
 
     // textContent, so a name containing HTML is shown as plain text.

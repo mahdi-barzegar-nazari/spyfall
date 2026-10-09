@@ -8,7 +8,7 @@
 
 import { VALID_PHASES } from '../core/config.js';
 import { dispatch } from '../core/dispatch.js';
-import { commitState, setPhase } from '../core/phase.js';
+import { commitState, isMatchInProgress, setPhase } from '../core/phase.js';
 import { SAVE_VERSION, gameState, hostSecretState, replaceGameState, replaceHostSecrets, restoreSecrets, session } from '../core/state.js';
 import { handleDetectiveQueryInternal, handleSpyGuessVerdict, processElimination } from '../game/resolution.js';
 import { calcDirectorTurn, initMatchPlayers, startNextRound } from '../game/rounds.js';
@@ -40,6 +40,17 @@ export function handleAction(action) {
                 localStorage.setItem('spy_selected_theme', action.payload);
             } catch(e){}
             break;
+        case 'SET_LANG': {
+            // Only a real, supported language code counts: normalizeLang maps everything else (undefined, an
+            // array, 'de', '__proto__') to the default, which then differs from the request.
+            const lang = action.payload;
+            if (normalizeLang(lang) !== lang) return;
+            // A match keeps the language it was started in, so nothing can switch it while one is running.
+            if (isMatchInProgress()) return;
+            if (lang === getLang()) return;
+            setLang(lang);
+            break;
+        }
         case 'PANIC_OPEN': {
             if (gameState.phase === 'timer' && gameState.timer.running) {
                 gameState.timer.wasRunningBeforePanic = true;

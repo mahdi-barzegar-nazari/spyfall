@@ -46,6 +46,12 @@ const DIGIT_SETS = { persian: ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '
 /** localStorage key of the chosen language. */
 export const LANG_STORAGE_KEY = 'spy_lang';
 
+/**
+ * Class that `js/preinit.js` puts on `<html>` before the first paint when the saved language is not the default,
+ * and that keeps the page hidden (see `css/style.css`) until `initI18n()` has translated it.
+ */
+export const PAGE_PENDING_CLASS = 'i18n-pending';
+
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
 let currentLang = DEFAULT_LANG;
@@ -370,6 +376,12 @@ function applyDocumentLanguage(lang) {
     root.dir = hasOwn(LANG_DIRECTIONS, lang) ? LANG_DIRECTIONS[lang] : 'ltr';
 }
 
+/** Show the page again: take the pending class off `<html>` (a no-op when it is not there or there is no DOM). */
+function revealPage() {
+    const root = globalThis.document && globalThis.document.documentElement;
+    if (root && root.classList) root.classList.remove(PAGE_PENDING_CLASS);
+}
+
 function notify(lang) {
     for (const listener of [...listeners]) {
         try {
@@ -410,7 +422,8 @@ export function onLangChange(callback) {
 /**
  * Read the saved language. Call it once at start-up, before the first render. It does not save and does
  * not notify. The static HTML is translated only when the language is not the default, so the Persian
- * path touches nothing.
+ * path touches nothing. It then shows the page (removes `PAGE_PENDING_CLASS`, which `js/preinit.js` set before
+ * the first paint so that a person who chose English never sees the Persian page first).
  */
 export function initI18n() {
     let saved = null;
@@ -419,6 +432,11 @@ export function initI18n() {
     } catch (e) {}
     currentLang = SUPPORTED_LANGS.includes(saved) ? saved : DEFAULT_LANG;
     applyDocumentLanguage(currentLang);
-    if (currentLang !== DEFAULT_LANG) applyStaticTranslations();
+    try {
+        if (currentLang !== DEFAULT_LANG) applyStaticTranslations();
+    } finally {
+        // Also when translating fails: a page that stayed hidden would be worse than a half-translated one.
+        revealPage();
+    }
     return currentLang;
 }

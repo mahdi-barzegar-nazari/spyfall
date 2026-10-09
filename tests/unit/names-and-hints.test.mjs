@@ -24,7 +24,7 @@ const { cleanCustomWord, displayHint, getCustomWords, isDefaultPlayerName, isDef
 const { renderNameInputs } = await import('../../js/ui/setup.js');
 const { addCustomWordDOM, renderCustomWordsList } = await import('../../js/ui/customWords.js');
 const { startNextRound } = await import('../../js/game/rounds.js');
-const { setLang } = await import('../../js/i18n/index.js');
+const { setLang, t } = await import('../../js/i18n/index.js');
 
 useGameHarness(env);
 after(() => env.uninstall());
@@ -258,6 +258,161 @@ describe('renderNameInputs: a language change (relocalize)', () => {
         renderNameInputs(false, true);
         assert.deepEqual(values(form), ['Ali', 'بازیکن 2', 'بازیکن 3']);
         assert.deepEqual(ids(form), before, 'the slot that took a saved name and the slots that took a default keep their ids');
+    });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// drawing the inputs IN PLACE: the count field's `change` fires while a name input is being tapped, so the
+// tapped element must survive (the "first tap does nothing" bug)
+// ---------------------------------------------------------------------------------------------------------------
+
+describe('renderNameInputs: updates the existing inputs in place', () => {
+    /** The count the person types, then the draw that the count field's `change` event runs. */
+    function changeCount(form, count) {
+        env.el('setup-players-count').value = String(count);
+        renderNameInputs(false);
+    }
+
+    it('more players: the old inputs are the same elements with the same values and ids, new ones are added at the end', () => {
+        const form = setupForm(4);
+        renderNameInputs();
+        form.children[1].value = 'Ali';
+        const before = [...form.children];
+        const beforeIds = ids(form);
+
+        changeCount(form, 6);
+
+        assert.equal(form.children.length, 6);
+        before.forEach((input, i) => assert.equal(form.children[i], input, `slot ${i + 1} is the same element`));
+        assert.deepEqual(ids(form).slice(0, 4), beforeIds, 'the same players keep their ids');
+        assert.deepEqual(values(form), ['بازیکن 1', 'Ali', 'بازیکن 3', 'بازیکن 4', 'بازیکن 5', 'بازیکن 6']);
+        assert.ok(ids(form).every(Boolean) && new Set(ids(form)).size === 6, 'the new slots have their own ids');
+        assert.ok(form.children.every((input) => input.parent === form), 'every input is attached to the container');
+    });
+
+    it('fewer players: only the slots at the end are removed; the others are untouched elements', () => {
+        const form = setupForm(5);
+        renderNameInputs();
+        form.children[0].value = 'Sara';
+        const before = [...form.children];
+        const beforeIds = ids(form);
+
+        changeCount(form, 3);
+
+        assert.equal(form.children.length, 3);
+        before.slice(0, 3).forEach((input, i) => assert.equal(form.children[i], input, `slot ${i + 1} is the same element`));
+        assert.deepEqual(ids(form), beforeIds.slice(0, 3));
+        assert.deepEqual(values(form), ['Sara', 'بازیکن 2', 'بازیکن 3']);
+        before.slice(3).forEach((input) => assert.equal(input.parent, null, 'a removed slot is detached'));
+    });
+
+    it('the same count again changes nothing: no element is replaced and no value is written', () => {
+        const form = setupForm(4);
+        renderNameInputs();
+        form.children[2].value = 'Zed ';
+        const writes = [];
+        form.children.forEach((input, i) => {
+            let current = input.value;
+            Object.defineProperty(input, 'value', {
+                configurable: true,
+                get: () => current,
+                set: (v) => {
+                    writes.push(`${i}:${v}`);
+                    current = v;
+                }
+            });
+        });
+        const before = [...form.children];
+
+        changeCount(form, 4);
+
+        before.forEach((input, i) => assert.equal(form.children[i], input));
+        // Only the one value that has something to trim is written (as it always was); the rest keep their caret.
+        assert.deepEqual(writes, ['2:Zed']);
+    });
+
+    it('a typed name and its element survive any number of count changes', () => {
+        const form = setupForm(4);
+        renderNameInputs();
+        const second = form.children[1];
+        second.value = 'Ali';
+        const secondId = second.dataset.playerId;
+        for (const count of [10, 3, 20, 4, 7]) {
+            changeCount(form, count);
+            assert.equal(form.children[1], second, `still the same element at ${count} players`);
+            assert.equal(second.value, 'Ali');
+            assert.equal(second.dataset.playerId, secondId);
+        }
+    });
+
+    it('a slot that was emptied is refilled (a saved name first, else the default), as before, and keeps its element and id', () => {
+        saveCurrentNames(['', 'Bita']);
+        const form = setupForm(3);
+        renderNameInputs();
+        const [first, second] = form.children;
+        const firstId = first.dataset.playerId;
+        first.value = '   ';
+        second.value = '';
+
+        changeCount(form, 3);
+
+        assert.equal(form.children[0], first);
+        assert.equal(first.value, 'بازیکن 1');
+        assert.equal(first.dataset.playerId, firstId);
+        assert.equal(second.value, 'Bita');
+    });
+
+    it('"defaults" (forceDefault) resets every slot to the default with a new id, wherever the names came from', () => {
+        const form = setupForm(4);
+        renderNameInputs();
+        form.children[0].value = 'Ali';
+        form.children[3].value = 'Cyrus';
+        const beforeIds = ids(form);
+
+        renderNameInputs(true);
+
+        assert.deepEqual(values(form), ['بازیکن 1', 'بازیکن 2', 'بازیکن 3', 'بازیکن 4']);
+        const after = ids(form);
+        assert.ok(after.every(Boolean) && new Set(after).size === 4, 'unique ids');
+        assert.ok(after.every((id, i) => id !== beforeIds[i]), 'every slot is a new player');
+    });
+
+    it('a language change redraws the placeholder and the accessible name of EVERY input, typed names included', () => {
+        setLang('en');
+        const form = setupForm(3);
+        renderNameInputs();
+        form.children[1].value = 'Ali';
+        const before = [...form.children];
+
+        setLang('fa');
+        renderNameInputs(false, true);
+
+        before.forEach((input, i) => assert.equal(form.children[i], input));
+        assert.deepEqual(
+            form.children.map((input) => input.placeholder),
+            [1, 2, 3].map((n) => t('setup.player.placeholder', { n }))
+        );
+        assert.deepEqual(
+            form.children.map((input) => input.getAttribute('aria-label')),
+            [1, 2, 3].map((n) => t('setup.player.aria', { n }))
+        );
+        assert.ok(form.children.every((input) => !/[A-Za-z]/.test(input.placeholder)), 'the placeholders are Persian now');
+        assert.equal(form.children[1].value, 'Ali');
+    });
+
+    it('a count outside the allowed range is clamped, and a Persian digit is read, exactly as before', () => {
+        const form = setupForm(4);
+        renderNameInputs();
+        env.el('setup-players-count').value = '99';
+        renderNameInputs();
+        assert.equal(form.children.length, 20);
+        assert.equal(env.el('setup-players-count').value, 20);
+        env.el('setup-players-count').value = '۵';
+        renderNameInputs();
+        assert.equal(form.children.length, 5);
+        env.el('setup-players-count').value = '1';
+        renderNameInputs();
+        assert.equal(form.children.length, 3);
     });
 });
 

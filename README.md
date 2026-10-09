@@ -3,7 +3,7 @@
 # 🕵️ Spyfall PWA · بازی دورهمی جاسوس
 
 **An offline-first, single-device social-deduction party game. Pass one phone around the room.**
-Persian (RTL) UI · zero runtime dependencies · installable on Android and iOS
+Persian (RTL) and English (LTR) UI · zero runtime dependencies · installable on Android and iOS
 
 [![CI](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml)
 [![Deploy](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml)
@@ -34,6 +34,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
 - **741 built-in words** in 8 categories with difficulty ratings (Persian; an English seed bank of 64 words and 28 side quests is in, the full English bank is still to come), plus a custom word bank you can import and export as JSON.
+- **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; the English word bank is still a small seed.
 - **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 
 ## Quickstart
@@ -41,6 +42,10 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 ### Just play
 
 Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Android also shows an install button).
+
+### Switch the language
+
+On the welcome screen, under the custom-word button, tap **English** (or **فارسی** to go back). The two buttons always sit in the same left-to-right order, each written in its own language, so you can find yours even when the page is in the other one. The choice is remembered on the device (`localStorage` key `spy_lang`) and applies at the next visit too. The language can only be changed outside a match: a running match keeps the language it was started in, and **Resume match** puts the app back in the language of the saved match. Persian stays the default; the browser's language is never used to guess.
 
 ### Run locally
 
@@ -59,9 +64,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 559 unit tests (built-in node:test, no dependencies)
+npm test               # 598 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser smoke test of the production build, including offline mode
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint
 npm run lint
 ```
 
@@ -73,6 +78,7 @@ npm run lint
 ├── css/style.css              # design tokens, 8 themes, components, utility classes
 ├── js/
 │   ├── main.js                # entry point: wires modules together in start-up order
+│   ├── preinit.js             # classic <head> script: language and direction before the first paint (English users)
 │   ├── app/                   # composition root: the action handler behind dispatch(), and wireApp()
 │   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
@@ -111,7 +117,8 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 - [x] Break the `core` / `game` / `ui` import cycles around `dispatch` (events or dependency injection)
 - [x] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
 - [x] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
-- [ ] English UI translation
+- [x] English UI translation, with a language switch on the welcome screen
+- [ ] Full English word bank (an English seed of 64 words is in)
 
 ## Contributing
 

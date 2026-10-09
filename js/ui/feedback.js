@@ -15,6 +15,12 @@ export function showToast(msg) {
     setTimeout(() => { t.remove(); }, 3500);
 }
 
+/** Remove every toast that is on screen (a language change must not leave one in the old language). */
+export function clearToasts() {
+    const c = document.getElementById('toast-container');
+    if (c) c.replaceChildren();
+}
+
 // Targeted field validation: shows the toast AND pulses the exact
 // offending input so the person immediately knows which field to fix.
 export function pulseInvalidField(el) {

@@ -18,6 +18,7 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="./assets/icons/icon-512.png">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' data: https:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none';">
+    <script src="./js/preinit.js"></script>
     <link rel="icon" href="data:image/svg+xml;charset=UTF-8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
@@ -86,6 +87,12 @@
             <span class="play-button-caption" data-i18n="welcome.start.caption">دست‌به‌دست کردن یک گوشی در جمع دورهمی</span>
         </div>
         <button type="button" id="btn-open-words" class="btn btn-ghost" data-i18n="welcome.words">✏️ بانک کلمات سفارشی</button>
+        <div class="lang-switch-wrap" dir="ltr">
+            <div class="lang-switch" role="group" aria-label="زبان" data-i18n-attr="aria-label:welcome.lang.aria">
+                <button type="button" id="btn-lang-fa" class="btn btn-ghost btn-sm lang-btn" lang="fa" data-lang="fa" aria-pressed="true">فارسی</button>
+                <button type="button" id="btn-lang-en" class="btn btn-ghost btn-sm lang-btn" lang="en" data-lang="en" aria-pressed="false">English</button>
+            </div>
+        </div>
         <p class="credit-line"><a href="https://www.instagram.com/mhd.barzegar" target="_blank" rel="noopener noreferrer" class="credit-link" aria-label="صفحه سازنده" data-i18n="welcome.credit.author" data-i18n-attr="aria-label:welcome.credit.author.aria">ساخته شده توسط مهدی</a> · <a href="https://www.coffeete.ir/MahdiBN" target="_blank" rel="noopener noreferrer" class="credit-link credit-link-coffee" aria-label="حمایت مالی از سازنده" data-i18n-attr="aria-label:welcome.credit.support.aria">☕</a></p>
     </section>
 

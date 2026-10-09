@@ -220,6 +220,14 @@ p { color: var(--text-secondary); text-align: center; font-size: 0.88rem; margin
 
 .hidden { display: none !important; }
 
+/* First paint in a language other than Persian. js/preinit.js puts i18n-pending on <html> before the first paint
+   and initI18n() takes it off once the texts are translated, so the page is never shown in Persian first (the
+   page background still shows: it belongs to the canvas, not to the hidden body). The animation is the safety
+   net and needs no JS: if the class is still there after one second (a script that failed to load or to run),
+   the page appears anyway, so a JS failure can never leave a blank page. */
+html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s linear 1s forwards; }
+@keyframes i18nPendingReveal { to { visibility: visible; } }
+
 /* Screen transitions — replayed only when the phase actually
    changes (see renderUI's screen-anim toggle), never on an
    in-place re-render of the same screen. */
@@ -846,6 +854,21 @@ body::after {
 }
 .play-button-label { font-weight: 800; font-size: 1.02rem; color: var(--text-primary); }
 .play-button-caption { font-size: 0.78rem; color: var(--text-secondary); text-align: center; max-width: 260px; }
+/* Language switch (welcome screen only). The wrapper in index.html is dir="ltr", so the two buttons keep the
+   same visual order ("فارسی  English") in both UI languages and a person can find his own language without
+   reading the current one. The selected state is drawn from aria-pressed, so what is shown and what a screen
+   reader announces can never disagree. */
+.lang-switch-wrap { margin-top: 14px; }
+.lang-switch { display: flex; gap: 8px; max-width: 280px; margin-inline: auto; }
+.lang-btn { flex: 1; min-height: 44px; font-size: 0.9rem; }
+.lang-btn[aria-pressed="true"],
+.lang-btn[aria-pressed="true"]:hover {
+    background: linear-gradient(135deg, #0284c7, #7c3aed);
+    border-color: transparent;
+    background-origin: border-box;
+    color: #ffffff;
+    cursor: default;
+}
 .credit-line { font-size: 0.66rem; color: var(--text-secondary); opacity: 0.45; text-align: center; margin-top: 16px; letter-spacing: 0.2px; }
 .credit-link { color: inherit; text-decoration: none; opacity: 0.85; }
 .credit-link:hover, .credit-link:focus-visible { opacity: 1; text-decoration: underline; }

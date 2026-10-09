@@ -122,10 +122,18 @@ export function updateSetupLimitHints() {
 }
 
 /**
- * Draw the name inputs. `forceDefault` puts the default name in every slot. `relocalize` is for a language
+ * Bring the name inputs in line with the player count. The inputs that already exist are updated IN PLACE: the
+ * element, its value and its player id stay, and only the slots that changed are added (at the end) or removed
+ * (from the end). This matters on a phone: the count field's `change` event fires when it loses focus, which
+ * is the very moment the person taps a name input, so replacing the inputs there would delete the one that
+ * was tapped and the tap would focus nothing.
+ *
+ * `forceDefault` puts the default name (and a new player id) in every slot. `relocalize` is for a language
  * change: an input that still holds the default name of ANOTHER language ("Player 3" after switching to
  * Persian) is given the active language's default (or the saved typed name); it keeps its player id. Names
- * the user typed, and the active language's own defaults, are never touched.
+ * the user typed, and the active language's own defaults, are kept (only surrounding spaces are trimmed, as
+ * they always were). The placeholder and the accessible name of every input follow the active language each
+ * time.
  */
 export function renderNameInputs(forceDefault = false, relocalize = false) {
     let countInput = document.getElementById('setup-players-count');
@@ -135,39 +143,51 @@ export function renderNameInputs(forceDefault = false, relocalize = false) {
     countInput.value = count;
 
     let container = document.getElementById('name-inputs-container');
-    let currentInputs = Array.from(container.querySelectorAll('input')).map(inp => ({
-        name: inp.value.trim(),
-        pId: inp.dataset.playerId
-    }));
+    const existing = Array.from(container.querySelectorAll('input'));
     let saved = loadSavedNames();
-    container.innerHTML = '';
+
+    // Fewer players: drop the slots at the end. Nothing before them is touched.
+    existing.slice(count).forEach(inp => inp.remove());
 
     for (let i = 1; i <= count; i++) {
-        let input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'input-control name-input mb-6';
-        input.placeholder = t('setup.player.placeholder', { n: i });
-        input.setAttribute('aria-label', t('setup.player.aria', { n: i }));
+        let input = existing[i - 1];
+        const isNew = !input;
+        if (isNew) {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'input-control name-input mb-6';
+        }
 
-        const current = currentInputs[i - 1];
+        const placeholder = t('setup.player.placeholder', { n: i });
+        if (input.placeholder !== placeholder) input.placeholder = placeholder;
+        const ariaLabel = t('setup.player.aria', { n: i });
+        if (input.getAttribute('aria-label') !== ariaLabel) input.setAttribute('aria-label', ariaLabel);
+
+        const currentName = isNew ? '' : input.value.trim();
+        const currentId = isNew ? undefined : input.dataset.playerId;
         // The default of another language is "no name" when the language has just changed; the slot stays
         // the same player, so its id is kept.
-        const staleDefault = relocalize && current && current.name && isDefaultPlayerNameOfOtherLanguage(current.name);
+        const staleDefault = relocalize && currentName && isDefaultPlayerNameOfOtherLanguage(currentName);
 
+        let nextValue = null;
+        let nextId = currentId || generateId();
         if (forceDefault) {
-            input.value = t('setup.player.default', { n: i });
-            input.dataset.playerId = generateId();
-        } else if (current && current.name && !staleDefault) {
-            input.value = current.name;
-            input.dataset.playerId = current.pId || generateId();
+            nextValue = t('setup.player.default', { n: i });
+            nextId = generateId();
+        } else if (currentName && !staleDefault) {
+            // A typed name (or a default of the active language) stays. It is trimmed, as it always was when
+            // the inputs were redrawn; an input with nothing to trim is not written at all.
+            nextValue = currentName;
         } else if (saved[i - 1]) {
-            input.value = saved[i - 1];
-            input.dataset.playerId = (staleDefault && current.pId) || generateId();
+            nextValue = saved[i - 1];
         } else {
-            input.value = t('setup.player.default', { n: i });
-            input.dataset.playerId = (staleDefault && current.pId) || generateId();
+            nextValue = t('setup.player.default', { n: i });
         }
-        container.appendChild(input);
+        // Only write what changes: setting the value of a focused field moves its caret.
+        if (nextValue !== null && input.value !== nextValue) input.value = nextValue;
+        if (input.dataset.playerId !== nextId) input.dataset.playerId = nextId;
+
+        if (isNew) container.appendChild(input);
     }
 }
 

@@ -93,6 +93,7 @@ export const fa = {
     'welcome.start.label': 'شروع بازی',
     'welcome.start.caption': 'دست‌به‌دست کردن یک گوشی در جمع دورهمی',
     'welcome.words': '✏️ بانک کلمات سفارشی',
+    'welcome.lang.aria': 'زبان',
     'welcome.credit.author.aria': 'صفحه سازنده',
     'welcome.credit.author': 'ساخته شده توسط مهدی',
     'welcome.credit.support.aria': 'حمایت مالی از سازنده',
