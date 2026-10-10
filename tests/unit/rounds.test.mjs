@@ -714,6 +714,28 @@ describe('startNextRound: one word bank and one quest pool per language', () => 
         }
     });
 
+    it('draws, for every English category and difficulty, a word of that category and difficulty plus the fool word and hint of the same entry', () => {
+        for (const category of Object.keys(WORD_PACKS_EN)) {
+            for (const diff of ['easy', 'medium', 'hard']) {
+                const candidates = WORD_PACKS_EN[category].filter((w) => w.diff === diff);
+                assert.ok(candidates.length > 0, `${category}/${diff}: the bank has no such word`);
+                env.seedRandom(65);
+                setLang('en');
+                arrange({ settings: { cats: [category], diff } });
+                for (let round = 0; round < Math.min(candidates.length, 4); round++) {
+                    startNextRound();
+                    const drawn = hostSecretState.secretWord;
+                    const entry = WORD_PACKS_EN[category].find((w) => w.word === drawn);
+                    assert.ok(entry, `${category}/${diff}: "${drawn}" is not in WORD_PACKS_EN.${category}`);
+                    assert.equal(entry.diff, diff, `${category}/${diff}: "${drawn}" is rated ${entry.diff}`);
+                    assert.equal(gameState.round.wordDifficulty, diff, `${category}/${diff}: "${drawn}"`);
+                    assert.equal(hostSecretState.foolWord, entry.foolWord, `${category}/${diff}: fool word of "${drawn}"`);
+                    assert.equal(hostSecretState.hint, entry.hint, `${category}/${diff}: hint of "${drawn}"`);
+                }
+            }
+        }
+    });
+
     it('custom words work in both languages: scored as neutral, with the custom label of that language', () => {
         for (const lang of ['fa', 'en']) {
             setLang(lang);

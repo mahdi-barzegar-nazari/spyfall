@@ -1,18 +1,25 @@
 /**
  * English word bank, grouped by the same category ids as the Persian one (`wordPacks.js`).
- * Each entry: word, foolWord (a close but different word a decoy player gets), hint (ONE related word
+ * Each entry: word, foolWord (a close but different thing a decoy player gets), hint (ONE related word
  * that nudges the spy without giving the word away), difficulty.
  *
- * This is a SEED: a few words per category, enough to play. It grows by appending entries to the
- * category arrays; nothing here is generated. Rules (checked by tests/unit/data.test.mjs):
- *  - Plain English, at most 30 characters per field, no leading article ("the", "a", "an").
- *  - `word` is unique in the whole bank (case-insensitive); `foolWord` and `hint` differ from `word`.
+ * Work in progress: `places` and `jobs` are written in full; the other six categories still hold only
+ * their 8 seed entries and grow category by category. Entries are written by hand, nothing here is
+ * generated. Rules (checked by tests/unit/data.test.mjs):
+ *  - Entry layout: { word, foolWord, hint, diff }, one entry per line, 4-space indent, double quotes.
+ *  - `word` and `foolWord`: sentence case, 1-3 words, at most 30 characters, no leading article.
+ *    `hint`: ONE capitalised word, at most 30 characters.
+ *  - `word` is unique in the whole bank (case-insensitive). `foolWord` is a different, well-known thing of
+ *    the same kind (not a synonym or a plural/singular form); neither word nor hint may contain the
+ *    other, and the hint is never the foolWord.
  *  - Every word is something all players can picture. `hard` means hard for the spy to work out from
- *    the hint (the hint fits several words), not obscure trivia.
+ *    the hint (the hint fits many words), not obscure trivia.
+ *  - Comments are English only.
  */
 
 export const WORD_PACKS_EN = {
     places: [
+        // Core places
         { word: "Hospital", foolWord: "Clinic", hint: "Doctor", diff: "easy" },
         { word: "Library", foolWord: "Bookstore", hint: "Quiet", diff: "easy" },
         { word: "Airport", foolWord: "Train station", hint: "Luggage", diff: "easy" },
@@ -20,9 +27,122 @@ export const WORD_PACKS_EN = {
         { word: "Laundromat", foolWord: "Dry cleaner", hint: "Coins", diff: "medium" },
         { word: "Aquarium", foolWord: "Zoo", hint: "Glass", diff: "medium" },
         { word: "Observatory", foolWord: "Planetarium", hint: "Stars", diff: "hard" },
-        { word: "Lighthouse", foolWord: "Windmill", hint: "Beam", diff: "hard" }
+        { word: "Lighthouse", foolWord: "Windmill", hint: "Beam", diff: "hard" },
+        // Public services and transport
+        { word: "Police station", foolWord: "Courthouse", hint: "Handcuffs", diff: "easy" },
+        { word: "Fire station", foolWord: "Police station", hint: "Pole", diff: "hard" },
+        { word: "Post office", foolWord: "Bank", hint: "Stamps", diff: "easy" },
+        { word: "Bank", foolWord: "Stock exchange", hint: "Money", diff: "hard" },
+        { word: "Courthouse", foolWord: "Town hall", hint: "Jury", diff: "easy" },
+        { word: "Town hall", foolWord: "Community center", hint: "Mayor", diff: "medium" },
+        { word: "Train station", foolWord: "Metro station", hint: "Rails", diff: "medium" },
+        { word: "Bus station", foolWord: "Train station", hint: "Waiting", diff: "hard" },
+        { word: "Harbor", foolWord: "Shipyard", hint: "Docks", diff: "easy" },
+        { word: "Gas station", foolWord: "Auto repair shop", hint: "Fuel", diff: "easy" },
+        { word: "Car wash", foolWord: "Gas station", hint: "Foam", diff: "hard" },
+        { word: "Parking lot", foolWord: "Car dealership", hint: "Cars", diff: "hard" },
+        { word: "Bridge", foolWord: "Tunnel", hint: "Traffic", diff: "hard" },
+        { word: "Tunnel", foolWord: "Cave", hint: "Echo", diff: "hard" },
+        { word: "Dam", foolWord: "Canal", hint: "Beavers", diff: "hard" },
+        // Health and care
+        { word: "Pharmacy", foolWord: "Clinic", hint: "Medicine", diff: "easy" },
+        { word: "Dental clinic", foolWord: "Doctor's office", hint: "Teeth", diff: "easy" },
+        { word: "Veterinary clinic", foolWord: "Pet store", hint: "Paws", diff: "medium" },
+        // School and work
+        { word: "School", foolWord: "Kindergarten", hint: "Recess", diff: "easy" },
+        { word: "University", foolWord: "High school", hint: "Campus", diff: "easy" },
+        { word: "Classroom", foolWord: "Lecture hall", hint: "Chalkboard", diff: "easy" },
+        { word: "Cafeteria", foolWord: "Restaurant", hint: "Lunch", diff: "hard" },
+        { word: "Laboratory", foolWord: "Science museum", hint: "Beakers", diff: "easy" },
+        { word: "Office", foolWord: "Call center", hint: "Cubicle", diff: "easy" },
+        { word: "Factory", foolWord: "Power plant", hint: "Machines", diff: "hard" },
+        { word: "Warehouse", foolWord: "Factory", hint: "Boxes", diff: "hard" },
+        { word: "Construction site", foolWord: "Quarry", hint: "Scaffolding", diff: "easy" },
+        { word: "Farm", foolWord: "Orchard", hint: "Crops", diff: "easy" },
+        { word: "Barn", foolWord: "Stable", hint: "Hay", diff: "easy" },
+        { word: "Greenhouse", foolWord: "Botanical garden", hint: "Seedlings", diff: "medium" },
+        { word: "Power plant", foolWord: "Oil refinery", hint: "Turbines", diff: "medium" },
+        { word: "TV studio", foolWord: "Recording studio", hint: "Lights", diff: "hard" },
+        // Shops and eating out
+        { word: "Supermarket", foolWord: "Farmers market", hint: "Aisles", diff: "easy" },
+        { word: "Bakery", foolWord: "Cafe", hint: "Bread", diff: "easy" },
+        { word: "Butcher shop", foolWord: "Fish market", hint: "Meat", diff: "easy" },
+        { word: "Bookstore", foolWord: "Newsstand", hint: "Shelves", diff: "hard" },
+        { word: "Toy store", foolWord: "Candy store", hint: "Dolls", diff: "medium" },
+        { word: "Pet store", foolWord: "Zoo", hint: "Hamsters", diff: "medium" },
+        { word: "Flower shop", foolWord: "Garden center", hint: "Bouquet", diff: "easy" },
+        { word: "Hardware store", foolWord: "Paint store", hint: "Screws", diff: "medium" },
+        { word: "Shoe store", foolWord: "Clothing store", hint: "Soles", diff: "medium" },
+        { word: "Clothing store", foolWord: "Tailor shop", hint: "Hangers", diff: "medium" },
+        { word: "Jewelry store", foolWord: "Watch shop", hint: "Diamonds", diff: "easy" },
+        { word: "Furniture store", foolWord: "Antique shop", hint: "Showroom", diff: "hard" },
+        { word: "Convenience store", foolWord: "Supermarket", hint: "Snacks", diff: "medium" },
+        { word: "Shopping mall", foolWord: "Department store", hint: "Escalators", diff: "medium" },
+        { word: "Restaurant", foolWord: "Food court", hint: "Menu", diff: "easy" },
+        { word: "Cafe", foolWord: "Tea house", hint: "Espresso", diff: "easy" },
+        // Leisure and culture
+        { word: "Cinema", foolWord: "Live theater", hint: "Popcorn", diff: "easy" },
+        { word: "Opera house", foolWord: "Concert hall", hint: "Singers", diff: "medium" },
+        { word: "Museum", foolWord: "Art gallery", hint: "Exhibits", diff: "easy" },
+        { word: "Art gallery", foolWord: "Auction house", hint: "Paintings", diff: "easy" },
+        { word: "Zoo", foolWord: "Safari park", hint: "Keepers", diff: "medium" },
+        { word: "Amusement park", foolWord: "Water park", hint: "Rides", diff: "easy" },
+        { word: "Water park", foolWord: "Beach", hint: "Slides", diff: "medium" },
+        { word: "Arcade", foolWord: "Bowling alley", hint: "Tokens", diff: "hard" },
+        { word: "Stadium", foolWord: "Racetrack", hint: "Crowd", diff: "hard" },
+        { word: "Playground", foolWord: "Skate park", hint: "Swings", diff: "easy" },
+        { word: "Park", foolWord: "Campsite", hint: "Benches", diff: "easy" },
+        { word: "Botanical garden", foolWord: "Park", hint: "Orchids", diff: "medium" },
+        { word: "Campsite", foolWord: "Cabin", hint: "Tents", diff: "easy" },
+        { word: "Escape room", foolWord: "Arcade", hint: "Locked", diff: "hard" },
+        { word: "Gym", foolWord: "Yoga studio", hint: "Weights", diff: "easy" },
+        { word: "Spa", foolWord: "Hair salon", hint: "Massage", diff: "easy" },
+        { word: "Hair salon", foolWord: "Barber shop", hint: "Shampoo", diff: "easy" },
+        // Places to stay and special buildings
+        { word: "Hotel", foolWord: "Hostel", hint: "Check-in", diff: "easy" },
+        { word: "Log cabin", foolWord: "Farmhouse", hint: "Woods", diff: "medium" },
+        { word: "Treehouse", foolWord: "Playhouse", hint: "Branches", diff: "easy" },
+        { word: "Igloo", foolWord: "Tent", hint: "Arctic", diff: "medium" },
+        { word: "Castle", foolWord: "Palace", hint: "Moat", diff: "easy" },
+        { word: "Palace", foolWord: "Mansion", hint: "Royal", diff: "easy" },
+        { word: "Skyscraper", foolWord: "Apartment building", hint: "Elevators", diff: "hard" },
+        // Around the house
+        { word: "Kitchen", foolWord: "Dining room", hint: "Pots", diff: "easy" },
+        { word: "Attic", foolWord: "Basement", hint: "Cobwebs", diff: "medium" },
+        { word: "Basement", foolWord: "Garage", hint: "Storage", diff: "hard" },
+        { word: "Garage", foolWord: "Shed", hint: "Tools", diff: "hard" },
+        { word: "Balcony", foolWord: "Porch", hint: "View", diff: "hard" },
+        { word: "Backyard", foolWord: "Garden", hint: "Grass", diff: "hard" },
+        { word: "Bathroom", foolWord: "Laundry room", hint: "Shower", diff: "easy" },
+        // Famous landmarks
+        { word: "Eiffel Tower", foolWord: "Tokyo Tower", hint: "Paris", diff: "easy" },
+        { word: "Great Wall", foolWord: "Machu Picchu", hint: "China", diff: "easy" },
+        { word: "Colosseum", foolWord: "Parthenon", hint: "Ancient", diff: "medium" },
+        { word: "Statue of Liberty", foolWord: "Mount Rushmore", hint: "Torch", diff: "medium" },
+        { word: "Big Ben", foolWord: "Tower Bridge", hint: "Clock", diff: "medium" },
+        // Nature
+        { word: "Beach", foolWord: "Sand dune", hint: "Waves", diff: "easy" },
+        { word: "Desert", foolWord: "Savanna", hint: "Dunes", diff: "easy" },
+        { word: "Rainforest", foolWord: "Swamp", hint: "Humid", diff: "hard" },
+        { word: "Forest", foolWord: "Jungle", hint: "Trees", diff: "easy" },
+        { word: "Mountain", foolWord: "Hill", hint: "Summit", diff: "easy" },
+        { word: "Volcano", foolWord: "Geyser", hint: "Lava", diff: "easy" },
+        { word: "Cave", foolWord: "Canyon", hint: "Bats", diff: "medium" },
+        { word: "Waterfall", foolWord: "Rapids", hint: "Mist", diff: "medium" },
+        { word: "Island", foolWord: "Peninsula", hint: "Castaway", diff: "medium" },
+        { word: "Lake", foolWord: "Reservoir", hint: "Fishing", diff: "hard" },
+        { word: "River", foolWord: "Canal", hint: "Current", diff: "hard" },
+        { word: "Canyon", foolWord: "Valley", hint: "Cliffs", diff: "medium" },
+        { word: "Glacier", foolWord: "Iceberg", hint: "Frozen", diff: "medium" },
+        { word: "Swamp", foolWord: "Lake", hint: "Murky", diff: "hard" },
+        { word: "Meadow", foolWord: "Orchard", hint: "Butterflies", diff: "hard" },
+        { word: "Coral reef", foolWord: "Lagoon", hint: "Snorkel", diff: "medium" },
+        { word: "Oasis", foolWord: "Pond", hint: "Mirage", diff: "hard" },
+        { word: "Hot spring", foolWord: "Sauna", hint: "Steam", diff: "medium" },
+        { word: "Savanna", foolWord: "Prairie", hint: "Safari", diff: "medium" }
     ],
     jobs: [
+        // Core jobs
         { word: "Teacher", foolWord: "Professor", hint: "Homework", diff: "easy" },
         { word: "Chef", foolWord: "Baker", hint: "Kitchen", diff: "easy" },
         { word: "Firefighter", foolWord: "Paramedic", hint: "Hose", diff: "easy" },
@@ -30,7 +150,102 @@ export const WORD_PACKS_EN = {
         { word: "Photographer", foolWord: "Painter", hint: "Lens", diff: "medium" },
         { word: "Plumber", foolWord: "Electrician", hint: "Pipes", diff: "medium" },
         { word: "Judge", foolWord: "Lawyer", hint: "Robe", diff: "hard" },
-        { word: "Accountant", foolWord: "Banker", hint: "Numbers", diff: "hard" }
+        { word: "Accountant", foolWord: "Banker", hint: "Numbers", diff: "hard" },
+        // Health and care
+        { word: "Doctor", foolWord: "Nurse", hint: "Stethoscope", diff: "easy" },
+        { word: "Nurse", foolWord: "Paramedic", hint: "Scrubs", diff: "medium" },
+        { word: "Dentist", foolWord: "Eye doctor", hint: "Cavities", diff: "easy" },
+        { word: "Veterinarian", foolWord: "Zookeeper", hint: "Pets", diff: "medium" },
+        { word: "Pharmacist", foolWord: "Lab technician", hint: "Prescriptions", diff: "easy" },
+        { word: "Surgeon", foolWord: "Dentist", hint: "Scalpel", diff: "easy" },
+        { word: "Paramedic", foolWord: "Firefighter", hint: "Stretcher", diff: "medium" },
+        { word: "Physical therapist", foolWord: "Personal trainer", hint: "Recovery", diff: "hard" },
+        { word: "Psychologist", foolWord: "Social worker", hint: "Feelings", diff: "hard" },
+        // Science, learning and books
+        { word: "Librarian", foolWord: "Bookseller", hint: "Borrowing", diff: "easy" },
+        { word: "Scientist", foolWord: "Inventor", hint: "Experiments", diff: "easy" },
+        { word: "Astronaut", foolWord: "Pilot", hint: "Orbit", diff: "easy" },
+        { word: "Astronomer", foolWord: "Astronaut", hint: "Telescope", diff: "easy" },
+        { word: "Archaeologist", foolWord: "Historian", hint: "Ruins", diff: "medium" },
+        { word: "Weather forecaster", foolWord: "News anchor", hint: "Clouds", diff: "hard" },
+        // Public service, safety and transport
+        { word: "Police officer", foolWord: "Security guard", hint: "Badge", diff: "easy" },
+        { word: "Detective", foolWord: "Police officer", hint: "Clues", diff: "easy" },
+        { word: "Lawyer", foolWord: "Judge", hint: "Clients", diff: "hard" },
+        { word: "Mail carrier", foolWord: "Delivery driver", hint: "Letters", diff: "easy" },
+        { word: "Lifeguard", foolWord: "Swim instructor", hint: "Whistle", diff: "hard" },
+        { word: "Park ranger", foolWord: "Zookeeper", hint: "Trails", diff: "medium" },
+        { word: "Garbage collector", foolWord: "Street sweeper", hint: "Bins", diff: "easy" },
+        { word: "Bus driver", foolWord: "Taxi driver", hint: "Route", diff: "easy" },
+        { word: "Taxi driver", foolWord: "Chauffeur", hint: "Fare", diff: "medium" },
+        { word: "Truck driver", foolWord: "Delivery driver", hint: "Highway", diff: "medium" },
+        { word: "Pilot", foolWord: "Astronaut", hint: "Cockpit", diff: "easy" },
+        { word: "Flight attendant", foolWord: "Train conductor", hint: "Cabin", diff: "hard" },
+        { word: "Air traffic controller", foolWord: "Pilot", hint: "Radar", diff: "hard" },
+        { word: "Train conductor", foolWord: "Bus driver", hint: "Tickets", diff: "medium" },
+        { word: "Ship captain", foolWord: "Sailor", hint: "Anchor", diff: "easy" },
+        // Trades and building
+        { word: "Carpenter", foolWord: "Furniture maker", hint: "Sawdust", diff: "easy" },
+        { word: "Electrician", foolWord: "Plumber", hint: "Wires", diff: "easy" },
+        { word: "Mechanic", foolWord: "Welder", hint: "Engines", diff: "easy" },
+        { word: "Welder", foolWord: "Blacksmith", hint: "Sparks", diff: "medium" },
+        { word: "Bricklayer", foolWord: "Roofer", hint: "Mortar", diff: "easy" },
+        { word: "House painter", foolWord: "Interior designer", hint: "Ladder", diff: "hard" },
+        { word: "Roofer", foolWord: "Window cleaner", hint: "Heights", diff: "hard" },
+        { word: "Locksmith", foolWord: "Mechanic", hint: "Keys", diff: "easy" },
+        { word: "Window cleaner", foolWord: "Roofer", hint: "Squeegee", diff: "easy" },
+        { word: "Chimney sweep", foolWord: "Window cleaner", hint: "Soot", diff: "hard" },
+        { word: "Miner", foolWord: "Construction worker", hint: "Coal", diff: "medium" },
+        { word: "Construction worker", foolWord: "Miner", hint: "Helmet", diff: "easy" },
+        { word: "Janitor", foolWord: "Housekeeper", hint: "Mop", diff: "easy" },
+        // Farm, garden and animals
+        { word: "Farmer", foolWord: "Gardener", hint: "Harvest", diff: "easy" },
+        { word: "Gardener", foolWord: "Farmer", hint: "Hedges", diff: "medium" },
+        { word: "Beekeeper", foolWord: "Farmer", hint: "Hives", diff: "easy" },
+        { word: "Shepherd", foolWord: "Rancher", hint: "Flock", diff: "easy" },
+        { word: "Florist", foolWord: "Gardener", hint: "Petals", diff: "easy" },
+        { word: "Zookeeper", foolWord: "Veterinarian", hint: "Feeding", diff: "hard" },
+        // Making things and looking good
+        { word: "Tailor", foolWord: "Fashion designer", hint: "Thread", diff: "medium" },
+        { word: "Hairdresser", foolWord: "Makeup artist", hint: "Haircut", diff: "easy" },
+        { word: "Makeup artist", foolWord: "Hairdresser", hint: "Brushes", diff: "hard" },
+        { word: "Fashion designer", foolWord: "Tailor", hint: "Runway", diff: "medium" },
+        { word: "Illustrator", foolWord: "Graphic designer", hint: "Sketches", diff: "hard" },
+        { word: "Sculptor", foolWord: "Potter", hint: "Chisel", diff: "easy" },
+        { word: "Jeweler", foolWord: "Watchmaker", hint: "Rings", diff: "medium" },
+        // Stage, screen and sound
+        { word: "Pianist", foolWord: "Violinist", hint: "Recital", diff: "medium" },
+        { word: "Singer", foolWord: "Songwriter", hint: "Microphone", diff: "medium" },
+        { word: "Dancer", foolWord: "Gymnast", hint: "Ballet", diff: "medium" },
+        { word: "Actor", foolWord: "Stunt performer", hint: "Script", diff: "easy" },
+        { word: "Magician", foolWord: "Juggler", hint: "Rabbit", diff: "easy" },
+        { word: "Clown", foolWord: "Mime", hint: "Circus", diff: "easy" },
+        { word: "Comedian", foolWord: "Talk show host", hint: "Jokes", diff: "easy" },
+        { word: "Writer", foolWord: "Editor", hint: "Manuscript", diff: "medium" },
+        { word: "Journalist", foolWord: "Editor", hint: "Deadline", diff: "hard" },
+        { word: "News anchor", foolWord: "Radio host", hint: "Broadcast", diff: "medium" },
+        { word: "Film director", foolWord: "Camera operator", hint: "Action", diff: "hard" },
+        { word: "DJ", foolWord: "Music producer", hint: "Turntables", diff: "easy" },
+        { word: "Orchestra conductor", foolWord: "Composer", hint: "Baton", diff: "easy" },
+        { word: "Acrobat", foolWord: "Gymnast", hint: "Trapeze", diff: "easy" },
+        { word: "Puppeteer", foolWord: "Ventriloquist", hint: "Strings", diff: "hard" },
+        // Shops, food service and offices
+        { word: "Cashier", foolWord: "Bank teller", hint: "Register", diff: "easy" },
+        { word: "Salesperson", foolWord: "Cashier", hint: "Commission", diff: "hard" },
+        { word: "Travel agent", foolWord: "Tour guide", hint: "Brochures", diff: "hard" },
+        { word: "Real estate agent", foolWord: "Insurance agent", hint: "Listings", diff: "hard" },
+        { word: "Barista", foolWord: "Restaurant server", hint: "Latte", diff: "easy" },
+        { word: "Restaurant server", foolWord: "Barista", hint: "Tray", diff: "medium" },
+        { word: "Butcher", foolWord: "Grocer", hint: "Cuts", diff: "hard" },
+        { word: "Baker", foolWord: "Chef", hint: "Dough", diff: "easy" },
+        { word: "Street vendor", foolWord: "Cashier", hint: "Cart", diff: "hard" },
+        // Sport, tech and language
+        { word: "Referee", foolWord: "Coach", hint: "Fouls", diff: "medium" },
+        { word: "Coach", foolWord: "Referee", hint: "Tactics", diff: "hard" },
+        { word: "Personal trainer", foolWord: "Physical therapist", hint: "Workouts", diff: "easy" },
+        { word: "Software developer", foolWord: "Web designer", hint: "Code", diff: "easy" },
+        { word: "Interpreter", foolWord: "Language teacher", hint: "Bilingual", diff: "hard" },
+        { word: "Tour guide", foolWord: "Travel agent", hint: "Sightseeing", diff: "medium" }
     ],
     foods: [
         { word: "Pizza", foolWord: "Calzone", hint: "Cheese", diff: "easy" },

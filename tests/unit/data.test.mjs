@@ -69,11 +69,36 @@ describe('side quests', () => {
 // ---------------------------------------------------------------------------------------------------------
 
 /**
- * What the English SEED bank has to hold per category. A later step grows the bank to hundreds of words and
- * raises these two numbers with it; nothing else in this file needs to change.
+ * What the English bank has to hold. These numbers are meant to be raised as the bank grows; nothing else in
+ * this file needs to change.
+ *
+ * A category that is FINISHED (written in full) has its entry in EN_MIN_WORDS_BY_CATEGORY at
+ * EN_FINISHED_MIN_WORDS and must meet EN_MIN_BY_DIFFICULTY. A category that is NOT finished yet still holds
+ * only its 8-word seed, so it keeps the seed floors (EN_SEED_MIN_WORDS words, EN_SEED_MIN_BY_DIFFICULTY per
+ * difficulty); that keeps every intermediate version of the project green. Once every category is finished
+ * the total floor EN_MIN_WORDS_TOTAL applies as well.
  */
-const EN_MIN_WORDS_PER_CATEGORY = 6;
-const EN_MIN_WORDS_PER_DIFFICULTY = 2;
+const EN_SEED_MIN_WORDS = 6;
+const EN_SEED_MIN_BY_DIFFICULTY = 2;
+const EN_FINISHED_MIN_WORDS = 60;
+const EN_MIN_WORDS_BY_CATEGORY = {
+    // Finished categories:
+    places: EN_FINISHED_MIN_WORDS,
+    jobs: EN_FINISHED_MIN_WORDS,
+    // NOT finished yet (seed floors). Raise each one to EN_FINISHED_MIN_WORDS when that category is written.
+    foods: EN_SEED_MIN_WORDS,
+    objects: EN_SEED_MIN_WORDS,
+    vehicles: EN_SEED_MIN_WORDS,
+    animals: EN_SEED_MIN_WORDS,
+    sports: EN_SEED_MIN_WORDS,
+    events: EN_SEED_MIN_WORDS
+};
+/** Per difficulty, for a finished category. */
+const EN_MIN_BY_DIFFICULTY = { easy: 20, medium: 16, hard: 16 };
+/** The whole English bank, once every category is finished. */
+const EN_MIN_WORDS_TOTAL = 650;
+/** No hint (case-insensitive) may be used by more entries than this, in the whole bank. */
+const EN_MAX_HINT_REUSE = 4;
 /** The English side quests: at least this many. */
 const EN_MIN_SIDE_QUESTS = 20;
 
@@ -83,6 +108,14 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 /** Persian and Arabic letters and digits (U+0600-06FF). */
 const PERSIAN = /[\u0600-\u06FF]/;
 const ARTICLE_AT_START = /^(the|a|an)(\s|$)/i;
+const STARTS_UPPERCASE = /^\p{Lu}/u;
+/** A word or fool word: letters, digits, spaces and a few marks. */
+const PHRASE_SHAPE = /^[\p{L}\p{N} '’.&-]+$/u;
+/** A hint: ONE capitalised word, letters, apostrophe or hyphen only. */
+const HINT_SHAPE = /^\p{Lu}[\p{L}'’-]*$/u;
+const MAX_WORDS_IN_PHRASE = 3;
+/** A stem shorter than this is ignored by the containment check (too short to mean anything). */
+const MIN_STEM_LENGTH = 4;
 
 const readSource = (name) => readFileSync(new URL(`../../js/data/${name}`, import.meta.url), 'utf8');
 const entriesOf = (packs) => Object.values(packs).flat();
@@ -159,19 +192,110 @@ for (const lang of DATA_LANGS) {
     });
 }
 
-describe('English word bank (seed)', () => {
+describe('English word bank', () => {
     const categories = Object.keys(WORD_PACKS_EN);
+    const isFinished = (category) => EN_MIN_WORDS_BY_CATEGORY[category] > EN_SEED_MIN_WORDS;
+    const everyEntry = () => categories.flatMap((category) => WORD_PACKS_EN[category].map((entry) => ({ category, ...entry })));
+    const where = ({ word, category }) => `"${word}" (${category})`;
+
+    it('has a floor for exactly the categories of the bank', () => {
+        assert.deepEqual(Object.keys(EN_MIN_WORDS_BY_CATEGORY).sort(), [...categories].sort());
+    });
 
     for (const category of categories) {
-        it(`"${category}": at least ${EN_MIN_WORDS_PER_CATEGORY} words, and at least ${EN_MIN_WORDS_PER_DIFFICULTY} of each difficulty`, () => {
+        const finished = isFinished(category);
+        const minWords = EN_MIN_WORDS_BY_CATEGORY[category];
+        it(`"${category}" (${finished ? 'finished' : 'seed'}): at least ${minWords} words and the per-difficulty floors`, () => {
             const list = WORD_PACKS_EN[category];
-            assert.ok(list.length >= EN_MIN_WORDS_PER_CATEGORY, `${category} has only ${list.length} words`);
+            assert.ok(list.length >= minWords, `${category} has only ${list.length} words (floor ${minWords})`);
             for (const level of DIFFICULTIES) {
+                const floor = finished ? EN_MIN_BY_DIFFICULTY[level] : EN_SEED_MIN_BY_DIFFICULTY;
                 const count = list.filter((e) => e.diff === level).length;
-                assert.ok(count >= EN_MIN_WORDS_PER_DIFFICULTY, `${category} has only ${count} "${level}" words`);
+                assert.ok(count >= floor, `${category} has only ${count} "${level}" words (floor ${floor})`);
             }
         });
     }
+
+    it('has enough words in total (the full floor once every category is finished)', () => {
+        const total = everyEntry().length;
+        const everythingFinished = categories.every(isFinished);
+        const floor = everythingFinished ? EN_MIN_WORDS_TOTAL : categories.reduce((n, c) => n + EN_MIN_WORDS_BY_CATEGORY[c], 0);
+        assert.ok(total >= floor, `only ${total} words in total (floor ${floor}${everythingFinished ? '' : ', sum of the category floors'})`);
+    });
+
+    it('writes word, foolWord and hint in the agreed shape: uppercase start, allowed characters, at most 3 words, one-word hint', () => {
+        for (const entry of everyEntry()) {
+            for (const field of ['word', 'foolWord', 'hint']) {
+                assert.match(entry[field], STARTS_UPPERCASE, `${where(entry)}: ${field} "${entry[field]}" does not start with an uppercase letter`);
+            }
+            for (const field of ['word', 'foolWord']) {
+                assert.match(entry[field], PHRASE_SHAPE, `${where(entry)}: ${field} "${entry[field]}" has a character that is not a letter, digit, space or one of ' ’ . & -`);
+                assert.doesNotMatch(entry[field], / {2,}/, `${where(entry)}: ${field} "${entry[field]}" has a double space`);
+                const count = entry[field].split(' ').length;
+                assert.ok(count <= MAX_WORDS_IN_PHRASE, `${where(entry)}: ${field} "${entry[field]}" has ${count} words (at most ${MAX_WORDS_IN_PHRASE})`);
+            }
+            assert.match(entry.hint, HINT_SHAPE, `${where(entry)}: hint "${entry.hint}" is not one word of letters, apostrophe or hyphen`);
+        }
+    });
+
+    /** The normalised text, plus the simple stems a plain "contains" check would miss (plural, -ing, -ed). */
+    function forms(text) {
+        const base = normalizeWord(text);
+        const out = new Set([base]);
+        const add = (stem) => {
+            if (stem.length >= MIN_STEM_LENGTH) out.add(stem);
+        };
+        if (base.endsWith('ies')) add(`${base.slice(0, -3)}y`);
+        if (base.endsWith('es')) add(base.slice(0, -2));
+        if (base.endsWith('s')) add(base.slice(0, -1));
+        for (const suffix of ['ing', 'ed']) {
+            if (!base.endsWith(suffix)) continue;
+            const stem = base.slice(0, -suffix.length);
+            add(stem);
+            add(`${stem}e`);
+        }
+        return out;
+    }
+    /** Why `a` and `b` contain each other (as written or after stripping an ending), or null. */
+    function overlap(a, b) {
+        for (const x of forms(a)) {
+            for (const y of forms(b)) {
+                if (x.includes(y) || y.includes(x)) return x === y ? `both read "${x}"` : `"${x}" and "${y}" contain each other`;
+            }
+        }
+        return null;
+    }
+
+    it('never lets the hint contain the word or the word contain the hint (also after stripping -s, -es, -ing, -ed)', () => {
+        for (const entry of everyEntry()) {
+            const reason = overlap(entry.word, entry.hint);
+            assert.equal(reason, null, `${where(entry)}: hint "${entry.hint}" gives the word away: ${reason}`);
+        }
+    });
+
+    it('never lets the foolWord contain the word or the word contain the foolWord (also after stripping -s, -es, -ing, -ed)', () => {
+        for (const entry of everyEntry()) {
+            const reason = overlap(entry.word, entry.foolWord);
+            assert.equal(reason, null, `${where(entry)}: foolWord "${entry.foolWord}" is a variant of the word: ${reason}`);
+        }
+    });
+
+    it(`uses no hint (case-insensitive) in more than ${EN_MAX_HINT_REUSE} entries of the whole bank`, () => {
+        const wordsByHint = new Map();
+        for (const { word, hint } of everyEntry()) {
+            const key = hint.toLowerCase();
+            wordsByHint.set(key, [...(wordsByHint.get(key) ?? []), word]);
+        }
+        const overused = [...wordsByHint].filter(([, words]) => words.length > EN_MAX_HINT_REUSE);
+        const message = overused.map(([hint, words]) => `hint "${hint}" is used by ${words.length} entries: ${words.join(', ')}`).join('; ');
+        assert.equal(overused.length, 0, `${message} (at most ${EN_MAX_HINT_REUSE})`);
+    });
+
+    it('has a foolWord that differs from the entry\'s own hint', () => {
+        for (const entry of everyEntry()) {
+            assert.notEqual(normalizeWord(entry.foolWord), normalizeWord(entry.hint), `${where(entry)}: foolWord "${entry.foolWord}" equals the hint`);
+        }
+    });
 
     it('has no Persian or Arabic letter or digit in any word, in the data file, or in its comments', () => {
         for (const { word, foolWord, hint } of entriesOf(WORD_PACKS_EN)) {
