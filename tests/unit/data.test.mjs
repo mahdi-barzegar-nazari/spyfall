@@ -85,9 +85,9 @@ const EN_MIN_WORDS_BY_CATEGORY = {
     // Finished categories:
     places: EN_FINISHED_MIN_WORDS,
     jobs: EN_FINISHED_MIN_WORDS,
+    foods: EN_FINISHED_MIN_WORDS,
+    objects: EN_FINISHED_MIN_WORDS,
     // NOT finished yet (seed floors). Raise each one to EN_FINISHED_MIN_WORDS when that category is written.
-    foods: EN_SEED_MIN_WORDS,
-    objects: EN_SEED_MIN_WORDS,
     vehicles: EN_SEED_MIN_WORDS,
     animals: EN_SEED_MIN_WORDS,
     sports: EN_SEED_MIN_WORDS,
