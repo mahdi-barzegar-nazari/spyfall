@@ -87,10 +87,10 @@ const EN_MIN_WORDS_BY_CATEGORY = {
     jobs: EN_FINISHED_MIN_WORDS,
     foods: EN_FINISHED_MIN_WORDS,
     objects: EN_FINISHED_MIN_WORDS,
+    vehicles: EN_FINISHED_MIN_WORDS,
+    animals: EN_FINISHED_MIN_WORDS,
+    sports: EN_FINISHED_MIN_WORDS,
     // NOT finished yet (seed floors). Raise each one to EN_FINISHED_MIN_WORDS when that category is written.
-    vehicles: EN_SEED_MIN_WORDS,
-    animals: EN_SEED_MIN_WORDS,
-    sports: EN_SEED_MIN_WORDS,
     events: EN_SEED_MIN_WORDS
 };
 /** Per difficulty, for a finished category. */
@@ -116,6 +116,8 @@ const HINT_SHAPE = /^\p{Lu}[\p{L}'’-]*$/u;
 const MAX_WORDS_IN_PHRASE = 3;
 /** A stem shorter than this is ignored by the containment check (too short to mean anything). */
 const MIN_STEM_LENGTH = 4;
+/** A hint may not start with the same this-many letters as any word of its entry (hair / haircut, post / postcard). */
+const MIN_SHARED_START = 4;
 
 const readSource = (name) => readFileSync(new URL(`../../js/data/${name}`, import.meta.url), 'utf8');
 const entriesOf = (packs) => Object.values(packs).flat();
@@ -270,6 +272,24 @@ describe('English word bank', () => {
         for (const entry of everyEntry()) {
             const reason = overlap(entry.word, entry.hint);
             assert.equal(reason, null, `${where(entry)}: hint "${entry.hint}" gives the word away: ${reason}`);
+        }
+    });
+
+    /** The longest common start of two normalised words. */
+    function sharedStart(a, b) {
+        let i = 0;
+        while (i < a.length && i < b.length && a[i] === b[i]) i++;
+        return a.slice(0, i);
+    }
+
+    it(`never lets the hint start with the same ${MIN_SHARED_START} letters as a word of the entry (hair / haircut, post / postcard)`, () => {
+        for (const entry of everyEntry()) {
+            for (const wordPart of normalizeWord(entry.word).split(' ').filter(Boolean)) {
+                for (const hintPart of normalizeWord(entry.hint).split(' ').filter(Boolean)) {
+                    const shared = sharedStart(wordPart, hintPart);
+                    assert.ok(shared.length < MIN_SHARED_START, `${where(entry)}: hint "${entry.hint}" shares the start "${shared}" with "${wordPart}" of the word, so it likely shares its root`);
+                }
+            }
         }
     });
 
