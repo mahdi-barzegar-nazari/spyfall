@@ -33,8 +33,8 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
-- **741 built-in words** in 8 categories with difficulty ratings (Persian; an English seed bank of 64 words and 28 side quests is in, the full English bank is still to come), plus a custom word bank you can import and export as JSON.
-- **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; the English word bank is still a small seed.
+- **741 Persian and 703 English built-in words**, each bank in 8 categories with difficulty ratings (the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
+- **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; each language has its own word bank.
 - **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 
 ## Quickstart
@@ -64,7 +64,7 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 598 unit tests (built-in node:test, no dependencies)
+npm test               # 607 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
 npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint
 npm run lint
@@ -118,7 +118,7 @@ Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests,
 - [x] Split `ui/scorecard.js` (400 lines of canvas drawing) into layout and rendering
 - [x] Move the remaining inline styles built in JS templates into CSS classes, then drop `'unsafe-inline'` from `style-src`
 - [x] English UI translation, with a language switch on the welcome screen
-- [ ] Full English word bank (an English seed of 64 words is in)
+- [x] Full English word bank (703 hand-written words: places 111, jobs 94, foods 90, objects 114, vehicles 61, animals 87, sports 72, events 74)
 
 ## Contributing
 

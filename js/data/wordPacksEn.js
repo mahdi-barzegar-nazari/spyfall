@@ -1,20 +1,25 @@
 /**
  * English word bank, grouped by the same category ids as the Persian one (`wordPacks.js`).
- * Each entry: word, foolWord (a close but different thing a decoy player gets), hint (ONE related word
- * that nudges the spy without giving the word away), difficulty.
+ * Each entry: word, foolWord (a close but different thing that a decoy player gets), hint (ONE related
+ * word that nudges the spy without giving the word away), difficulty.
  *
- * Work in progress: `places`, `jobs`, `foods`, `objects`, `vehicles`, `animals` and `sports` are written in full;
- * `events` still holds only its 8 seed entries and grows next. Entries are written by hand, nothing here is
- * generated. Rules (checked by tests/unit/data.test.mjs):
- *  - Entry layout: { word, foolWord, hint, diff }, one entry per line, 4-space indent, double quotes.
+ * Every entry is written by hand, category by category; nothing here is generated, translated from the
+ * Persian bank, or copied from another word list or game. Rules (checked by tests/unit/data.test.mjs, where
+ * the size floors also live):
+ *  - Entry layout: { word, foolWord, hint, diff }, one entry per line, 4-space indent, double quotes, no
+ *    trailing comma after the last entry of a category. Comments are English only.
  *  - `word` and `foolWord`: sentence case, 1-3 words, at most 30 characters, no leading article.
  *    `hint`: ONE capitalised word, at most 30 characters.
  *  - `word` is unique in the whole bank (case-insensitive). `foolWord` is a different, well-known thing of
- *    the same kind (not a synonym or a plural/singular form); neither word nor hint may contain the
- *    other, and the hint is never the foolWord.
- *  - Every word is something all players can picture. `hard` means hard for the spy to work out from
- *    the hint (the hint fits many words), not obscure trivia.
- *  - Comments are English only.
+ *    the same kind: not a synonym, not a plural or other form of the word, and neither contains the other.
+ *  - The hint never contains the word (or the other way round, also after dropping -s, -es, -ing, -ed), never
+ *    starts with the same 4 letters as a word of the entry (hair / haircut), and is never the foolWord.
+ *    No hint is used by more than 4 entries; in practice each one is used once.
+ *  - Every word is something all players can picture. `diff` is about the hint: easy = it points almost
+ *    straight at the word, medium = it narrows it to a handful of things, hard = it fits many words. It is
+ *    never about obscure words.
+ *  - No brand names, alcohol, drugs, sexual content, violence or war, disasters, real people, religious
+ *    holidays or politics.
  */
 
 export const WORD_PACKS_EN = {
@@ -27,7 +32,7 @@ export const WORD_PACKS_EN = {
         { word: "Laundromat", foolWord: "Dry cleaner", hint: "Coins", diff: "medium" },
         { word: "Aquarium", foolWord: "Zoo", hint: "Glass", diff: "medium" },
         { word: "Observatory", foolWord: "Planetarium", hint: "Stars", diff: "hard" },
-        { word: "Lighthouse", foolWord: "Windmill", hint: "Beam", diff: "hard" },
+        { word: "Lighthouse", foolWord: "Watchtower", hint: "Beam", diff: "hard" },
         // Public services and transport
         { word: "Police station", foolWord: "Courthouse", hint: "Handcuffs", diff: "easy" },
         { word: "Fire station", foolWord: "Police station", hint: "Pole", diff: "hard" },
@@ -47,7 +52,7 @@ export const WORD_PACKS_EN = {
         // Health and care
         { word: "Pharmacy", foolWord: "Clinic", hint: "Medicine", diff: "easy" },
         { word: "Dental clinic", foolWord: "Doctor's office", hint: "Teeth", diff: "easy" },
-        { word: "Veterinary clinic", foolWord: "Pet store", hint: "Paws", diff: "medium" },
+        { word: "Veterinary clinic", foolWord: "Animal shelter", hint: "Paws", diff: "medium" },
         // School and work
         { word: "School", foolWord: "Kindergarten", hint: "Recess", diff: "easy" },
         { word: "University", foolWord: "High school", hint: "Campus", diff: "easy" },
@@ -68,7 +73,7 @@ export const WORD_PACKS_EN = {
         { word: "Bakery", foolWord: "Cafe", hint: "Bread", diff: "easy" },
         { word: "Butcher shop", foolWord: "Fish market", hint: "Meat", diff: "easy" },
         { word: "Bookstore", foolWord: "Newsstand", hint: "Shelves", diff: "hard" },
-        { word: "Toy store", foolWord: "Candy store", hint: "Dolls", diff: "medium" },
+        { word: "Toy store", foolWord: "Gift shop", hint: "Dolls", diff: "medium" },
         { word: "Pet store", foolWord: "Zoo", hint: "Hamsters", diff: "medium" },
         { word: "Flower shop", foolWord: "Garden center", hint: "Bouquet", diff: "easy" },
         { word: "Hardware store", foolWord: "Paint store", hint: "Screws", diff: "medium" },
@@ -127,7 +132,7 @@ export const WORD_PACKS_EN = {
         { word: "Forest", foolWord: "Jungle", hint: "Trees", diff: "easy" },
         { word: "Mountain", foolWord: "Hill", hint: "Summit", diff: "easy" },
         { word: "Volcano", foolWord: "Geyser", hint: "Lava", diff: "easy" },
-        { word: "Cave", foolWord: "Canyon", hint: "Bats", diff: "medium" },
+        { word: "Cave", foolWord: "Tunnel", hint: "Bats", diff: "medium" },
         { word: "Waterfall", foolWord: "Rapids", hint: "Mist", diff: "medium" },
         { word: "Island", foolWord: "Peninsula", hint: "Castaway", diff: "medium" },
         { word: "Lake", foolWord: "Reservoir", hint: "Fishing", diff: "hard" },
@@ -135,7 +140,7 @@ export const WORD_PACKS_EN = {
         { word: "Canyon", foolWord: "Valley", hint: "Cliffs", diff: "medium" },
         { word: "Glacier", foolWord: "Iceberg", hint: "Frozen", diff: "medium" },
         { word: "Swamp", foolWord: "Lake", hint: "Murky", diff: "hard" },
-        { word: "Meadow", foolWord: "Orchard", hint: "Butterflies", diff: "hard" },
+        { word: "Meadow", foolWord: "Prairie", hint: "Butterflies", diff: "hard" },
         { word: "Coral reef", foolWord: "Lagoon", hint: "Snorkel", diff: "medium" },
         { word: "Oasis", foolWord: "Pond", hint: "Mirage", diff: "medium" },
         { word: "Hot spring", foolWord: "Sauna", hint: "Steam", diff: "medium" },
@@ -238,7 +243,7 @@ export const WORD_PACKS_EN = {
         { word: "Restaurant server", foolWord: "Barista", hint: "Tray", diff: "medium" },
         { word: "Butcher", foolWord: "Grocer", hint: "Cuts", diff: "hard" },
         { word: "Baker", foolWord: "Chef", hint: "Dough", diff: "easy" },
-        { word: "Street vendor", foolWord: "Cashier", hint: "Cart", diff: "hard" },
+        { word: "Street vendor", foolWord: "Shopkeeper", hint: "Cart", diff: "hard" },
         // Sport, tech and language
         { word: "Referee", foolWord: "Coach", hint: "Fouls", diff: "medium" },
         { word: "Coach", foolWord: "Referee", hint: "Tactics", diff: "hard" },
@@ -281,7 +286,7 @@ export const WORD_PACKS_EN = {
         { word: "Fried chicken", foolWord: "Chicken nuggets", hint: "Drumstick", diff: "easy" },
         { word: "Onion rings", foolWord: "Mozzarella sticks", hint: "Tears", diff: "hard" },
         { word: "Hash browns", foolWord: "Potato wedges", hint: "Diner", diff: "hard" },
-        { word: "Popcorn", foolWord: "Peanuts", hint: "Kernels", diff: "easy" },
+        { word: "Popcorn", foolWord: "Pretzel", hint: "Kernels", diff: "easy" },
         { word: "Peanuts", foolWord: "Almonds", hint: "Salted", diff: "medium" },
         { word: "Pretzel", foolWord: "Crackers", hint: "Knot", diff: "medium" },
         { word: "Nachos", foolWord: "Tortilla chips", hint: "Crunchy", diff: "hard" },
@@ -291,7 +296,7 @@ export const WORD_PACKS_EN = {
         { word: "Olives", foolWord: "Pickles", hint: "Pit", diff: "hard" },
         // Mains and comfort food
         { word: "Spaghetti", foolWord: "Macaroni", hint: "Meatballs", diff: "easy" },
-        { word: "Mac and cheese", foolWord: "Casserole", hint: "Creamy", diff: "hard" },
+        { word: "Mac and cheese", foolWord: "Lasagna", hint: "Creamy", diff: "hard" },
         { word: "Steak", foolWord: "Pork chop", hint: "Rare", diff: "easy" },
         { word: "Kebab", foolWord: "Shawarma", hint: "Skewer", diff: "easy" },
         { word: "Fish and chips", foolWord: "Fish sticks", hint: "Battered", diff: "medium" },
@@ -309,7 +314,7 @@ export const WORD_PACKS_EN = {
         { word: "Ramen", foolWord: "Udon", hint: "Slurp", diff: "easy" },
         { word: "Pad thai", foolWord: "Chow mein", hint: "Stir-fried", diff: "hard" },
         { word: "Kimchi", foolWord: "Sauerkraut", hint: "Korea", diff: "easy" },
-        { word: "Falafel", foolWord: "Hummus", hint: "Chickpeas", diff: "easy" },
+        { word: "Falafel", foolWord: "Shawarma", hint: "Chickpeas", diff: "easy" },
         { word: "Hummus", foolWord: "Guacamole", hint: "Pita", diff: "medium" },
         { word: "Naan", foolWord: "Pita", hint: "Flatbread", diff: "easy" },
         { word: "Paella", foolWord: "Risotto", hint: "Spain", diff: "easy" },
@@ -319,13 +324,13 @@ export const WORD_PACKS_EN = {
         { word: "Cheesecake", foolWord: "Flan", hint: "Crust", diff: "hard" },
         { word: "Apple pie", foolWord: "Pumpkin pie", hint: "Cinnamon", diff: "medium" },
         { word: "Brownie", foolWord: "Chocolate cake", hint: "Fudgy", diff: "easy" },
-        { word: "Cookies", foolWord: "Granola bar", hint: "Dunk", diff: "easy" },
+        { word: "Cookies", foolWord: "Brownie", hint: "Dunk", diff: "easy" },
         { word: "Donut", foolWord: "Eclair", hint: "Glaze", diff: "easy" },
         { word: "Churros", foolWord: "Fritters", hint: "Dipping", diff: "hard" },
         { word: "Baklava", foolWord: "Strudel", hint: "Pistachios", diff: "medium" },
         { word: "Chocolate bar", foolWord: "Fudge", hint: "Cocoa", diff: "easy" },
         { word: "Lollipop", foolWord: "Hard candy", hint: "Stick", diff: "medium" },
-        { word: "Cotton candy", foolWord: "Popcorn", hint: "Fluffy", diff: "hard" },
+        { word: "Cotton candy", foolWord: "Candy apple", hint: "Fluffy", diff: "hard" },
         { word: "Gummy bears", foolWord: "Jelly beans", hint: "Chewy", diff: "hard" },
         { word: "Marshmallow", foolWord: "Whipped cream", hint: "Campfire", diff: "easy" },
         { word: "Chewing gum", foolWord: "Mints", hint: "Bubble", diff: "easy" },
@@ -334,7 +339,7 @@ export const WORD_PACKS_EN = {
         { word: "Watermelon", foolWord: "Cantaloupe", hint: "Summer", diff: "hard" },
         { word: "Pineapple", foolWord: "Mango", hint: "Hawaii", diff: "easy" },
         { word: "Banana", foolWord: "Plantain", hint: "Peel", diff: "easy" },
-        { word: "Coconut", foolWord: "Walnut", hint: "Palm", diff: "medium" },
+        { word: "Coconut", foolWord: "Pineapple", hint: "Palm", diff: "medium" },
         { word: "Strawberries", foolWord: "Raspberries", hint: "Shortcake", diff: "easy" },
         { word: "Grapes", foolWord: "Raisins", hint: "Vine", diff: "medium" },
         // Drinks
@@ -365,7 +370,7 @@ export const WORD_PACKS_EN = {
         { word: "Blender", foolWord: "Food processor", hint: "Crush", diff: "medium" },
         { word: "Refrigerator", foolWord: "Freezer", hint: "Cold", diff: "easy" },
         { word: "Dishwasher", foolWord: "Washing machine", hint: "Plates", diff: "easy" },
-        { word: "Rolling pin", foolWord: "Whisk", hint: "Pastry", diff: "hard" },
+        { word: "Rolling pin", foolWord: "Cookie cutter", hint: "Pastry", diff: "hard" },
         { word: "Whisk", foolWord: "Spatula", hint: "Whip", diff: "medium" },
         { word: "Can opener", foolWord: "Peeler", hint: "Tin", diff: "medium" },
         { word: "Mug", foolWord: "Teacup", hint: "Sip", diff: "hard" },
@@ -374,7 +379,7 @@ export const WORD_PACKS_EN = {
         { word: "Chopsticks", foolWord: "Fork", hint: "Rice", diff: "medium" },
         // Cleaning and laundry
         { word: "Washing machine", foolWord: "Dryer", hint: "Spin", diff: "easy" },
-        { word: "Clothes iron", foolWord: "Hair straightener", hint: "Wrinkles", diff: "easy" },
+        { word: "Clothes iron", foolWord: "Clothes steamer", hint: "Wrinkles", diff: "easy" },
         { word: "Vacuum cleaner", foolWord: "Broom", hint: "Dust", diff: "easy" },
         { word: "Broom", foolWord: "Mop", hint: "Bristles", diff: "medium" },
         { word: "Mop", foolWord: "Sponge", hint: "Floors", diff: "easy" },
@@ -392,18 +397,18 @@ export const WORD_PACKS_EN = {
         // Furniture and around the house
         { word: "Pillow", foolWord: "Cushion", hint: "Sleep", diff: "hard" },
         { word: "Sofa", foolWord: "Armchair", hint: "Lounge", diff: "hard" },
-        { word: "Rocking chair", foolWord: "Swing", hint: "Grandma", diff: "hard" },
+        { word: "Rocking chair", foolWord: "Armchair", hint: "Grandma", diff: "hard" },
         { word: "Hammock", foolWord: "Swing", hint: "Lazy", diff: "hard" },
         { word: "Bookshelf", foolWord: "Cabinet", hint: "Novels", diff: "medium" },
         { word: "Wardrobe", foolWord: "Chest of drawers", hint: "Clothes", diff: "easy" },
         { word: "Lamp", foolWord: "Chandelier", hint: "Bedside", diff: "medium" },
-        { word: "Light bulb", foolWord: "Candle", hint: "Idea", diff: "hard" },
+        { word: "Light bulb", foolWord: "Lamp", hint: "Idea", diff: "hard" },
         { word: "Ceiling fan", foolWord: "Air conditioner", hint: "Breeze", diff: "medium" },
         { word: "Flashlight", foolWord: "Lantern", hint: "Batteries", diff: "medium" },
         { word: "Doorbell", foolWord: "Intercom", hint: "Ding", diff: "hard" },
-        { word: "Sewing machine", foolWord: "Knitting needles", hint: "Stitches", diff: "easy" },
+        { word: "Sewing machine", foolWord: "Sewing kit", hint: "Stitches", diff: "easy" },
         { word: "Piggy bank", foolWord: "Safe", hint: "Savings", diff: "easy" },
-        { word: "Treasure chest", foolWord: "Toolbox", hint: "Pirates", diff: "easy" },
+        { word: "Treasure chest", foolWord: "Jewelry box", hint: "Pirates", diff: "easy" },
         { word: "Padlock", foolWord: "Chain", hint: "Combination", diff: "medium" },
         { word: "Envelope", foolWord: "Postcard", hint: "Address", diff: "hard" },
         { word: "Suitcase", foolWord: "Duffel bag", hint: "Packing", diff: "easy" },
@@ -414,7 +419,7 @@ export const WORD_PACKS_EN = {
         { word: "Power drill", foolWord: "Screwdriver", hint: "Bits", diff: "medium" },
         { word: "Tape measure", foolWord: "Ruler", hint: "Length", diff: "hard" },
         { word: "Toolbox", foolWord: "Tackle box", hint: "Hardware", diff: "hard" },
-        { word: "First aid kit", foolWord: "Toolbox", hint: "Bandages", diff: "easy" },
+        { word: "First aid kit", foolWord: "Medicine cabinet", hint: "Bandages", diff: "easy" },
         { word: "Fire extinguisher", foolWord: "Smoke detector", hint: "Blaze", diff: "medium" },
         { word: "Shovel", foolWord: "Rake", hint: "Dirt", diff: "easy" },
         { word: "Rake", foolWord: "Leaf blower", hint: "Autumn", diff: "hard" },
@@ -465,7 +470,7 @@ export const WORD_PACKS_EN = {
         { word: "Xylophone", foolWord: "Tambourine", hint: "Mallets", diff: "hard" },
         // Toys and fun
         { word: "Balloon", foolWord: "Beach ball", hint: "Helium", diff: "easy" },
-        { word: "Kite", foolWord: "Parachute", hint: "Wind", diff: "medium" },
+        { word: "Kite", foolWord: "Paper airplane", hint: "Wind", diff: "medium" },
         { word: "Yo-yo", foolWord: "Spinning top", hint: "Tricks", diff: "hard" },
         { word: "Teddy bear", foolWord: "Doll", hint: "Hug", diff: "easy" },
         { word: "Rubber duck", foolWord: "Toy boat", hint: "Quack", diff: "easy" },
@@ -486,33 +491,29 @@ export const WORD_PACKS_EN = {
         // Cars, bikes and everyday road vehicles
         { word: "Car", foolWord: "Van", hint: "Steering", diff: "easy" },
         { word: "Bus", foolWord: "Tram", hint: "Stops", diff: "hard" },
-        { word: "School bus", foolWord: "Taxi", hint: "Students", diff: "easy" },
+        { word: "School bus", foolWord: "City bus", hint: "Students", diff: "easy" },
         { word: "Motorcycle", foolWord: "Moped", hint: "Throttle", diff: "medium" },
         { word: "Scooter", foolWord: "Skateboard", hint: "Kick", diff: "hard" },
         { word: "Tricycle", foolWord: "Unicycle", hint: "Toddler", diff: "easy" },
         { word: "Unicycle", foolWord: "Tricycle", hint: "Balance", diff: "hard" },
         { word: "Pickup truck", foolWord: "Minivan", hint: "Tailgate", diff: "medium" },
-        { word: "Limousine", foolWord: "Sports car", hint: "Chauffeur", diff: "easy" },
-        { word: "Sports car", foolWord: "Limousine", hint: "Horsepower", diff: "hard" },
+        { word: "Limousine", foolWord: "Taxi", hint: "Chauffeur", diff: "easy" },
         { word: "Race car", foolWord: "Go-kart", hint: "Laps", diff: "easy" },
         { word: "Golf cart", foolWord: "Tuk-tuk", hint: "Course", diff: "hard" },
         { word: "Tuk-tuk", foolWord: "Golf cart", hint: "Thailand", diff: "medium" },
         { word: "Camper van", foolWord: "Minivan", hint: "Vacation", diff: "hard" },
         // Work and service vehicles
         { word: "Fire truck", foolWord: "Ambulance", hint: "Hydrant", diff: "easy" },
-        { word: "Police car", foolWord: "Taxi", hint: "Patrol", diff: "easy" },
+        { word: "Police car", foolWord: "Ambulance", hint: "Patrol", diff: "easy" },
         { word: "Garbage truck", foolWord: "Dump truck", hint: "Trash", diff: "easy" },
-        { word: "Dump truck", foolWord: "Cement mixer", hint: "Gravel", diff: "medium" },
         { word: "Cement mixer", foolWord: "Dump truck", hint: "Concrete", diff: "easy" },
-        { word: "Tow truck", foolWord: "Pickup truck", hint: "Breakdown", diff: "medium" },
         { word: "Ice cream truck", foolWord: "Food truck", hint: "Jingle", diff: "easy" },
         { word: "Food truck", foolWord: "Ice cream truck", hint: "Hungry", diff: "hard" },
         { word: "Snowplow", foolWord: "Street sweeper", hint: "Blizzard", diff: "medium" },
         { word: "Bulldozer", foolWord: "Road roller", hint: "Rubble", diff: "medium" },
-        { word: "Forklift", foolWord: "Tow truck", hint: "Pallets", diff: "medium" },
+        { word: "Forklift", foolWord: "Tower crane", hint: "Pallets", diff: "medium" },
         { word: "Tower crane", foolWord: "Forklift", hint: "Lifting", diff: "easy" },
         { word: "Road roller", foolWord: "Bulldozer", hint: "Asphalt", diff: "hard" },
-        { word: "Moving truck", foolWord: "Delivery van", hint: "Apartment", diff: "hard" },
         // Snow and ice
         { word: "Dog sled", foolWord: "Snowmobile", hint: "Husky", diff: "easy" },
         { word: "Snowmobile", foolWord: "Dune buggy", hint: "Powder", diff: "medium" },
@@ -535,7 +536,6 @@ export const WORD_PACKS_EN = {
         { word: "Kayak", foolWord: "Canoe", hint: "Rapids", diff: "hard" },
         { word: "Rowboat", foolWord: "Raft", hint: "Oars", diff: "easy" },
         { word: "Speedboat", foolWord: "Yacht", hint: "Wake", diff: "medium" },
-        { word: "Inflatable boat", foolWord: "Raft", hint: "Pump", diff: "medium" },
         { word: "Ferry", foolWord: "Cruise ship", hint: "Crossing", diff: "medium" },
         { word: "Cruise ship", foolWord: "Ferry", hint: "Buffet", diff: "hard" },
         { word: "Cargo ship", foolWord: "Cruise ship", hint: "Containers", diff: "medium" },
@@ -543,7 +543,10 @@ export const WORD_PACKS_EN = {
         { word: "Tugboat", foolWord: "Ferry", hint: "Towing", diff: "medium" },
         { word: "Lifeboat", foolWord: "Rowboat", hint: "Rescue", diff: "easy" },
         { word: "Gondola", foolWord: "Water taxi", hint: "Venice", diff: "easy" },
-        { word: "Hovercraft", foolWord: "Speedboat", hint: "Amphibious", diff: "hard" }
+        { word: "Hovercraft", foolWord: "Speedboat", hint: "Amphibious", diff: "hard" },
+        { word: "Horse carriage", foolWord: "Wagon", hint: "Hooves", diff: "medium" },
+        { word: "Mars rover", foolWord: "Moon buggy", hint: "Planet", diff: "hard" },
+        { word: "Airship", foolWord: "Hot air balloon", hint: "Zeppelin", diff: "easy" }
     ],
     animals: [
         // Core animals
@@ -556,11 +559,11 @@ export const WORD_PACKS_EN = {
         { word: "Chameleon", foolWord: "Gecko", hint: "Colors", diff: "hard" },
         { word: "Octopus", foolWord: "Squid", hint: "Arms", diff: "hard" },
         // Pets and farm animals
-        { word: "Cat", foolWord: "Fox", hint: "Purr", diff: "easy" },
+        { word: "Cat", foolWord: "Dog", hint: "Purr", diff: "easy" },
         { word: "Horse", foolWord: "Donkey", hint: "Gallop", diff: "easy" },
         { word: "Cow", foolWord: "Goat", hint: "Moo", diff: "easy" },
         { word: "Pig", foolWord: "Cow", hint: "Oink", diff: "easy" },
-        { word: "Sheep", foolWord: "Llama", hint: "Wool", diff: "easy" },
+        { word: "Sheep", foolWord: "Goat", hint: "Wool", diff: "easy" },
         { word: "Goat", foolWord: "Sheep", hint: "Horns", diff: "easy" },
         { word: "Rabbit", foolWord: "Guinea pig", hint: "Carrots", diff: "easy" },
         { word: "Hamster", foolWord: "Guinea pig", hint: "Wheel", diff: "easy" },
@@ -573,19 +576,19 @@ export const WORD_PACKS_EN = {
         { word: "Tiger", foolWord: "Leopard", hint: "Bengal", diff: "medium" },
         { word: "Cheetah", foolWord: "Leopard", hint: "Fastest", diff: "easy" },
         { word: "Leopard", foolWord: "Cheetah", hint: "Spots", diff: "hard" },
-        { word: "Bear", foolWord: "Gorilla", hint: "Hibernate", diff: "medium" },
+        { word: "Bear", foolWord: "Moose", hint: "Hibernate", diff: "medium" },
         { word: "Panda", foolWord: "Koala", hint: "Bamboo", diff: "easy" },
         { word: "Wolf", foolWord: "Coyote", hint: "Howl", diff: "easy" },
         { word: "Fox", foolWord: "Wolf", hint: "Sly", diff: "hard" },
         { word: "Deer", foolWord: "Moose", hint: "Antlers", diff: "easy" },
-        { word: "Monkey", foolWord: "Gorilla", hint: "Primate", diff: "hard" },
+        { word: "Monkey", foolWord: "Chimpanzee", hint: "Primate", diff: "hard" },
         { word: "Gorilla", foolWord: "Chimpanzee", hint: "Silverback", diff: "medium" },
         { word: "Koala", foolWord: "Sloth", hint: "Eucalyptus", diff: "medium" },
         { word: "Zebra", foolWord: "Horse", hint: "Stripes", diff: "easy" },
         { word: "Hippo", foolWord: "Rhino", hint: "Yawn", diff: "hard" },
         { word: "Camel", foolWord: "Llama", hint: "Hump", diff: "easy" },
         { word: "Llama", foolWord: "Camel", hint: "Andes", diff: "hard" },
-        { word: "Squirrel", foolWord: "Raccoon", hint: "Bushy", diff: "hard" },
+        { word: "Squirrel", foolWord: "Chipmunk", hint: "Bushy", diff: "hard" },
         { word: "Hedgehog", foolWord: "Porcupine", hint: "Spines", diff: "medium" },
         { word: "Raccoon", foolWord: "Badger", hint: "Mask", diff: "easy" },
         { word: "Sloth", foolWord: "Koala", hint: "Hanging", diff: "medium" },
@@ -611,25 +614,25 @@ export const WORD_PACKS_EN = {
         { word: "Seagull", foolWord: "Pigeon", hint: "Shore", diff: "hard" },
         { word: "Crow", foolWord: "Magpie", hint: "Caw", diff: "easy" },
         // Reptiles and amphibians
-        { word: "Crocodile", foolWord: "Lizard", hint: "Reptile", diff: "hard" },
-        { word: "Turtle", foolWord: "Snail", hint: "Shell", diff: "medium" },
+        { word: "Crocodile", foolWord: "Alligator", hint: "Reptile", diff: "hard" },
+        { word: "Turtle", foolWord: "Tortoise", hint: "Shell", diff: "medium" },
         { word: "Snake", foolWord: "Lizard", hint: "Hiss", diff: "easy" },
-        { word: "Frog", foolWord: "Newt", hint: "Ribbit", diff: "easy" },
+        { word: "Frog", foolWord: "Toad", hint: "Ribbit", diff: "easy" },
         // Fish and sea life
         { word: "Goldfish", foolWord: "Clownfish", hint: "Bowl", diff: "easy" },
         { word: "Clownfish", foolWord: "Pufferfish", hint: "Anemone", diff: "hard" },
         { word: "Shark", foolWord: "Dolphin", hint: "Fin", diff: "easy" },
         { word: "Jellyfish", foolWord: "Octopus", hint: "Tentacles", diff: "easy" },
-        { word: "Seahorse", foolWord: "Starfish", hint: "Coral", diff: "medium" },
+        { word: "Seahorse", foolWord: "Clownfish", hint: "Coral", diff: "medium" },
         { word: "Starfish", foolWord: "Sea urchin", hint: "Five", diff: "hard" },
         { word: "Crab", foolWord: "Crayfish", hint: "Sideways", diff: "medium" },
         // Insects and other small creatures
         { word: "Butterfly", foolWord: "Moth", hint: "Cocoon", diff: "easy" },
-        { word: "Bee", foolWord: "Fly", hint: "Buzz", diff: "easy" },
-        { word: "Ant", foolWord: "Beetle", hint: "Colony", diff: "hard" },
+        { word: "Bee", foolWord: "Wasp", hint: "Buzz", diff: "easy" },
+        { word: "Ant", foolWord: "Termite", hint: "Colony", diff: "hard" },
         { word: "Dragonfly", foolWord: "Butterfly", hint: "Hovering", diff: "hard" },
-        { word: "Snail", foolWord: "Turtle", hint: "Garden", diff: "hard" },
-        { word: "Spider", foolWord: "Beetle", hint: "Web", diff: "easy" },
+        { word: "Snail", foolWord: "Slug", hint: "Garden", diff: "hard" },
+        { word: "Spider", foolWord: "Scorpion", hint: "Web", diff: "easy" },
         { word: "Firefly", foolWord: "Dragonfly", hint: "Glow", diff: "medium" },
         // Plants and natural things
         { word: "Cactus", foolWord: "Aloe vera", hint: "Prickly", diff: "easy" },
@@ -726,6 +729,7 @@ export const WORD_PACKS_EN = {
         { word: "Hot potato", foolWord: "Duck duck goose", hint: "Passing", diff: "hard" }
     ],
     events: [
+        // Core events
         { word: "Wedding", foolWord: "Engagement party", hint: "Bride", diff: "easy" },
         { word: "Birthday party", foolWord: "Housewarming", hint: "Cake", diff: "easy" },
         { word: "Concert", foolWord: "Festival", hint: "Stage", diff: "easy" },
@@ -733,6 +737,79 @@ export const WORD_PACKS_EN = {
         { word: "Picnic", foolWord: "Barbecue", hint: "Blanket", diff: "medium" },
         { word: "Job interview", foolWord: "Exam", hint: "Resume", diff: "medium" },
         { word: "Power outage", foolWord: "Thunderstorm", hint: "Dark", diff: "hard" },
-        { word: "Garage sale", foolWord: "Flea market", hint: "Bargain", diff: "hard" }
+        { word: "Garage sale", foolWord: "Flea market", hint: "Bargain", diff: "hard" },
+        // Parties and gatherings
+        { word: "Baby shower", foolWord: "Birthday party", hint: "Diapers", diff: "easy" },
+        { word: "Anniversary dinner", foolWord: "Wedding", hint: "Candlelight", diff: "hard" },
+        { word: "Surprise party", foolWord: "Birthday party", hint: "Secret", diff: "hard" },
+        { word: "Housewarming party", foolWord: "Dinner party", hint: "Gifts", diff: "hard" },
+        { word: "Retirement party", foolWord: "Award ceremony", hint: "Colleagues", diff: "hard" },
+        { word: "Class reunion", foolWord: "Family reunion", hint: "Yearbook", diff: "medium" },
+        { word: "Pool party", foolWord: "Beach party", hint: "Sunscreen", diff: "easy" },
+        { word: "Barbecue", foolWord: "Picnic", hint: "Grill", diff: "easy" },
+        { word: "Dinner party", foolWord: "Family dinner", hint: "Host", diff: "hard" },
+        { word: "Costume party", foolWord: "Masquerade ball", hint: "Disguise", diff: "easy" },
+        { word: "Block party", foolWord: "Street festival", hint: "Neighbors", diff: "hard" },
+        { word: "Sleepover", foolWord: "Movie night", hint: "Pajamas", diff: "easy" },
+        { word: "New Year's Eve", foolWord: "Fireworks show", hint: "Countdown", diff: "easy" },
+        // Shows, festivals and nights out
+        { word: "Fireworks show", foolWord: "Laser show", hint: "Sparklers", diff: "medium" },
+        { word: "Parade", foolWord: "Street festival", hint: "Marching", diff: "easy" },
+        { word: "Music festival", foolWord: "Concert", hint: "Headliner", diff: "hard" },
+        { word: "Talent show", foolWord: "Fashion show", hint: "Contestants", diff: "medium" },
+        { word: "Fashion show", foolWord: "Talent show", hint: "Models", diff: "easy" },
+        { word: "Magic show", foolWord: "Puppet show", hint: "Illusions", diff: "easy" },
+        { word: "Movie night", foolWord: "Game night", hint: "Streaming", diff: "medium" },
+        { word: "Game night", foolWord: "Movie night", hint: "Players", diff: "hard" },
+        { word: "Karaoke night", foolWord: "Open mic night", hint: "Lyrics", diff: "easy" },
+        // Sales, markets and fairs
+        { word: "Bake sale", foolWord: "Lemonade stand", hint: "Fundraiser", diff: "medium" },
+        { word: "Flea market", foolWord: "Garage sale", hint: "Haggling", diff: "easy" },
+        { word: "Lemonade stand", foolWord: "Bake sale", hint: "Pennies", diff: "hard" },
+        { word: "Auction", foolWord: "Flea market", hint: "Gavel", diff: "easy" },
+        // School moments
+        { word: "Science fair", foolWord: "Book fair", hint: "Projects", diff: "medium" },
+        { word: "Spelling bee", foolWord: "Quiz show", hint: "Dictionary", diff: "easy" },
+        { word: "School play", foolWord: "Musical", hint: "Curtain", diff: "medium" },
+        { word: "Field trip", foolWord: "School assembly", hint: "Chaperones", diff: "hard" },
+        { word: "Class photo", foolWord: "Family photo", hint: "Smile", diff: "medium" },
+        { word: "Pop quiz", foolWord: "Final exam", hint: "Unannounced", diff: "hard" },
+        { word: "Final exam", foolWord: "Pop quiz", hint: "Studying", diff: "easy" },
+        { word: "Group project", foolWord: "Science fair", hint: "Teammates", diff: "hard" },
+        { word: "School assembly", foolWord: "Field trip", hint: "Principal", diff: "hard" },
+        // Work moments
+        { word: "Business meeting", foolWord: "Conference call", hint: "Agenda", diff: "easy" },
+        { word: "Conference call", foolWord: "Video call", hint: "Muted", diff: "medium" },
+        { word: "Presentation", foolWord: "Business meeting", hint: "Projector", diff: "easy" },
+        { word: "Coffee break", foolWord: "Lunch break", hint: "Pause", diff: "medium" },
+        { word: "Performance review", foolWord: "Job interview", hint: "Feedback", diff: "hard" },
+        { word: "Promotion", foolWord: "Job interview", hint: "Raise", diff: "hard" },
+        { word: "Business trip", foolWord: "Road trip", hint: "Layover", diff: "hard" },
+        // Trips and everyday happenings
+        { word: "Road trip", foolWord: "Camping trip", hint: "Playlist", diff: "medium" },
+        { word: "Camping trip", foolWord: "Road trip", hint: "Wilderness", diff: "easy" },
+        { word: "Moving day", foolWord: "Housewarming party", hint: "Cardboard", diff: "easy" },
+        { word: "Spring cleaning", foolWord: "Moving day", hint: "Scrubbing", diff: "medium" },
+        { word: "Traffic jam", foolWord: "Rush hour", hint: "Gridlock", diff: "easy" },
+        { word: "Rush hour", foolWord: "Traffic jam", hint: "Commuters", diff: "easy" },
+        { word: "Lost luggage", foolWord: "Delayed flight", hint: "Carousel", diff: "hard" },
+        { word: "Bedtime story", foolWord: "Lullaby", hint: "Goodnight", diff: "medium" },
+        { word: "Stargazing", foolWord: "Night hike", hint: "Constellations", diff: "easy" },
+        // Weather and natural phenomena
+        { word: "Rainbow", foolWord: "Northern lights", hint: "Arc", diff: "medium" },
+        { word: "Northern lights", foolWord: "Rainbow", hint: "Aurora", diff: "easy" },
+        { word: "Thunderstorm", foolWord: "Rain shower", hint: "Lightning", diff: "easy" },
+        { word: "Snowfall", foolWord: "Frost", hint: "Flakes", diff: "easy" },
+        { word: "Snow day", foolWord: "Sick day", hint: "Sledding", diff: "easy" },
+        { word: "Sunrise", foolWord: "Sunset", hint: "Dawn", diff: "easy" },
+        { word: "Sunset", foolWord: "Sunrise", hint: "Evening", diff: "medium" },
+        { word: "Full moon", foolWord: "Solar eclipse", hint: "Craters", diff: "medium" },
+        { word: "Solar eclipse", foolWord: "Full moon", hint: "Totality", diff: "hard" },
+        { word: "Shooting star", foolWord: "Comet", hint: "Streak", diff: "easy" },
+        { word: "Rain shower", foolWord: "Thunderstorm", hint: "Puddles", diff: "medium" },
+        { word: "Heat wave", foolWord: "Sunny day", hint: "Sweltering", diff: "easy" },
+        { word: "Windy day", foolWord: "Rain shower", hint: "Gusts", diff: "hard" },
+        { word: "Low tide", foolWord: "High tide", hint: "Rocks", diff: "hard" },
+        { word: "Morning dew", foolWord: "Frost", hint: "Droplets", diff: "hard" }
     ]
 };

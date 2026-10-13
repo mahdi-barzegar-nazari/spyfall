@@ -72,11 +72,11 @@ describe('side quests', () => {
  * What the English bank has to hold. These numbers are meant to be raised as the bank grows; nothing else in
  * this file needs to change.
  *
- * A category that is FINISHED (written in full) has its entry in EN_MIN_WORDS_BY_CATEGORY at
- * EN_FINISHED_MIN_WORDS and must meet EN_MIN_BY_DIFFICULTY. A category that is NOT finished yet still holds
- * only its 8-word seed, so it keeps the seed floors (EN_SEED_MIN_WORDS words, EN_SEED_MIN_BY_DIFFICULTY per
- * difficulty); that keeps every intermediate version of the project green. Once every category is finished
- * the total floor EN_MIN_WORDS_TOTAL applies as well.
+ * Every category is finished (written in full): its entry in EN_MIN_WORDS_BY_CATEGORY is EN_FINISHED_MIN_WORDS
+ * and it must meet EN_MIN_BY_DIFFICULTY, and because every category is finished the total floor
+ * EN_MIN_WORDS_TOTAL applies as well. A category that is added later and holds only its 8-word seed gets the
+ * seed floors instead (EN_SEED_MIN_WORDS words, EN_SEED_MIN_BY_DIFFICULTY per difficulty); that keeps every
+ * intermediate version of the project green.
  */
 const EN_SEED_MIN_WORDS = 6;
 const EN_SEED_MIN_BY_DIFFICULTY = 2;
@@ -90,8 +90,7 @@ const EN_MIN_WORDS_BY_CATEGORY = {
     vehicles: EN_FINISHED_MIN_WORDS,
     animals: EN_FINISHED_MIN_WORDS,
     sports: EN_FINISHED_MIN_WORDS,
-    // NOT finished yet (seed floors). Raise each one to EN_FINISHED_MIN_WORDS when that category is written.
-    events: EN_SEED_MIN_WORDS
+    events: EN_FINISHED_MIN_WORDS
 };
 /** Per difficulty, for a finished category. */
 const EN_MIN_BY_DIFFICULTY = { easy: 20, medium: 16, hard: 16 };
