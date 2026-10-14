@@ -870,6 +870,14 @@ body::after {
     cursor: default;
 }
 .credit-line { font-size: 0.66rem; color: var(--text-secondary); opacity: 0.45; text-align: center; margin-top: 16px; letter-spacing: 0.2px; }
+/* Build line under the credit (welcome screen only): "v2.1.0 · 8f33eec" or "dev", written by ui/buildInfo.js. It is a
+   .credit-line (same size, colour and opacity), only closer to the credit above it. It is empty until JS writes it, and
+   an empty one takes no room. The bottom margin keeps it clear of the floating cover-mode and install buttons when a
+   short screen is scrolled to the end: the buttons are fixed 16px above the bottom edge and 36px high (they reach 52px
+   up), and below the last line the card's padding and border (17px) and the body padding (16px) leave 33px, so with
+   the 16px that every <p> already has the line would sit 3px under them. 24px puts it 5px above them. */
+.build-info { margin-top: 4px; margin-bottom: 24px; }
+.build-info:empty { display: none; }
 .credit-link { color: inherit; text-decoration: none; opacity: 0.85; }
 .credit-link:hover, .credit-link:focus-visible { opacity: 1; text-decoration: underline; }
 .credit-link-coffee {

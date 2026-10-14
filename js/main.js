@@ -10,6 +10,7 @@ import { setupAudio } from './platform/audio.js';
 import { initInstallPrompt } from './platform/install.js';
 import { registerServiceWorker } from './platform/serviceWorker.js';
 import { bindEvents } from './ui/bindings.js';
+import { renderBuildInfo } from './ui/buildInfo.js';
 import { renderCustomWordsList } from './ui/customWords.js';
 import { clearToasts } from './ui/feedback.js';
 import { initHandoffGate } from './ui/handoff.js';
@@ -20,6 +21,8 @@ import { initTheme } from './ui/theme.js';
 /** Initial render and saved-game detection. */
 function start() {
     syncLangSwitch();
+
+    renderBuildInfo();
 
     renderNameInputs();
 

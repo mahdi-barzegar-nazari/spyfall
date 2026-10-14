@@ -64,9 +64,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 607 unit tests (built-in node:test, no dependencies)
+npm test               # 632 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint, build line
 npm run lint
 ```
 
@@ -80,7 +80,7 @@ npm run lint
 │   ├── main.js                # entry point: wires modules together in start-up order
 │   ├── preinit.js             # classic <head> script: language and direction before the first paint (English users)
 │   ├── app/                   # composition root: the action handler behind dispatch(), and wireApp()
-│   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port
+│   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port, buildInfo (stamped version and hash)
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
 │   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
@@ -90,7 +90,7 @@ npm run lint
 ├── sw.js                      # service worker (versioned app-shell precache)
 ├── manifest.json              # PWA manifest
 ├── assets/icons/              # 192, 512 and padded maskable icons
-├── scripts/                   # build.mjs (dist + SW stamping), serve.mjs (dev server)
+├── scripts/                   # build.mjs (dist + SW and build-info stamping), serve.mjs (dev server)
 ├── tests/                     # unit (node:test) and e2e (Playwright)
 └── .github/workflows/         # CI and GitHub Pages deployment
 ```
@@ -101,10 +101,18 @@ State lives in one object (`core/state.js`). Every user action becomes a `dispat
 
 The service worker precaches every shipped file and serves it cache-first, so the game works with no connection. The classic risk of that strategy is users being stuck on an old version forever, so:
 
-- `scripts/build.mjs` stamps `sw.js` with a **hash of all shipped files**. Any change produces a new worker and a new cache; unchanged sources produce the same version.
+- `scripts/build.mjs` stamps `sw.js` with a **hash of all shipped files plus the `version` of `package.json`**. Any change, a version bump alone included, produces a new worker and a new cache; unchanged sources produce the same version.
 - Precaching bypasses the HTTP cache, so a cache never mixes files from two builds.
 - Old caches are deleted on activate. The app shows a toast when a new version has installed; it applies the next time the app is opened, so a game in progress is never interrupted.
 - In a source checkout (`npm run dev`) the worker caches nothing, so local edits appear immediately.
+
+### Which version is running
+
+The welcome screen ends with one small, faint line, the same in Persian and English: `v2.1.0 · 8f33eec`. That is the `version` of `package.json` and the first 7 characters of the build hash, the same hash `scripts/build.mjs` stamps into `sw.js` as `VERSION` (the cache is named `spyfall-shell-<hash>`). In a source checkout (`npm run dev`, nothing stamped) the line says just `dev`.
+
+- **Where the number comes from.** `scripts/build.mjs` reads the version from `package.json` and the hash it has just computed, and writes both into `js/core/buildInfo.js` in the built site (the file in the repository keeps its `__APP_VERSION__` and `__BUILD_HASH__` placeholders, like `sw.js`). `ui/buildInfo.js` shows them with `textContent`; nothing is fetched. The build refuses a `package.json` version that is not a plain `x.y.z` and fails if either placeholder is missing.
+- **After an update.** The number tells you which build the open app is running. When a new version has been downloaded the app shows the "new version ready" toast, but the running page keeps its old files, so the **old number stays until the app is closed and opened again**; after that it shows the new one. That is the same moment the new cache takes over.
+- **How to bump it.** Edit `version` in `package.json` and add the entry to `CHANGELOG.md`. Nothing else: the version is part of the hash, so the next build gets a new hash, a new service worker and a new cache even if no other file changed, and installed apps receive the new number.
 
 ## Deployment
 

@@ -45,9 +45,9 @@ The countdown never compares wall-clock times. `gameState.timer.pausedSec` is de
 | Layer | Modules | Notes |
 | :--- | :--- | :--- |
 | `app/` | `actions`, `wire` | The action handler (the big `switch`) and the composition root. Only `wire` imports `actions`, and only `main.js` imports `wire`. |
-| `core/` | `config`, `state`, `storage`, `phase`, `dispatch` | `config` is pure data plus two pure functions. `dispatch` is a port and `phase` holds `setPhase` and `commitState`; neither imports `game/`, `ui/` or `app/`. |
+| `core/` | `config`, `state`, `storage`, `phase`, `dispatch`, `buildInfo` | `config` is pure data plus two pure functions. `buildInfo` is two stamped constants (version, hash) and imports nothing. `dispatch` is a port and `phase` holds `setPhase` and `commitState`; neither imports `game/`, `ui/` or `app/`. |
 | `game/` | `timer`, `rounds`, `voting`, `resolution`, `ranking` | `ranking` is pure. `timer`, `rounds`, `voting` and `resolution` read and write `gameState`; they are unit-tested against the fake browser in `tests/unit/helpers/`. |
-| `ui/` | `render`, `results`, `setup`, `wheel`, `handoff`, `scorecard`, `customWords`, `bindings`, `feedback`, `focusTrap`, `langSwitch`, `theme` | All DOM code lives here (plus `timer.js` for the countdown text). |
+| `ui/` | `render`, `results`, `setup`, `wheel`, `handoff`, `scorecard`, `customWords`, `bindings`, `feedback`, `focusTrap`, `langSwitch`, `theme`, `buildInfo` | All DOM code lives here (plus `timer.js` for the countdown text). |
 | `platform/` | `audio`, `wakeLock`, `antiZoom`, `install`, `serviceWorker` | Browser capabilities. |
 | `i18n/` | `index`, `catalogs`, `fa`, `en` | Translation core and the Persian and English catalogs (see [Translations](#translations)). It imports nothing from `game/`, `ui/` or `app/`. |
 | `js/` root | `main`, `preinit` | `main` is the module entry. `preinit` is a classic script loaded from `<head>` that is not part of the module graph (see [First paint in another language](#first-paint-in-another-language)). |
@@ -168,7 +168,17 @@ What no test can see is checked by hand when a word is added: two entries naming
 
 ## Service worker
 
-See the README section on offline-first updates. In short: `scripts/build.mjs` hashes all shipped files into `sw.js`; the worker precaches them (bypassing the HTTP cache), serves them cache-first, and deletes older caches on activate. Cross-origin Google Fonts use a separate stale-while-revalidate cache that survives updates.
+See the README section on offline-first updates. In short: `scripts/build.mjs` hashes all shipped files and the `package.json` version into `sw.js`; the worker precaches them (bypassing the HTTP cache), serves them cache-first, and deletes older caches on activate. Cross-origin Google Fonts use a separate stale-while-revalidate cache that survives updates.
+
+### Build line
+
+The welcome screen shows which build is running: `v<package.json version> · <first 7 characters of the build hash>`, or `dev` in a source checkout. One source of truth: `scripts/build.mjs` stamps the `version` of `package.json` and the hash it stamps into `sw.js` as `VERSION` into `js/core/buildInfo.js` (placeholders `__APP_VERSION__` and `__BUILD_HASH__`, replaced like those of `sw.js`). The file sits in `core/` because it is pure data with no imports; `ui/buildInfo.js` (`formatBuildInfo`, `renderBuildInfo`) turns it into text and `main.js` calls it once at start-up. The page never fetches `package.json` and runs no inline script.
+
+- **No circular hash.** `buildInfo.js` is hashed with its placeholders, exactly like `sw.js`; both are stamped after the hash is computed.
+- **The version is in the hash.** `package.json` is not a shipped file, so the build adds its `version` to the hash input on its own. Bumping only the version therefore gives a new hash, a new service worker and a new cache, which is how installed users receive the new number. The same sources still give the same hash.
+- **Dev detection** is `sw.js`'s: a hash that still starts with `__` means nothing was stamped, and the line says `dev`.
+- **Markup.** `<p id="build-info" class="credit-line build-info" dir="ltr" translate="no">` inside `#screen-welcome`, empty in `index.html` (so there is no Persian text for the translator or `i18n-html.test.mjs` to see, and no entry in `JS_WRITTEN`), hidden while empty. It is not `aria-hidden`: it is real information that a screen-reader user needs as much as anyone, for example to report a problem. The `.build-info` rules (`css/style.css`) only close the gap to the credit line above and add a 24px bottom margin, so a short screen scrolled to the end keeps the line clear of the fixed cover-mode and install buttons.
+- **Tests.** `build-stamp.test.mjs` runs the real build on temp copies, `build-info.test.mjs` covers the text and the markup, `tests/e2e/build-info.test.mjs` the built site (also offline), the dev server, the themes and the geometry. `tests/e2e/helpers/record.mjs` leaves the line out of the Persian-text recordings.
 
 ## Known trade-offs
 

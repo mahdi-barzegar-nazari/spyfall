@@ -5,6 +5,9 @@
  *
  * The language switch is left out unless `includeSwitch` is true: the Persian text of the other screens is
  * compared with a recording made before the switch existed, and the switch is the one thing that is new.
+ *
+ * The build line (`#build-info`, "v2.1.0 · 8f33eec" or "dev") is always left out: it is a number, not a text
+ * a language owns, and it changes with every build, so it can never be part of a recording of the Persian text.
  */
 
 export async function recordScreen(page, { includeSwitch = false } = {}) {
@@ -12,12 +15,13 @@ export async function recordScreen(page, { includeSwitch = false } = {}) {
         const norm = (s) => s.replace(/\s+/g, ' ').trim();
         const outside = (el) => withSwitch || !el.closest('.lang-switch-wrap');
         const labels = withSwitch ? [] : [...document.querySelectorAll('.lang-btn')].map((b) => norm(b.textContent));
+        const buildLine = norm(document.getElementById('build-info')?.textContent ?? '');
         const main = document.getElementById('main-content-root');
 
         const text = main.innerText
             .split('\n')
             .map(norm)
-            .filter((line) => line && !labels.includes(line));
+            .filter((line) => line && !labels.includes(line) && line !== buildLine);
 
         const attrs = [];
         for (const el of document.querySelectorAll('[aria-label], [placeholder], [title]')) {
