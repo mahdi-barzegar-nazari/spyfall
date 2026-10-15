@@ -878,6 +878,12 @@ body::after {
    the 16px that every <p> already has the line would sit 3px under them. 24px puts it 5px above them. */
 .build-info { margin-top: 4px; margin-bottom: 24px; }
 .build-info:empty { display: none; }
+/* Round number under the result title ("Round 3", or the Persian wording), written by ui/results.js. Colour and size come
+   from the .color-secondary and .u-fs-082 classes on the element; this rule only pulls the line up, so it sits 6px under
+   the title instead of the 12px that the heading's bottom margin would leave, and keeps the 16px below it that every <p>
+   has. An empty line (a damaged save has no usable round number) takes no room. */
+.result-round { margin-top: -6px; line-height: 1.4; }
+.result-round:empty { display: none; }
 .credit-link { color: inherit; text-decoration: none; opacity: 0.85; }
 .credit-link:hover, .credit-link:focus-visible { opacity: 1; text-decoration: underline; }
 .credit-link-coffee {

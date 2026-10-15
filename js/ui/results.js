@@ -1,5 +1,5 @@
 /**
- * Podium, per-player detail cards and accolades.
+ * Podium, per-player detail cards and accolades, plus the round-number line of the round-result screen.
  */
 
 import { gameState } from '../core/state.js';
@@ -11,6 +11,23 @@ export const PODIUM_RANK_META = {
     2: { icon: '🥈' },
     3: { icon: '🥉' }
 };
+
+/**
+ * The small line under the title of the round-result screen ("Round 3"; the Persian catalog has its own
+ * wording and digits). It is drawn from `gameState.round.num` (the counter `startNextRound` increments and
+ * START_MATCH resets) and from nothing else, every time `renderUI` draws the result phase. That is why a
+ * restored match shows the right number without any extra state: RESTORE_GAME puts the whole saved `round`
+ * object back before it renders. The title and the winner text are written once, by `buildHostRoundResult`,
+ * and are not redrawn on a restore, so this line must not be written there. A counter that is not a whole
+ * number of at least 1 (a damaged save) leaves the line empty, which the CSS hides, instead of showing
+ * "Round NaN". The text is set with `textContent`.
+ */
+export function renderRoundNumber() {
+    const el = document.getElementById('result-round');
+    if (!el) return;
+    const num = gameState.round && gameState.round.num;
+    el.textContent = Number.isInteger(num) && num >= 1 ? t('result.round', { count: formatNumber(num) }) : '';
+}
 
 function formatGroupNames(group) {
     const names = group.players.map(p => `<bdi>${escapeHtml(p.name)}</bdi>`);

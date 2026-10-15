@@ -32,6 +32,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Fair tie-breaking.** Tied votes are settled by a spinning SVG wheel backed by a crypto-random pick, plus a hidden scoring tie-breaker so shared ranks are rare.
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
+- **Round counter.** The result screen of every round says which round it was ("Round 3", in Persian the word for round and a Persian digit), also after you resume a saved match.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
 - **741 Persian and 703 English built-in words**, each bank in 8 categories with difficulty ratings (the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
 - **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; each language has its own word bank.

@@ -245,6 +245,7 @@ export const en = {
     'result.end': 'End match & final scorecard 🏆',
     'result.title.spy': '😈 Spies win!',
     'result.title.citizen': '🎉 Citizens win!',
+    'result.round': 'Round {count}',
     'result.defaultWord': 'the secret word',
     'result.spyGuessed': '🎯 {suspect} guessed the secret word ({word})!',
     'result.suddenDeath': 'An innocent citizen was voted out!{br}Sudden death is on, so the spies win.{br}The secret word was: {word}',

@@ -7,7 +7,7 @@ import { gameState, hostSecretState, session } from '../core/state.js';
 import { comparePlayersForRank, getRankedStandings } from '../game/ranking.js';
 import { generateWagerOptionsHtml, getCurrentVoter } from '../game/voting.js';
 import { hideHandoffGate, openHandoffGate } from './handoff.js';
-import { PODIUM_RANK_META, renderAccolades, renderPodium } from './results.js';
+import { PODIUM_RANK_META, renderAccolades, renderPodium, renderRoundNumber } from './results.js';
 import { rawHtml, setTemplate, t, tHtml, isolate } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
@@ -187,6 +187,7 @@ export function renderUI() {
     }
 
     if (gameState.phase === 'result') {
+        renderRoundNumber();
         let tb = document.getElementById('round-leaderboard-body'); tb.innerHTML = '';
         [...gameState.players].sort(comparePlayersForRank).forEach(p => {
             let c = gameState.round.pointsMap[p.id] || 0;

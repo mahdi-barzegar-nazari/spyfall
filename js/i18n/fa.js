@@ -218,6 +218,7 @@ export const fa = {
     'result.end': 'اتمام مسابقه و کارنامه نهایی 🏆',
     'result.title.spy': '😈 پیروزی جاسوس‌ها!',
     'result.title.citizen': '🎉 پیروزی شهروندان!',
+    'result.round': 'دست {count}',
     'result.defaultWord': 'کلمه اصلی',
     'result.spyGuessed': '🎯 {suspect} کلمه رمز اصلی ({word}) را درست حدس زد!',
     'result.suddenDeath': 'شهروند بی‌گناه اخراج شد!{br}به دلیل قانون حذف درجا، جاسوس‌ها برنده شدند.{br}کلمه اصلی: {word}',
