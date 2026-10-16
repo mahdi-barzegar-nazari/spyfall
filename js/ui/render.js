@@ -7,7 +7,7 @@ import { gameState, hostSecretState, session } from '../core/state.js';
 import { comparePlayersForRank, getRankedStandings } from '../game/ranking.js';
 import { generateWagerOptionsHtml, getCurrentVoter } from '../game/voting.js';
 import { hideHandoffGate, openHandoffGate } from './handoff.js';
-import { PODIUM_RANK_META, renderAccolades, renderPodium, renderRoundNumber } from './results.js';
+import { PODIUM_RANK_META, renderAccolades, renderPodium, renderRoundNumber, renderRoundResult } from './results.js';
 import { rawHtml, setTemplate, t, tHtml, isolate } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
@@ -188,6 +188,8 @@ export function renderUI() {
 
     if (gameState.phase === 'result') {
         renderRoundNumber();
+        // The winner title and box, from the saved outcome: this is what a restored match relies on.
+        renderRoundResult();
         let tb = document.getElementById('round-leaderboard-body'); tb.innerHTML = '';
         [...gameState.players].sort(comparePlayersForRank).forEach(p => {
             let c = gameState.round.pointsMap[p.id] || 0;

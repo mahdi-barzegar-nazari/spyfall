@@ -194,7 +194,7 @@ describe('the result phase of renderUI', () => {
         assert.equal(line().textContent, WANTED.en[12]);
     });
 
-    it('does not touch the title or the winner text', () => {
+    it('does not touch the title or the winner text when no outcome is stored (tests/unit/result-restore.test.mjs covers the drawing)', () => {
         gameState.phase = 'result';
         gameState.players = makePlayers(3);
         gameState.round.num = 2;

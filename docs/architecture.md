@@ -38,6 +38,8 @@ Phases: `welcome → setup → reveal → timer → vote → (wager) → (guess)
 
 `gameState` and `hostSecretState` are exported `const` objects. Restoring a save uses `replaceGameState()` / `replaceHostSecrets()`, which swap the contents **in place**, so every module keeps a valid reference. Saves are versioned (`SAVE_VERSION`); a mismatch discards the save instead of loading incompatible data. A save also records the language of its match in `gameState.match.lang` (an optional field, so it did not need a new version; see [A match keeps its language](#a-match-keeps-its-language)).
 
+The round-result screen is drawn from the state, not written once: `renderRoundResult` (`ui/results.js`) is the only code that writes `#result-title` and `#result-desc`, and it runs when the round resolves (`buildHostRoundResult`) and on every `renderUI` of the result phase, so a restored match shows the same screen. It reads the outcome from `gameState.round.result` (`{ winner, reason }`, an optional field set when the round resolves and removed by `startNextRound`; without it, as in a save made before it existed, nothing is drawn and the screen keeps the defaults of `index.html`) and everything else from what is saved anyway: the secret word (`hostSecretState`), the player voted out and the tie note (`gameState.vote`), the scores and the language of the match. The field holds only what the screen shows, and it does not exist during play, so no secret is saved that was not saved already. `SAVE_VERSION` was not bumped.
+
 The countdown never compares wall-clock times. `gameState.timer.pausedSec` is decremented once per tick, so reloading, backgrounding, or pausing cannot make time jump.
 
 ## Modules

@@ -7,9 +7,9 @@ import { commitState, setPhase } from '../core/phase.js';
 import { gameState, hostSecretState } from '../core/state.js';
 import { resumeTimer, stopTimerLoop } from './timer.js';
 import { playVictoryFanfare, stopAudioKeepAlive } from '../platform/audio.js';
-import { isolate, rawHtml, t, tHtml, tn } from '../i18n/index.js';
+import { isolate, t, tn } from '../i18n/index.js';
+import { renderRoundResult } from '../ui/results.js';
 import { showEliminationReveal } from '../ui/wheel.js';
-import { escapeHtml } from '../utils/text.js';
 
 export function processElimination(wagers) {
     let sus = gameState.players.find(p => p.id === gameState.vote.targetId);
@@ -165,50 +165,18 @@ function finalizeRound(forceSpyWin=false, spyGuessed=false, sudden=false) {
     }
 }
 
-function formatRoundResultHtml(data) {
-    let htm = "";
-    const secretWord = data.secretWord || t('result.defaultWord');
-    const suspectName = data.suspectName || t('common.spy');
-    const wordHtml = rawHtml(`<span class="color-amber">${escapeHtml(secretWord)}</span>`);
-
-    if (data.winner === 'spy') {
-        if (data.reason === 'spy_guess') {
-            htm = tHtml('result.spyGuessed', { suspect: rawHtml(`<strong>${escapeHtml(suspectName)}</strong>`), word: wordHtml });
-        } else if (data.reason === 'sudden_death') {
-            htm = tHtml('result.suddenDeath', { word: wordHtml });
-        } else {
-            htm = tHtml('result.citizensExhausted', { word: wordHtml });
-        }
-    } else {
-        htm = tHtml('result.spiesEliminated', { word: wordHtml });
-    }
-
-    if (data.tieNote) {
-        htm += `<br><span class="color-secondary u-fs-080">${escapeHtml(data.tieNote)}</span>`;
-    }
-    return htm;
-}
-
 function buildHostRoundResult(winner, g, s) {
     stopTimerLoop();
     stopAudioKeepAlive();
-    let tit = winner === 'spy' ? t('result.title.spy') : t('result.title.citizen');
-    document.getElementById('result-title').textContent = tit;
-    document.getElementById('result-title').style.color = winner === 'spy' ? 'var(--brand-rose)' : 'var(--brand-emerald)';
+    const reason = g ? 'spy_guess' : (s ? 'sudden_death' : (winner === 'spy' ? 'citizens_exhausted' : 'spies_eliminated'));
 
-    let sus = gameState.players.find(p => p.id === gameState.vote.targetId);
-    let secretWord = hostSecretState.secretWord || t('result.defaultWord');
-    let reason = g ? 'spy_guess' : (s ? 'sudden_death' : (winner === 'spy' ? 'citizens_exhausted' : 'spies_eliminated'));
-
-    const resultPayload = {
-        winner,
-        reason,
-        suspectName: sus ? sus.name : t('common.spy'),
-        secretWord,
-        tieNote: gameState.vote.tieNote
-    };
-
-    document.getElementById('result-desc').innerHTML = formatRoundResultHtml(resultPayload);
+    // The outcome is the one thing about the result screen that is not already in the state: it is kept in the
+    // save so a restore can draw the same screen (`renderRoundResult` in ui/results.js reads it back).
+    // `startNextRound` clears it. Nothing here is hidden at the table: the screen shows both values.
+    gameState.round.result = { winner, reason };
+    // Written now, before the phase switch, exactly as before; `renderUI` draws the same screen again from the
+    // same data every time the result phase is rendered, and that is also what a restore does.
+    renderRoundResult();
     setPhase('result');
     playVictoryFanfare();
 }

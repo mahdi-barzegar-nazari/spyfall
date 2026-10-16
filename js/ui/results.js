@@ -2,7 +2,7 @@
  * Podium, per-player detail cards and accolades, plus the round-number line of the round-result screen.
  */
 
-import { gameState } from '../core/state.js';
+import { gameState, hostSecretState } from '../core/state.js';
 import { formatDuration, formatListHtml, formatNumber, rawHtml, t, tHtml, tn, tnHtml } from '../i18n/index.js';
 import { escapeHtml } from '../utils/text.js';
 
@@ -17,9 +17,9 @@ export const PODIUM_RANK_META = {
  * wording and digits). It is drawn from `gameState.round.num` (the counter `startNextRound` increments and
  * START_MATCH resets) and from nothing else, every time `renderUI` draws the result phase. That is why a
  * restored match shows the right number without any extra state: RESTORE_GAME puts the whole saved `round`
- * object back before it renders. The title and the winner text are written once, by `buildHostRoundResult`,
- * and are not redrawn on a restore, so this line must not be written there. A counter that is not a whole
- * number of at least 1 (a damaged save) leaves the line empty, which the CSS hides, instead of showing
+ * object back before it renders. The title and the winner text follow the same rule through
+ * `renderRoundResult` below, so this line is not written by `buildHostRoundResult`. A counter that is not a
+ * whole number of at least 1 (a damaged save) leaves the line empty, which the CSS hides, instead of showing
  * "Round NaN". The text is set with `textContent`.
  */
 export function renderRoundNumber() {
@@ -27,6 +27,113 @@ export function renderRoundNumber() {
     if (!el) return;
     const num = gameState.round && gameState.round.num;
     el.textContent = Number.isInteger(num) && num >= 1 ? t('result.round', { count: formatNumber(num) }) : '';
+}
+
+/**
+ * The four ways a round can end, by the side that won. This is the whole outcome of a round as far as the
+ * result screen is concerned: `buildHostRoundResult` (game/resolution.js) stores one of these pairs in
+ * `gameState.round.result` when the round resolves, and `startNextRound` removes it again.
+ *   spy:     'spy_guess' (the caught spy named the word), 'sudden_death' (an innocent was voted out with the
+ *            sudden-death rule on), 'citizens_exhausted' (too few citizens left)
+ *   citizen: 'spies_eliminated'
+ */
+const ROUND_ENDINGS = {
+    spy: ['spy_guess', 'sudden_death', 'citizens_exhausted'],
+    citizen: ['spies_eliminated']
+};
+
+/** The colour of the winner title, by winner. Theme variables, so every theme keeps its own shade. */
+const WINNER_COLOR = { spy: 'var(--brand-rose)', citizen: 'var(--brand-emerald)' };
+
+/**
+ * True when `outcome` is a stored round outcome this module can draw: an object whose winner is one of the two
+ * sides and whose reason is one of that side's endings. Anything else (no outcome at all, as in a save made
+ * before the outcome was stored, or a damaged value) is not drawn.
+ */
+export function isRoundOutcome(outcome) {
+    if (!outcome || typeof outcome !== 'object') return false;
+    const { winner, reason } = outcome;
+    return Object.prototype.hasOwnProperty.call(ROUND_ENDINGS, winner) && ROUND_ENDINGS[winner].includes(reason);
+}
+
+/**
+ * The winner box: HTML built from the catalog text of the ending, in the ACTIVE language. The escaping is the
+ * same as when this lived in game/resolution.js: the secret word, the suspect's name and the tie note go
+ * through `escapeHtml`, and `tHtml` escapes the catalog text and every parameter except the two `rawHtml`
+ * spans built here. `data` is { winner, reason, suspectName, secretWord, tieNote }.
+ */
+export function formatRoundResultHtml(data) {
+    let htm = "";
+    const secretWord = data.secretWord || t('result.defaultWord');
+    const suspectName = data.suspectName || t('common.spy');
+    const wordHtml = rawHtml(`<span class="color-amber">${escapeHtml(secretWord)}</span>`);
+
+    if (data.winner === 'spy') {
+        if (data.reason === 'spy_guess') {
+            htm = tHtml('result.spyGuessed', { suspect: rawHtml(`<strong>${escapeHtml(suspectName)}</strong>`), word: wordHtml });
+        } else if (data.reason === 'sudden_death') {
+            htm = tHtml('result.suddenDeath', { word: wordHtml });
+        } else {
+            htm = tHtml('result.citizensExhausted', { word: wordHtml });
+        }
+    } else {
+        htm = tHtml('result.spiesEliminated', { word: wordHtml });
+    }
+
+    if (data.tieNote) {
+        htm += `<br><span class="color-secondary u-fs-080">${escapeHtml(data.tieNote)}</span>`;
+    }
+    return htm;
+}
+
+/**
+ * What the result screen says for one outcome, as plain values: `{ title, color, html }`. It reads nothing but
+ * its argument and the active language, so it can be tested without a page. `data` is the same object as for
+ * `formatRoundResultHtml`.
+ */
+export function describeRoundResult(data) {
+    return {
+        title: data.winner === 'spy' ? t('result.title.spy') : t('result.title.citizen'),
+        color: WINNER_COLOR[data.winner === 'spy' ? 'spy' : 'citizen'],
+        html: formatRoundResultHtml(data)
+    };
+}
+
+/**
+ * Draws the winner title (with its colour) and the winner box of the round-result screen. This is the ONLY code
+ * that writes #result-title and #result-desc, and it runs from two places: `buildHostRoundResult` when the round
+ * resolves, and `renderUI` every time the result phase is drawn, which is what makes a restored match show the
+ * same screen again (RESTORE_GAME switches to the language of the saved match before it renders, so the active
+ * language here is the match's).
+ *
+ * Everything on the screen comes from what is already saved, except the outcome itself:
+ *   winner and reason ... `gameState.round.result` (the one stored value; see ROUND_ENDINGS)
+ *   the secret word ..... `hostSecretState.secretWord`
+ *   who was voted out ... the player with `gameState.vote.targetId` (the guesser, in a 'spy_guess' round)
+ *   the tie note ........ `gameState.vote.tieNote`
+ * A save made before the outcome was stored has no `round.result`; then this does nothing and the screen keeps
+ * the title and the empty winner box of index.html, as it did before. Returns whether it drew.
+ */
+export function renderRoundResult() {
+    const outcome = gameState.round && gameState.round.result;
+    if (!isRoundOutcome(outcome)) return false;
+    const titleEl = document.getElementById('result-title');
+    const descEl = document.getElementById('result-desc');
+    if (!titleEl || !descEl) return false;
+
+    const vote = gameState.vote || {};
+    const suspect = Array.isArray(gameState.players) ? gameState.players.find(p => p.id === vote.targetId) : null;
+    const { title, color, html } = describeRoundResult({
+        winner: outcome.winner,
+        reason: outcome.reason,
+        suspectName: suspect ? suspect.name : t('common.spy'),
+        secretWord: hostSecretState.secretWord || t('result.defaultWord'),
+        tieNote: vote.tieNote
+    });
+    titleEl.textContent = title;
+    titleEl.style.color = color;
+    descEl.innerHTML = html;
+    return true;
 }
 
 function formatGroupNames(group) {

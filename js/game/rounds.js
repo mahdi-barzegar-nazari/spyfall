@@ -88,6 +88,8 @@ export function startNextRound() {
     gameState.round.pointsMap = {};
     gameState.round.history = [];
     gameState.round.eliminationsSoFar = 0;
+    // The outcome of the round before (see buildHostRoundResult); an optional field, absent until a round ends.
+    delete gameState.round.result;
     hostSecretState.processedRequestIds.clear();
     hostSecretState.votesCast = {};
     hostSecretState.wagersCast = {};

@@ -41,7 +41,7 @@ const JS_WRITTEN = {
     'votes-remaining-badge': { keys: ['timer.votes.unlimited', 'timer.votes.remaining'], same: { key: 'timer.votes.unlimited' } }, // ui/render.js
     'vote-instruction-text': { keys: ['vote.instruction'] }, // ui/render.js
     'btn-submit-wagers': { keys: ['wager.submit.final', 'wager.submit.next'] }, // ui/render.js
-    'result-title': { keys: ['result.title.spy', 'result.title.citizen'] }, // game/resolution.js
+    'result-title': { keys: ['result.title.spy', 'result.title.citizen'] }, // ui/results.js (renderRoundResult)
     'result-round': { keys: ['result.round'] }, // ui/results.js: empty in index.html, so it has no Persian default to compare
     'info-modal-title': { keys: INFO_KEYS.map((key) => `info.${key}.title`) }, // core/dispatch.js
     'modal-player-name': { keys: [] }, // ui/render.js: the player's name
