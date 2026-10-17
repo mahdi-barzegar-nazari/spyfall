@@ -53,6 +53,25 @@ export function getDifficultyMultiplier(diffKey) {
     return HIDDEN_TIEBREAK.DIFFICULTY_MULTIPLIER[diffKey] || HIDDEN_TIEBREAK.DEFAULT_MULTIPLIER;
 }
 
+// The difficulty levels a word can be rated with, easiest first. The setup screen offers one chip for each.
+export const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard'];
+
+/**
+ * The levels a difficulty setting stands for, as a new array in the order of DIFFICULTY_LEVELS.
+ *
+ * The setting is stored as an array of levels (`['medium', 'hard']`). A save made before the setup screen had
+ * one chip per level holds a single string instead: 'all', or one level ('easy', 'medium', 'hard'). Both are
+ * read here, so an old save keeps its meaning without a new SAVE_VERSION: 'all' is all three levels and a
+ * level name is that level alone. Anything else (a missing value, a number, an unknown name, an empty array, an
+ * array with no known level in it) means all three, the same as the default; the unknown names inside an
+ * array that also has a known level are ignored.
+ */
+export function normalizeDifficulties(value) {
+    const listed = typeof value === 'string' ? [value] : Array.isArray(value) ? value : [];
+    const levels = DIFFICULTY_LEVELS.filter((level) => listed.includes(level));
+    return levels.length > 0 ? levels : [...DIFFICULTY_LEVELS];
+}
+
 export const THEME_COLORS = {
     default: '#090d16',
     noir: '#120e0a',

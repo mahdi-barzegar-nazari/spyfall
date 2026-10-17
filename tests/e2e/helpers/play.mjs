@@ -27,15 +27,29 @@ export async function withPage(browser, baseUrl, lang, fn) {
     }
 }
 
-/** From the welcome screen: set the options these tests need and start a match. Ends on the role reveal. */
-export async function startMatch(page, { lastChance = false } = {}) {
+/**
+ * From the welcome screen: set the options these tests need and start a match. Ends on the role reveal.
+ * `levels` (optional) is the difficulty levels to leave ticked, e.g. ['medium', 'hard']: the other chips are
+ * tapped off, as a player would. Left out, the three chips keep their default (all ticked).
+ */
+export async function startMatch(page, { lastChance = false, levels } = {}) {
     await page.click('#btn-nav-setup');
     await page.waitForSelector('#screen-setup:not(.hidden)');
+    if (levels) await chooseLevels(page, levels);
     await page.evaluate((lastChanceOn) => {
         document.getElementById('toggle-last-chance').checked = lastChanceOn;
         document.getElementById('toggle-quick-voting').checked = true;
     }, lastChance);
     await page.click('#btn-start-match');
+}
+
+/** On the setup screen: tap the difficulty chips until exactly the levels in `levels` are ticked. */
+export async function chooseLevels(page, levels) {
+    for (const level of ['easy', 'medium', 'hard']) {
+        const chip = page.locator('#difficulty-chips-container label', { has: page.locator(`input[value="${level}"]`) });
+        const ticked = await chip.locator('input').isChecked();
+        if (ticked !== levels.includes(level)) await chip.click();
+    }
 }
 
 /**

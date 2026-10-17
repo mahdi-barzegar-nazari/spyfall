@@ -304,6 +304,8 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
     margin-bottom: 6px;
     align-items: stretch;
 }
+/* Three short chips (the difficulty levels) stay in one row even on a narrow phone, where .chips-grid is one column. */
+.chips-grid.chips-grid-3 { grid-template-columns: repeat(3, 1fr); }
 .chip-item {
     background: var(--surface-input);
     border: 1px solid var(--border-glow);

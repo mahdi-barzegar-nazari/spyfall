@@ -2,6 +2,7 @@
  * Match and round setup: players, word selection, roles, quests, director turns.
  */
 
+import { DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { displayHint, getCustomWords } from '../core/storage.js';
@@ -37,6 +38,20 @@ export function initMatchPlayers() {
     });
 }
 
+/**
+ * The words of `pool` whose rating is one of the chosen difficulty levels. `selection` is the `diff` setting in
+ * any form `normalizeDifficulties` reads (the array of levels, or the single string older saves hold).
+ * All three levels leave the pool as it is, and so does a choice that matches no word at all (the pool is
+ * never emptied by the filter). A custom word counts with the 'medium' rating it carries, so it is dropped
+ * when 'medium' is not chosen, like any other medium word.
+ */
+export function filterPoolByDifficulty(pool, selection) {
+    const levels = normalizeDifficulties(selection);
+    if (levels.length === DIFFICULTY_LEVELS.length) return pool;
+    const filtered = pool.filter(w => levels.includes(w.diff));
+    return filtered.length > 0 ? filtered : pool;
+}
+
 export function startNextRound() {
     // The word, the hint, the category label and the quests all come from the language that is active now.
     const lang = getLang();
@@ -61,12 +76,7 @@ export function startNextRound() {
         pool = packs.places.map(w => ({ ...w, _cat: 'places' }));
     }
 
-    if (gameState.settings.diff !== 'all') {
-        let f = pool.filter(w => w.diff === gameState.settings.diff);
-        if (f.length > 0) {
-            pool = f;
-        }
-    }
+    pool = filterPoolByDifficulty(pool, gameState.settings.diff);
 
     let availablePool = pool.filter(w => !gameState.match.usedWordKeys.includes(normalizeWord(w.word)));
     if (availablePool.length === 0) {

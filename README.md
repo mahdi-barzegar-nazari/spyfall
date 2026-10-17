@@ -34,7 +34,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Round counter.** The result screen of every round says which round it was ("Round 3", in Persian the word for round and a Persian digit), also after you resume a saved match, which brings back the winner, the secret word and the score table of that screen exactly as they were, in the language of the match.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
-- **741 Persian and 703 English built-in words**, each bank in 8 categories with difficulty ratings (the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
+- **741 Persian and 703 English built-in words**, each bank in 8 categories with difficulty ratings (easy, medium and hard: setup lets you play any mix of them; the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
 - **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; each language has its own word bank.
 - **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
 

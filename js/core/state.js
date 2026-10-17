@@ -2,6 +2,8 @@
  * The single mutable game state, plus ephemeral per-page session state.
  */
 
+import { DIFFICULTY_LEVELS } from './config.js';
+
 export const SAVE_VERSION = 12;
 
 export const gameState = {
@@ -10,7 +12,7 @@ export const gameState = {
     phase: 'welcome',
     match: { usedWordKeys: [] },
     settings: {
-        playersCount: 4, spiesCount: 1, timerMin: 4, cats: ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'], diff: 'all',
+        playersCount: 4, spiesCount: 1, timerMin: 4, cats: ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'], diff: [...DIFFICULTY_LEVELS],
         revealHold: false, hints: ['related_word'], fool: false, detective: false,
         knownSpies: false, director: false, oneword: false, quests: false,
         wager: false, sudden: false, voteLimitEnabled: false, maxVotes: 2,

@@ -32,6 +32,8 @@ function start() {
 
     syncCheckboxChipVisuals('category-chips-container', 'chip-item');
 
+    syncCheckboxChipVisuals('difficulty-chips-container', 'chip-item');
+
     syncCheckboxChipVisuals('hint-chips-container', 'hint-chip');
 
     initHandoffGate();

@@ -10,7 +10,7 @@ import { resumeAudioIfSuspended } from '../platform/audio.js';
 import { t } from '../i18n/index.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
 import { renderPlayerDetails } from './results.js';
-import { renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
+import { keepOneDifficultyChecked, renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
 
 /** Attach every listener. Call once at start-up. */
 export function bindEvents() {
@@ -46,6 +46,11 @@ export function bindEvents() {
     document.getElementById('category-chips-container').addEventListener('change', () => syncCheckboxChipVisuals('category-chips-container', 'chip-item'));
 
     document.getElementById('hint-chips-container').addEventListener('change', () => syncCheckboxChipVisuals('hint-chips-container', 'hint-chip'));
+
+    document.getElementById('difficulty-chips-container').addEventListener('change', (e) => {
+        keepOneDifficultyChecked(e.target);
+        syncCheckboxChipVisuals('difficulty-chips-container', 'chip-item');
+    });
 
     document.getElementById('btn-toggle-all-cats').onclick = () => {
         const boxes = document.querySelectorAll('input[name="setup-cat"]');

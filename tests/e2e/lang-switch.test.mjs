@@ -11,7 +11,32 @@ import { PHONE, newPage, startApp } from './helpers/app.mjs';
 import { PERSIAN_LETTER, persianIn, recordModal, recordScreen } from './helpers/record.mjs';
 
 /** The Persian welcome and setup screens as the zip BEFORE the switch showed them (see fixtures/make-persian-baseline.mjs). */
-const baseline = JSON.parse(readFileSync(new URL('./fixtures/persian-baseline.json', import.meta.url), 'utf8'));
+const recorded = JSON.parse(readFileSync(new URL('./fixtures/persian-baseline.json', import.meta.url), 'utf8'));
+
+/**
+ * The one visible change since that recording: the difficulty `<select>` (options "همه سطوح | ساده | متوسط | سخت")
+ * became three checkboxes, so its recorded select entry and its "همه سطوح" line (the select's first option, which
+ * `innerText` lists) are gone. The label "سطح دشواری:" and the three level names stay, in the same order. The
+ * recording itself is never edited; this takes exactly those two entries out of the EXPECTED data, and fails if
+ * either is not there exactly once (so it can never hide anything else).
+ */
+const DIFFICULTY_SELECT_ENTRY = 'setup-difficulty: همه سطوح | ساده | متوسط | سخت';
+const ALL_LEVELS_LINE = 'همه سطوح';
+function withoutDifficultySelect(screen) {
+    const selects = screen.selects.filter((entry) => entry !== DIFFICULTY_SELECT_ENTRY);
+    assert.equal(screen.selects.length - selects.length, 1, 'the recording has the difficulty select once');
+    const lines = screen.text.filter((line) => line !== ALL_LEVELS_LINE);
+    const removed = screen.text.length - lines.length;
+    // The welcome screen is hidden-setup: its innerText has no setup lines at all, the setup screen has one.
+    assert.ok(removed <= 1, 'the line "همه سطوح" is in the recording at most once');
+    if (removed === 1) {
+        const at = screen.text.indexOf(ALL_LEVELS_LINE);
+        assert.equal(screen.text[at - 1], 'سطح دشواری:', 'the line was the first option under the difficulty label');
+        assert.deepEqual(screen.text.slice(at + 1, at + 4), ['ساده', 'متوسط', 'سخت']);
+    }
+    return { ...screen, text: lines, selects };
+}
+const baseline = { welcome: withoutDifficultySelect(recorded.welcome), setup: withoutDifficultySelect(recorded.setup) };
 
 const ENGLISH_WORDS = new Set(Object.values(getWordPacks('en')).flat().flatMap((entry) => [entry.word, entry.foolWord, entry.hint]));
 const ENGLISH_QUESTS = new Set(getSideQuests('en'));

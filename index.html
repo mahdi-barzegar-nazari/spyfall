@@ -130,21 +130,19 @@
             </div>
         </div>
 
-        <div class="grid-2">
-            <div class="input-group">
-                <label for="setup-difficulty" data-i18n="setup.difficulty.label">سطح دشواری:</label>
-                <select id="setup-difficulty" class="input-control">
-                    <option value="all" data-i18n="setup.difficulty.all">همه سطوح</option>
-                    <option value="easy" data-i18n="setup.difficulty.easy">ساده</option>
-                    <option value="medium" data-i18n="setup.difficulty.medium">متوسط</option>
-                    <option value="hard" data-i18n="setup.difficulty.hard">سخت</option>
-                </select>
+        <fieldset class="input-group" id="difficulty-section-container">
+            <legend class="label-text u-legend-full" data-i18n="setup.difficulty.label">سطح دشواری:</legend>
+            <div class="chips-grid chips-grid-3" id="difficulty-chips-container">
+                <label class="chip-item"><input type="checkbox" name="setup-diff" value="easy" checked> <span data-i18n="setup.difficulty.easy">ساده</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-diff" value="medium" checked> <span data-i18n="setup.difficulty.medium">متوسط</span></label>
+                <label class="chip-item"><input type="checkbox" name="setup-diff" value="hard" checked> <span data-i18n="setup.difficulty.hard">سخت</span></label>
             </div>
-            <div class="input-group">
-                <label for="setup-timer" data-i18n="setup.timer.label">زمان گفتگو (دقیقه):</label>
-                <input type="text" id="setup-timer" class="input-control" value="4" inputmode="numeric" aria-describedby="timer-limit-hint">
-                <div id="timer-limit-hint" class="field-hint"></div>
-            </div>
+        </fieldset>
+
+        <div class="input-group">
+            <label for="setup-timer" data-i18n="setup.timer.label">زمان گفتگو (دقیقه):</label>
+            <input type="text" id="setup-timer" class="input-control" value="4" inputmode="numeric" aria-describedby="timer-limit-hint">
+            <div id="timer-limit-hint" class="field-hint"></div>
         </div>
 
         <div class="input-group">

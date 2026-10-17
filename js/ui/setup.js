@@ -1,8 +1,8 @@
 /**
- * Setup screen: settings validation, limit hints, name inputs, category chips.
+ * Setup screen: settings validation, limit hints, name inputs, category and difficulty chips.
  */
 
-import { RULES, getMaxSpiesAllowed } from '../core/config.js';
+import { RULES, getMaxSpiesAllowed, normalizeDifficulties } from '../core/config.js';
 import { gameState } from '../core/state.js';
 import { isDefaultPlayerNameOfOtherLanguage, loadSavedNames, saveCurrentNames } from '../core/storage.js';
 import { flagFieldError, pulseInvalidField, showToast } from './feedback.js';
@@ -65,10 +65,18 @@ export function validateAndSaveSettings() {
         if (defHint) defHint.checked = true;
     }
 
+    // The chips never let the last one go (keepOneDifficultyChecked), so this is the same safety net as for the
+    // categories above: nothing chosen reads as every level, and the chips are put back to say so.
+    let selectedDiffs = Array.from(document.querySelectorAll('input[name="setup-diff"]:checked')).map(el => el.value);
+    if (selectedDiffs.length === 0) {
+        document.querySelectorAll('input[name="setup-diff"]').forEach(el => { el.checked = true; });
+    }
+    selectedDiffs = normalizeDifficulties(selectedDiffs);
+
     gameState.settings = {
         playersCount: c, spiesCount: s, timerMin: timerMinutes,
         cats: selectedCats,
-        diff: document.getElementById('setup-difficulty').value,
+        diff: selectedDiffs,
         revealHold: document.getElementById('setup-reveal-mode').value === 'hold',
         hints: selectedHints,
         fool: isFool,
@@ -198,4 +206,17 @@ export function syncCheckboxChipVisuals(containerId, chipClass) {
         const wrap = cb.closest(`.${chipClass}`);
         if (wrap) wrap.classList.toggle('is-checked', cb.checked);
     });
+}
+
+/**
+ * Called when a difficulty chip changes. At least one level must stay chosen: when the change left none, the
+ * chip that was just switched off is switched on again and a short toast says why (a chip that silently
+ * refuses a tap looks broken). Returns true when the change was kept.
+ */
+export function keepOneDifficultyChecked(changed) {
+    const boxes = Array.from(document.querySelectorAll('input[name="setup-diff"]'));
+    if (boxes.some(b => b.checked)) return true;
+    changed.checked = true;
+    showToast(t('setup.difficulty.keepOne'));
+    return false;
 }
