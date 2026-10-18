@@ -31,11 +31,14 @@ export async function withPage(browser, baseUrl, lang, fn) {
  * From the welcome screen: set the options these tests need and start a match. Ends on the role reveal.
  * `levels` (optional) is the difficulty levels to leave ticked, e.g. ['medium', 'hard']: the other chips are
  * tapped off, as a player would. Left out, the three chips keep their default (all ticked).
+ * `cats` (optional) is the category chips to leave ticked, e.g. ['events', 'custom'], the same way. Left out, the
+ * category chips keep their default (the eight built-in ones ticked, the custom one not).
  */
-export async function startMatch(page, { lastChance = false, levels } = {}) {
+export async function startMatch(page, { lastChance = false, levels, cats } = {}) {
     await page.click('#btn-nav-setup');
     await page.waitForSelector('#screen-setup:not(.hidden)');
     if (levels) await chooseLevels(page, levels);
+    if (cats) await chooseCategories(page, cats);
     await page.evaluate((lastChanceOn) => {
         document.getElementById('toggle-last-chance').checked = lastChanceOn;
         document.getElementById('toggle-quick-voting').checked = true;
@@ -49,6 +52,16 @@ export async function chooseLevels(page, levels) {
         const chip = page.locator('#difficulty-chips-container label', { has: page.locator(`input[value="${level}"]`) });
         const ticked = await chip.locator('input').isChecked();
         if (ticked !== levels.includes(level)) await chip.click();
+    }
+}
+
+/** On the setup screen: tap the category chips until exactly the categories in `cats` are ticked. */
+export async function chooseCategories(page, cats) {
+    const values = await page.locator('#category-chips-container input').evaluateAll((inputs) => inputs.map((input) => input.value));
+    for (const value of values) {
+        const chip = page.locator('#category-chips-container label', { has: page.locator(`input[value="${value}"]`) });
+        const ticked = await chip.locator('input').isChecked();
+        if (ticked !== cats.includes(value)) await chip.click();
     }
 }
 

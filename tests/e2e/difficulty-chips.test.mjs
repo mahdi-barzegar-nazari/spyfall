@@ -11,7 +11,10 @@
  *    FIRST word of the filtered pool and a filter that is ignored would draw an easy word (every category of both
  *    banks starts with one);
  *  - a match saved with the old single-string setting ('hard') is resumed and its next round still draws only
- *    hard words.
+ *    hard words;
+ *  - a custom word is in the pool whatever levels are ticked: with only 'hard' ticked (medium, the rating a custom
+ *    word carries, is not), the random source pinned to the LAST word of the pool draws the custom word, and a
+ *    filter that dropped it would draw a built-in word instead.
  * Requires: npm install && npx playwright install chromium
  */
 import assert from 'node:assert/strict';
@@ -41,17 +44,28 @@ after(async () => {
 
 /**
  * Open the app on a fresh page in `lang` (width `width`), run `fn(page)`, and fail on any script error.
- * `pinRandom` makes crypto.getRandomValues return zeros, so every random pick is the first candidate.
+ * `pinRandom` makes crypto.getRandomValues return zeros, so every random pick is the first candidate; a number
+ * makes it return that number instead (a pick among n candidates is then that number modulo n).
+ * `customWords` (a list of stored custom words) is put in the page's storage before the app starts.
  */
-async function withPage(lang, fn, { width = PHONE.width, pinRandom = false } = {}) {
+async function withPage(lang, fn, { width = PHONE.width, pinRandom = false, customWords } = {}) {
     const context = await browser.newContext({ viewport: { width, height: PHONE.height } });
-    if (pinRandom) {
-        await context.addInitScript(() => {
+    if (pinRandom !== false) {
+        await context.addInitScript((value) => {
             crypto.getRandomValues = (array) => {
-                array.fill(0);
+                array.fill(value);
                 return array;
             };
-        });
+        }, pinRandom === true ? 0 : pinRandom);
+    }
+    if (customWords) {
+        await context.addInitScript((words) => {
+            try {
+                localStorage.setItem('spy_custom_words', JSON.stringify(words));
+            } catch (e) {
+                // storage is blocked: the test then fails on the missing word
+            }
+        }, customWords);
     }
     const { page, problems } = await newPage(context);
     try {
@@ -225,6 +239,35 @@ describe('difficulty chips (production build)', () => {
                 assert.ok(['medium', 'hard'].includes(rating), `"${saved.word}" is rated ${rating}`);
                 assert.equal(saved.rating, rating, 'the round recorded the rating of its word');
             }, { pinRandom: true });
+        });
+    }
+
+    for (const lang of ['fa', 'en']) {
+        it(`${lang}: with only hard chosen, a custom word is still in the pool (it is drawn when the random source picks the last word)`, async () => {
+            const custom = [{ word: 'Mike', foolWord: 'Mouse', hint: 'm', diff: 'medium' }];
+            // The pool is the hard words of 'events' (that chip comes before the custom one) and then the custom word.
+            const hardEvents = getWordPacks(lang).events.filter((entry) => entry.diff === 'hard');
+            assert.ok(hardEvents.length > 1);
+            const lastIndex = hardEvents.length; // 0-based position of the custom word in a pool of hardEvents.length + 1 words
+            await withPage(lang, async (page) => {
+                await startMatch(page, { levels: ['hard'], cats: ['events', 'custom'] });
+                await page.waitForSelector('#screen-reveal:not(.hidden)');
+                const saved = await savedMatch(page);
+                assert.deepEqual(saved.diff, ['hard']);
+                assert.equal(saved.word, 'Mike', 'the custom word was in the pool and was the one drawn');
+                assert.equal(saved.rating, null, 'a custom word scores as neutral');
+            }, { pinRandom: lastIndex, customWords: custom });
+        });
+
+        it(`${lang}: with only hard chosen, the built-in words around a custom word are still filtered (the first pick is a hard word)`, async () => {
+            const custom = [{ word: 'Mike', foolWord: 'Mouse', hint: 'm', diff: 'medium' }];
+            await withPage(lang, async (page) => {
+                await startMatch(page, { levels: ['hard'], cats: ['events', 'custom'] });
+                await page.waitForSelector('#screen-reveal:not(.hidden)');
+                const saved = await savedMatch(page);
+                assert.equal(ratingInBank(lang, saved.word), 'hard', `"${saved.word}" is a hard word`);
+                assert.equal(saved.rating, 'hard');
+            }, { pinRandom: true, customWords: custom });
         });
     }
 

@@ -39,16 +39,29 @@ export function initMatchPlayers() {
 }
 
 /**
- * The words of `pool` whose rating is one of the chosen difficulty levels. `selection` is the `diff` setting in
- * any form `normalizeDifficulties` reads (the array of levels, or the single string older saves hold).
- * All three levels leave the pool as it is, and so does a choice that matches no word at all (the pool is
- * never emptied by the filter). A custom word counts with the 'medium' rating it carries, so it is dropped
- * when 'medium' is not chosen, like any other medium word.
+ * Whether the difficulty setting applies to this pool entry at all. It does not for a custom word (`_cat` is
+ * 'custom', set in startNextRound): the player typed it in, so it has no real difficulty. The 'medium' it
+ * carries (js/core/storage.js, cleanCustomWord) is only a stored default, and the rating an imported file may
+ * hold is not a choice the player made either. If custom words ever get a difficulty the player picks, this
+ * is the one place to change: return false for them, and `filterPoolByDifficulty` then filters them like any
+ * other word.
+ */
+function ignoresDifficulty(word) {
+    return word._cat === 'custom';
+}
+
+/**
+ * The words of `pool` whose rating is one of the chosen difficulty levels, plus every custom word whatever its
+ * rating (`ignoresDifficulty`), so difficulty only narrows the built-in words. `selection` is the `diff`
+ * setting in any form `normalizeDifficulties` reads (the array of levels, or the single string older saves hold).
+ * All three levels leave the pool as it is. When the filter would keep no word at all, the pool is used as it is
+ * (the pool is never emptied by the filter); that cannot happen while the pool holds a custom word, because a
+ * custom word is always kept, so it only covers a pool of built-in words none of which has a chosen rating.
  */
 export function filterPoolByDifficulty(pool, selection) {
     const levels = normalizeDifficulties(selection);
     if (levels.length === DIFFICULTY_LEVELS.length) return pool;
-    const filtered = pool.filter(w => levels.includes(w.diff));
+    const filtered = pool.filter(w => ignoresDifficulty(w) || levels.includes(w.diff));
     return filtered.length > 0 ? filtered : pool;
 }
 
