@@ -1,10 +1,12 @@
 /**
  * Pure layout math for the scorecard export — canvas size, scale, and the
  * position/size of every element (header band, podium columns, rest-of-
- * players rows). No ctx.* calls and no DOM here: every function takes
- * numbers in and returns numbers/objects, which is what makes this half of
- * scorecard.js unit-testable without a real <canvas>. Drawing (ctx.*) stays
- * in scorecard.js and only reads the numbers computed here.
+ * players rows) — plus the pure decision of which player goes into which of
+ * them (buildScorecardRows). No ctx.* calls and no DOM here: every function
+ * takes numbers or plain objects in and returns numbers/objects, which is
+ * what makes this half of scorecard.js unit-testable without a real
+ * <canvas>. Drawing (ctx.*) stays in scorecard.js and only reads the
+ * numbers computed here.
  */
 
 // --- Fixed 9:16 portrait canvas (mobile "story" ratio). The export is
@@ -12,6 +14,44 @@
 export const CANVAS_WIDTH = 720;
 export const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * 16) / 9); // 1280 — exact 9:16
 export const FOOTER_H = 54;
+
+// ---- Who goes where: podium slots and the "other players" list ---------------------------------------
+// A podium slot has room for the names of at most two players ("A and B (tied)"). A bigger tie is written as
+// "A and N others (tied)", which names only the first player, so the other N players must be listed by name
+// somewhere else or they would be missing from the image: they go to the top of the rest list, ahead of the
+// rank 4+ rows, because they outrank them.
+const PODIUM_MAX_RANK = 3;
+const PODIUM_NAMED_PAIR = 2;
+
+/** How many players of a rank group of `groupSize` the podium slot names: all of one or two, else only the first. */
+export function podiumNamedCount(groupSize) {
+    return groupSize <= PODIUM_NAMED_PAIR ? groupSize : 1;
+}
+
+/**
+ * Splits ranked groups (`getRankedStandings`: `{ rank, score, players }`, best first) into what the image draws.
+ *   podiumGroups  the groups of rank 1-3, each as `{ ...group, named }` where `named` is the players the slot
+ *                 writes out by name (`players` still holds the whole tie, which the slot's text counts)
+ *   restRows      one `{ p, rank, tied }` per remaining player: first the tied players of a podium group that
+ *                 the slot does not name (in rank order, with their real rank), then every rank 4+ player
+ * Every player appears exactly once, as a podium `named` entry or as a rest row. Pure: the input is not changed.
+ */
+export function buildScorecardRows(groups) {
+    const podiumGroups = [];
+    const unnamedOnPodium = [];
+    const lowerRanks = [];
+    for (const group of groups) {
+        const tied = group.players.length > 1;
+        if (group.rank <= PODIUM_MAX_RANK) {
+            const named = group.players.slice(0, podiumNamedCount(group.players.length));
+            podiumGroups.push({ ...group, named });
+            for (const p of group.players.slice(named.length)) unnamedOnPodium.push({ p, rank: group.rank, tied });
+        } else {
+            for (const p of group.players) lowerRanks.push({ p, rank: group.rank, tied });
+        }
+    }
+    return { podiumGroups, restRows: [...unnamedOnPodium, ...lowerRanks] };
+}
 
 const HEADER_BASE = 196;
 const IDEAL_PODIUM_H = 272;
@@ -151,6 +191,9 @@ export function computeRestRowLayout(layout) {
     return {
         rowGap,
         rowHeight,
+        // Baseline of the (fixed 13px) list header: 28px into its band, or 7px above the band's bottom edge when
+        // many rows squeeze the band, so the text never touches the first row.
+        headerBaselineY: Math.max(0, Math.min(28, layout.restHeaderH - 7)),
         nameFontPx: Math.round(15 * s),
         scoreFontPx: Math.round(15 * s),
         rankFontPx: Math.round(13 * s),
@@ -189,6 +232,17 @@ export function computeRestRowColumns(layout, direction) {
         scoreX: 56,
         scoreAlign: 'left'
     };
+}
+
+// Widest a rest-row name may be: the long-standing 500px (the canvas width minus 220), or less when the score text
+// is wider than the 12px/bold size it has in a crowded list (few rows are scaled up, so their score is big). The
+// name column and the score column sit at opposite ends of the row in either direction, so the room between them
+// is the same distance in RTL and LTR. `scoreTextWidth` is measured by the caller (it needs a canvas).
+const REST_NAME_SCORE_GAP = 12;
+
+export function computeRestNameMaxWidth(layout, columns, scoreTextWidth) {
+    const between = Math.abs(columns.nameX - columns.scoreX);
+    return Math.max(0, Math.min(layout.width - 220, between - scoreTextWidth - REST_NAME_SCORE_GAP));
 }
 
 // ---- Bidi marks for canvas text (pure string helpers) ----------------------------------------------

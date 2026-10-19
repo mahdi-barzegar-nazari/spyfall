@@ -17,7 +17,9 @@ import {
     computePodiumSlotLayout,
     computeRestRowLayout,
     computeRestRowColumns,
+    computeRestNameMaxWidth,
     balanceIsolates,
+    buildScorecardRows,
     isolateLine
 } from './scorecard-layout.js';
 
@@ -55,7 +57,7 @@ function drawRoundedRectPath(ctx, x, y, w, h, r) {
     ctx.closePath();
 }
 
-function truncateCanvasText(ctx, text, maxWidth) {
+export function truncateCanvasText(ctx, text, maxWidth) {
     if (ctx.measureText(text).width <= maxWidth) return text;
     let clipped = text;
     while (clipped.length > 1 && ctx.measureText(clipped + '…').width > maxWidth) {
@@ -68,7 +70,7 @@ function truncateCanvasText(ctx, text, maxWidth) {
 // truncating with "…" on the final line if it still doesn't fit. Used
 // for podium names, where two tied players' combined names ("Alice and
 // Bob") are much better shown on two lines than cut off mid-word.
-function wrapCanvasText(ctx, text, maxWidth, maxLines) {
+function wrapWords(ctx, text, maxWidth, maxLines) {
     const words = text.split(' ');
     const lines = [];
     let current = '';
@@ -88,6 +90,12 @@ function wrapCanvasText(ctx, text, maxWidth, maxLines) {
     }
     if (current) lines.push(current);
     return lines.slice(0, maxLines);
+}
+
+// wrapWords can only break between words, so one word wider than the column (a long name with no space in
+// it) would run over the neighbouring slot and off the canvas: every line is cut to the width.
+export function wrapCanvasText(ctx, text, maxWidth, maxLines) {
+    return wrapWords(ctx, text, maxWidth, maxLines).map(line => truncateCanvasText(ctx, line, maxWidth));
 }
 
 function drawBackground(ctx, layout, accent) {
@@ -179,12 +187,14 @@ function drawHeader(ctx, layout, accent, fontFam, { titleText, metaParts }) {
     ctx.stroke();
 }
 
+// The slot names the players of `group.named` (buildScorecardRows decides who they are); a bigger tie is
+// "A and N others", and those N players are written out in the rest list instead.
 function formatGroupNamesForCanvas(group) {
     // Each name is isolated on its own, so a name in the other script cannot reorder its neighbours.
-    const names = group.players.map(p => isolate(p.name));
-    if (names.length === 1) return names[0];
+    const names = group.named.map(p => isolate(p.name));
+    if (group.players.length === 1) return names[0];
     if (names.length === 2) return t('names.pair', { a: names[0], b: names[1] });
-    return tn('names.more', names.length - 1, { a: names[0] });
+    return tn('names.more', group.players.length - 1, { a: names[0] });
 }
 
 // Podium (top 3 ranks — a rank slot may hold more than one tied player).
@@ -243,9 +253,10 @@ function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
     });
 }
 
-// Remaining players (rank 4 onward — shared ranks stay in sync with the
-// podium). Row step (and, only if truly necessary, font size) compress to
-// guarantee everything fits inside the fixed canvas without clipping.
+// Every player the podium does not name: first the tied players of a podium slot that only says "A and N
+// others" (rank 1-3, with their real rank and the tied marker), then rank 4 onward — shared ranks stay in
+// sync with the podium. Row step (and, only if truly necessary, font size) compress to guarantee everything
+// fits inside the fixed canvas without clipping.
 function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
     if (restRows.length === 0) return;
     const { width } = layout;
@@ -256,7 +267,7 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
     ctx.textAlign = col.headerAlign;
     ctx.font = `700 13px ${fontFam}`;
     ctx.fillStyle = '#64748b';
-    ctx.fillText(t('scorecard.others'), col.headerX, y + 28);
+    ctx.fillText(t('scorecard.others'), col.headerX, y + row.headerBaselineY);
     y += layout.restHeaderH;
 
     restRows.forEach((r) => {
@@ -278,17 +289,22 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
         ctx.fillText(formatNumber(r.rank), col.circleX, y + row.rowHeight / 2 + 1);
         ctx.textBaseline = 'alphabetic';
 
+        // The score is measured first: a long name is cut so that it never runs into it.
+        const scoreText = tn('score.points', r.p.score);
+        ctx.font = `800 ${row.scoreFontPx}px ${fontFam}`;
+        const nameMaxWidth = computeRestNameMaxWidth(layout, col, ctx.measureText(scoreText).width);
+
         ctx.textAlign = col.nameAlign;
         ctx.font = `700 ${row.nameFontPx}px ${fontFam}`;
         ctx.fillStyle = '#e2e8f0';
         const displayName = r.tied ? t('scorecard.tied', { name: isolate(r.p.name) }) : isolate(r.p.name);
-        const [truncatedName] = balanceIsolates([truncateCanvasText(ctx, displayName, width - 220)]);
+        const [truncatedName] = balanceIsolates([truncateCanvasText(ctx, displayName, nameMaxWidth)]);
         ctx.fillText(isolateLine(truncatedName, direction), col.nameX, y + row.rowHeight / 2 + 5);
 
         ctx.textAlign = col.scoreAlign;
         ctx.fillStyle = accent.primary;
         ctx.font = `800 ${row.scoreFontPx}px ${fontFam}`;
-        ctx.fillText(tn('score.points', r.p.score), col.scoreX, y + row.rowHeight / 2 + 5);
+        ctx.fillText(scoreText, col.scoreX, y + row.rowHeight / 2 + 5);
 
         y += layout.restRowStep;
     });
@@ -334,11 +350,7 @@ export function exportScorecardImage() {
         const accent = SCORECARD_THEME_ACCENTS[themeName] || SCORECARD_THEME_ACCENTS.default;
         const fontFam = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif";
 
-        const groups = getRankedStandings(gameState.players);
-        const podiumGroups = groups.filter(g => g.rank <= 3);
-        const restGroups = groups.filter(g => g.rank > 3);
-        const restRows = [];
-        restGroups.forEach(g => g.players.forEach(p => restRows.push({ p, rank: g.rank, tied: g.players.length > 1 })));
+        const { podiumGroups, restRows } = buildScorecardRows(getRankedStandings(gameState.players));
         const totalPlayers = gameState.players.length;
 
         const layout = computeScorecardLayout(podiumGroups.length, restRows.length);

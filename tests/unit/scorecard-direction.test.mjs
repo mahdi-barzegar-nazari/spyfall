@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { CANVAS_WIDTH, balanceIsolates, computePodiumSlotLayout, computeRestRowColumns, computeScorecardLayout, isolateLine, lineMark } from '../../js/ui/scorecard-layout.js';
+import { CANVAS_WIDTH, balanceIsolates, computePodiumSlotLayout, computeRestNameMaxWidth, computeRestRowColumns, computeScorecardLayout, isolateLine, lineMark } from '../../js/ui/scorecard-layout.js';
 
 const source = readFileSync(fileURLToPath(new URL('../../js/ui/scorecard.js', import.meta.url)), 'utf8');
 const layout = computeScorecardLayout(3, 5);
@@ -50,6 +50,28 @@ describe('computeRestRowColumns', () => {
         for (const cols of [rtl, ltr]) {
             for (const key of ['headerX', 'circleX', 'nameX', 'scoreX']) assert.ok(cols[key] > 0 && cols[key] < layout.width, key);
             assert.ok(Math.abs(cols.nameX - cols.circleX) >= 24, 'name starts clear of the circle');
+        }
+    });
+});
+
+describe('the longest list (20 players all tied for 1st: 19 rows) in both directions', () => {
+    const crowded = computeScorecardLayout(1, 19);
+
+    it('has the same columns as any other list, mirrored exactly', () => {
+        for (const direction of ['rtl', 'ltr']) assert.deepEqual(computeRestRowColumns(crowded, direction), computeRestRowColumns(layout, direction), direction);
+        const rtl = computeRestRowColumns(crowded, 'rtl');
+        const ltr = computeRestRowColumns(crowded, 'ltr');
+        for (const key of ['headerX', 'circleX', 'nameX', 'scoreX']) assert.equal(rtl[key] + ltr[key], crowded.width, key);
+    });
+
+    it('leaves the same room for a name between the name column and the score, whichever side they are on', () => {
+        for (const scoreWidth of [60, 90, 140]) {
+            const rtl = computeRestNameMaxWidth(crowded, computeRestRowColumns(crowded, 'rtl'), scoreWidth);
+            const ltr = computeRestNameMaxWidth(crowded, computeRestRowColumns(crowded, 'ltr'), scoreWidth);
+            assert.equal(rtl, ltr, `score ${scoreWidth}px wide`);
+            // RTL: the name grows leftwards from nameX, the score grows rightwards from scoreX; LTR is the mirror image
+            const cols = computeRestRowColumns(crowded, 'rtl');
+            assert.ok(cols.scoreX + scoreWidth <= cols.nameX - rtl, 'RTL: the name stops before the score');
         }
     });
 });
@@ -103,5 +125,23 @@ describe('bidi marks for canvas lines', () => {
         const strip = (s) => s.replace(/[\u2066-\u2069]/g, '');
         const lines = ['a \u2068Dr.', 'Ali!\u2069 b'];
         assert.equal(balanceIsolates(lines).map(strip).join('|'), lines.map(strip).join('|'));
+    });
+});
+
+describe('scorecard.js draws every player, through the pure row builder', () => {
+    it('takes the podium groups and the list rows from buildScorecardRows, not from its own rank filters', () => {
+        assert.match(source, /buildScorecardRows\(/);
+        assert.doesNotMatch(source, /restGroups/, 'the list is no longer "rank 4 and below"');
+        assert.doesNotMatch(source, /rank\s*(<=|>)\s*3/, 'the rank 3 cut-off lives in buildScorecardRows');
+    });
+
+    it('writes only the players the podium slot names; the rest of a tie goes to the list', () => {
+        assert.match(source, /group\.named\.map\(/);
+        assert.doesNotMatch(source, /group\.players\.map\(/, 'a podium slot must not name players that the builder moved to the list');
+    });
+
+    it('cuts a rest-row name to the room between it and the score, not to a fixed width', () => {
+        assert.match(source, /computeRestNameMaxWidth\(/);
+        assert.doesNotMatch(source, /width - 220/);
     });
 });
