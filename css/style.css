@@ -873,13 +873,24 @@ body::after {
 }
 .credit-line { font-size: 0.66rem; color: var(--text-secondary); opacity: 0.45; text-align: center; margin-top: 16px; letter-spacing: 0.2px; }
 /* Build line under the credit (welcome screen only): "v2.1.0 · 8f33eec" or "dev", written by ui/buildInfo.js. It is a
-   .credit-line (same size, colour and opacity), only closer to the credit above it. It is empty until JS writes it, and
-   an empty one takes no room. The bottom margin keeps it clear of the floating cover-mode and install buttons when a
-   short screen is scrolled to the end: the buttons are fixed 16px above the bottom edge and 36px high (they reach 52px
-   up), and below the last line the card's padding and border (17px) and the body padding (16px) leave 33px, so with
-   the 16px that every <p> already has the line would sit 3px under them. 24px puts it 5px above them. */
+   .credit-line (same size, colour and opacity), only closer to the credit above it. It carries the .hidden class in
+   index.html, so by default it is not drawn, takes no room and is not read by screen readers (display:none); a long
+   press on the welcome title (#welcome-title) takes the class off for a few seconds (ui/buildInfoReveal.js). It is
+   empty until JS writes it, and an empty one takes no room either. The bottom margin keeps it clear of the floating
+   cover-mode and install buttons when it is showing and a short screen is scrolled to the end: the buttons are fixed
+   16px above the bottom edge and 36px high (they reach 52px up), and below the last line the card's padding and
+   border (17px) and the body padding (16px) leave 33px, so with the 16px that every <p> already has the line would
+   sit 3px under them. 24px puts it 5px above them. */
 .build-info { margin-top: 4px; margin-bottom: 24px; }
 .build-info:empty { display: none; }
+/* The welcome title is also the hidden handle that reveals the build line, so a long press on it must not start a text
+   selection or open the browser's callout menu (the body already refuses selection, this makes it explicit and
+   independent of the body rule). Only the title: nothing else changes how it reacts to touch. */
+#welcome-title {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
 /* Round number under the result title ("Round 3", or the Persian wording), written by ui/results.js. Colour and size come
    from the .color-secondary and .u-fs-082 classes on the element; this rule only pulls the line up, so it sits 6px under
    the title instead of the 12px that the heading's bottom margin would leave, and keeps the 16px below it that every <p>

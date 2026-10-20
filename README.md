@@ -65,9 +65,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 872 unit tests (built-in node:test, no dependencies)
+npm test               # 919 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint, build line, round-result screen after a reload, scorecard image of a 20-player match
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
 npm run lint
 ```
 
@@ -109,9 +109,9 @@ The service worker precaches every shipped file and serves it cache-first, so th
 
 ### Which version is running
 
-The welcome screen ends with one small, faint line, the same in Persian and English: `v2.1.0 · 8f33eec`. That is the `version` of `package.json` and the first 7 characters of the build hash, the same hash `scripts/build.mjs` stamps into `sw.js` as `VERSION` (the cache is named `spyfall-shell-<hash>`). In a source checkout (`npm run dev`, nothing stamped) the line says just `dev`.
+The welcome screen has one small, faint build line, the same in Persian and English: `v2.1.0 · 8f33eec`. It is hidden, so players never see it. **To see it, press and hold the game title** (the heading at the top of the welcome screen, not a button) for about half a second: the line appears under the credit and hides itself again after 6 seconds (pressing and holding again while it shows gives it another 6). A quick tap or a scroll does nothing. The line is the `version` of `package.json` and the first 7 characters of the build hash, the same hash `scripts/build.mjs` stamps into `sw.js` as `VERSION` (the cache is named `spyfall-shell-<hash>`). In a source checkout (`npm run dev`, nothing stamped) the line says just `dev`.
 
-- **Where the number comes from.** `scripts/build.mjs` reads the version from `package.json` and the hash it has just computed, and writes both into `js/core/buildInfo.js` in the built site (the file in the repository keeps its `__APP_VERSION__` and `__BUILD_HASH__` placeholders, like `sw.js`). `ui/buildInfo.js` shows them with `textContent`; nothing is fetched. The build refuses a `package.json` version that is not a plain `x.y.z` and fails if either placeholder is missing.
+- **Where the number comes from.** `scripts/build.mjs` reads the version from `package.json` and the hash it has just computed, and writes both into `js/core/buildInfo.js` in the built site (the file in the repository keeps its `__APP_VERSION__` and `__BUILD_HASH__` placeholders, like `sw.js`). `ui/buildInfo.js` writes them with `textContent` (also while the line is hidden, so the long press has something to show); nothing is fetched. The build refuses a `package.json` version that is not a plain `x.y.z` and fails if either placeholder is missing.
 - **After an update.** The number tells you which build the open app is running. When a new version has been downloaded the app shows the "new version ready" toast, but the running page keeps its old files, so the **old number stays until the app is closed and opened again**; after that it shows the new one. That is the same moment the new cache takes over.
 - **How to bump it.** Edit `version` in `package.json` and add the entry to `CHANGELOG.md`. Nothing else: the version is part of the hash, so the next build gets a new hash, a new service worker and a new cache even if no other file changed, and installed apps receive the new number.
 

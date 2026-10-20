@@ -6,6 +6,10 @@
  *
  * The display tests run on the fake browser of helpers/fakeEnv.mjs. No version number is written here: the
  * expected text is built from the version in package.json.
+ *
+ * The line is hidden by default and a long press on the welcome title reveals it: the controller and the wiring
+ * are covered by build-info-reveal.test.mjs; here only the markup that the design relies on (the `hidden` class,
+ * the title's id) is pinned.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -118,24 +122,30 @@ describe('the build line in index.html and the stamped module', () => {
         assert.equal(closest(line, (n) => n.attrs.id === 'btn-install-app' || n.attrs.id === 'btn-panic-open'), null);
     });
 
-    it('is a credit-line in a left-to-right box, starts empty and is not translated', () => {
+    it('is a credit-line in a left-to-right box, starts empty and hidden, and is not translated', () => {
         assert.equal(line.tag, 'p');
-        assert.deepEqual(line.attrs.class.split(/\s+/).sort(), ['build-info', 'credit-line']);
+        assert.deepEqual(line.attrs.class.split(/\s+/).sort(), ['build-info', 'credit-line', 'hidden'], 'the hidden class is what keeps it off the first paint');
         assert.equal(line.attrs.dir, 'ltr', 'a version and a hash read left to right in Persian too');
         assert.equal(innerText(line).trim(), '', 'JS writes the text; there is no default to translate');
         assert.ok(!('data-i18n' in line.attrs) && !('data-i18n-attr' in line.attrs), 'a version is not a translatable text');
         assert.ok(!('aria-label' in line.attrs) && !('title' in line.attrs), 'no text attribute either');
     });
 
-    it('is read by screen readers: it is real information, not decoration, so it is not aria-hidden', () => {
-        assert.ok(!('aria-hidden' in line.attrs), 'a person who cannot see the screen needs the build number to report a problem too');
-        assert.ok(!('hidden' in line.attrs));
+    it('is hidden by the project\'s own `hidden` class (display: none), with no inline style and no hidden attribute', () => {
+        assert.ok(line.attrs.class.split(/\s+/).includes('hidden'));
+        assert.ok(!('style' in line.attrs), 'the CSP forbids inline style, and a class is what the reveal toggles');
+        assert.ok(!('hidden' in line.attrs), 'one mechanism only: the class');
+        assert.match(read('css/style.css'), /^\.hidden \{ display: none !important; \}$/m, 'the class still means display: none, which also keeps the line out of the accessibility tree');
     });
 
-    it('is written by main.js at start-up', () => {
+    it('is not aria-hidden: once revealed it is real information, not decoration', () => {
+        assert.ok(!('aria-hidden' in line.attrs), 'a person who cannot see the screen needs the build number to report a problem too (display: none already hides it while it is not wanted)');
+    });
+
+    it('is written by main.js at start-up, and the long-press reveal is wired right after it', () => {
         const main = read('js/main.js');
-        assert.match(main, /import \{ renderBuildInfo \} from '\.\/ui\/buildInfo\.js';/);
-        assert.match(main, /\n\s+renderBuildInfo\(\);/);
+        assert.match(main, /import \{ initBuildInfoReveal, renderBuildInfo \} from '\.\/ui\/buildInfo\.js';/);
+        assert.match(main, /\n\s+renderBuildInfo\(\);\s+initBuildInfoReveal\(\);/);
     });
 
     it('core/buildInfo.js is pure data: it imports nothing, so it can sit in core/ and be stamped alone', () => {

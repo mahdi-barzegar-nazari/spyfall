@@ -4,6 +4,10 @@
  *  - on the dev server (the source checkout, nothing stamped) it reads `dev`;
  *  - it is only on the welcome screen, reads left to right in both languages, looks like the credit line in all
  *    8 themes, fits at 360 px and never sits under the cover-mode or install buttons.
+ * The line is hidden until a long press on the welcome title (tests/e2e/build-info-reveal.test.mjs covers that
+ * gesture, with a real mouse, touch and pen). The tests here are about what the line says and how it looks, so
+ * they show it with `showBuildLine` instead of pressing: a 6-second auto-hide must not race through 16 theme
+ * switches, and a gesture that is tested elsewhere should not be repeated 30 times.
  * Requires: npm install && npx playwright install chromium
  */
 import assert from 'node:assert/strict';
@@ -56,6 +60,9 @@ async function withPage(browser, url, fn, { lang = 'fa', viewport = PHONE } = {}
 
 const lineText = (page) => page.evaluate(() => document.getElementById('build-info').textContent);
 
+/** Show the line the way the reveal does (the `hidden` class off), without the gesture and without the auto-hide timer. */
+const showBuildLine = (page) => page.evaluate(() => document.getElementById('build-info').classList.remove('hidden'));
+
 /** The `VERSION` the built service worker was stamped with, read the way the browser gets it. */
 async function builtSwVersion() {
     const source = await (await fetch(`${builtUrl}sw.js`)).text();
@@ -65,12 +72,14 @@ async function builtSwVersion() {
 }
 
 describe('build line, production build', () => {
-    it('shows v<package version> · <first 7 of the sw.js VERSION> in Persian and in English', async () => {
+    it('says v<package version> · <first 7 of the sw.js VERSION> in Persian and in English, hidden until it is revealed', async () => {
         const expected = `v${pkg.version}${SEP}${(await builtSwVersion()).slice(0, 7)}`;
         for (const lang of ['fa', 'en']) {
             await withPage(app.browser, builtUrl, async (page) => {
                 assert.equal(await lineText(page), expected, `${lang}: the same text in both languages`);
-                assert.ok(await page.isVisible('#build-info'), `${lang}: visible`);
+                assert.equal(await page.isVisible('#build-info'), false, `${lang}: not visible until a long press on the title`);
+                await showBuildLine(page);
+                assert.ok(await page.isVisible('#build-info'), `${lang}: visible once revealed`);
             }, { lang });
         }
     });
@@ -78,6 +87,7 @@ describe('build line, production build', () => {
     it('is language-neutral: left to right, no Persian letter, not translated by the page', async () => {
         for (const lang of ['fa', 'en']) {
             await withPage(app.browser, builtUrl, async (page) => {
+                await showBuildLine(page);
                 const info = await page.evaluate(() => {
                     const el = document.getElementById('build-info');
                     return { direction: getComputedStyle(el).direction, dir: el.getAttribute('dir'), translate: el.getAttribute('translate'), ariaHidden: el.getAttribute('aria-hidden'), htmlDir: document.documentElement.dir };
@@ -123,6 +133,7 @@ describe('build line, production build', () => {
 
     it('is on the welcome screen only: not on the setup screen, and not during a match', async () => {
         await withPage(app.browser, builtUrl, async (page) => {
+            await showBuildLine(page);
             assert.ok(await page.isVisible('#build-info'));
             await page.click('#btn-nav-setup');
             await page.waitForSelector('#screen-setup:not(.hidden)');
@@ -149,6 +160,7 @@ describe('build line, production build', () => {
     it('looks like the credit line in all 8 themes and both languages, and stays readable', async () => {
         for (const lang of ['fa', 'en']) {
             await withPage(app.browser, builtUrl, async (page) => {
+                await showBuildLine(page);
                 for (const theme of THEMES) {
                     await page.selectOption('#theme-selector', theme);
                     const r = await page.evaluate(() => {
@@ -188,6 +200,7 @@ describe('build line, production build', () => {
                 await withPage(app.browser, builtUrl, async (page) => {
                     // The install button only appears on `beforeinstallprompt`; show it to test the worst case.
                     await page.evaluate(() => document.getElementById('btn-install-app').classList.remove('hidden'));
+                    await showBuildLine(page);
                     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
                     const g = await page.evaluate(() => {
                         const rect = (el) => {
@@ -224,10 +237,12 @@ describe('build line, production build', () => {
 });
 
 describe('build line, dev server (source checkout)', () => {
-    it('shows just "dev", in Persian and in English', async () => {
+    it('says just "dev", in Persian and in English, once revealed', async () => {
         for (const lang of ['fa', 'en']) {
             await withPage(devBrowser, devUrl, async (page) => {
                 assert.equal(await lineText(page), 'dev');
+                assert.equal(await page.isVisible('#build-info'), false, 'hidden by default');
+                await showBuildLine(page);
                 assert.ok(await page.isVisible('#build-info'));
             }, { lang });
         }

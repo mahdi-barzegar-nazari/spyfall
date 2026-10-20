@@ -8,6 +8,8 @@
  *
  * The build line (`#build-info`, "v2.1.0 · 8f33eec" or "dev") is always left out: it is a number, not a text
  * a language owns, and it changes with every build, so it can never be part of a recording of the Persian text.
+ * It is hidden by default (a long press on the welcome title shows it), so `innerText` normally does not see it
+ * at all; the filter below stays for a recording taken while it is revealed.
  */
 
 export async function recordScreen(page, { includeSwitch = false } = {}) {

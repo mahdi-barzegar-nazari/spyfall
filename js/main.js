@@ -10,7 +10,7 @@ import { setupAudio } from './platform/audio.js';
 import { initInstallPrompt } from './platform/install.js';
 import { registerServiceWorker } from './platform/serviceWorker.js';
 import { bindEvents } from './ui/bindings.js';
-import { renderBuildInfo } from './ui/buildInfo.js';
+import { initBuildInfoReveal, renderBuildInfo } from './ui/buildInfo.js';
 import { renderCustomWordsList } from './ui/customWords.js';
 import { clearToasts } from './ui/feedback.js';
 import { initHandoffGate } from './ui/handoff.js';
@@ -23,6 +23,8 @@ function start() {
     syncLangSwitch();
 
     renderBuildInfo();
+
+    initBuildInfoReveal();
 
     renderNameInputs();
 
