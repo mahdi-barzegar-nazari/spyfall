@@ -1,10 +1,12 @@
 /**
- * Setup screen: settings validation, limit hints, name inputs, category and difficulty chips.
+ * Setup screen: settings validation, limit hints, name inputs, category and difficulty chips, and putting the
+ * setup of the last match back into the form.
  */
 
-import { RULES, getMaxSpiesAllowed, normalizeDifficulties } from '../core/config.js';
+import { RULES, getMaxSpiesAllowed, normalizeDifficulties, sanitizeSetupSettings } from '../core/config.js';
+import { isMatchInProgress } from '../core/phase.js';
 import { gameState } from '../core/state.js';
-import { isDefaultPlayerNameOfOtherLanguage, loadSavedNames, saveCurrentNames } from '../core/storage.js';
+import { isDefaultPlayerNameOfOtherLanguage, loadSavedNames, loadSetupSettings, saveCurrentNames, saveSetupSettings } from '../core/storage.js';
 import { flagFieldError, pulseInvalidField, showToast } from './feedback.js';
 import { formatNumber, t, tn } from '../i18n/index.js';
 import { generateId } from '../utils/random.js';
@@ -104,6 +106,83 @@ export function validateAndSaveSettings() {
         names.push(n);
     }
     saveCurrentNames(Array.from(inputs).map(x => x.value));
+    // The match starts: keep its plain options for the next visit (never the names, saved above on their own).
+    saveSetupSettings(gameState.settings);
+    return true;
+}
+
+/** The on/off switches of the form, by the setting each one holds. */
+const SETUP_TOGGLE_IDS = {
+    fool: 'toggle-fool',
+    detective: 'toggle-detective',
+    knownSpies: 'toggle-known',
+    director: 'toggle-director',
+    oneword: 'toggle-oneword',
+    quests: 'toggle-quests',
+    wager: 'toggle-wager',
+    sudden: 'toggle-sudden',
+    voteLimitEnabled: 'toggle-limit',
+    roleRevealConfirm: 'toggle-role-reveal-confirm',
+    voteConfirm: 'toggle-vote-confirm',
+    quickVoting: 'toggle-quick-voting',
+    spyLastChance: 'toggle-last-chance'
+};
+
+/** Tick exactly the chips of `name` whose value is in `values`. */
+function tickChips(name, values) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(el => { el.checked = values.includes(el.value); });
+}
+
+/**
+ * Put `settings` into the setup form: the three number fields, every chip, the card-reveal select and every
+ * switch, with the parts of the page that follow them (the pressed look of the chips, the emergency-vote box
+ * that only shows while its switch is on). `settings` goes through `sanitizeSetupSettings` first, so a damaged
+ * value can never reach the form. Only the form is written: `gameState` is not touched, and neither are the
+ * name inputs (`renderNameInputs` follows the player count).
+ */
+export function applySetupSettingsToForm(settings) {
+    const s = sanitizeSetupSettings(settings);
+    const field = (id) => document.getElementById(id);
+
+    field('setup-players-count').value = String(s.playersCount);
+    field('setup-spies-count').value = String(s.spiesCount);
+    field('setup-timer').value = String(s.timerMin);
+    field('setup-max-votes').value = String(s.maxVotes);
+    field('setup-reveal-mode').value = s.revealHold ? 'hold' : 'click';
+
+    tickChips('setup-cat', s.cats);
+    tickChips('setup-diff', s.diff);
+    tickChips('setup-hint', s.hints);
+    for (const [key, id] of Object.entries(SETUP_TOGGLE_IDS)) {
+        const toggle = field(id);
+        if (toggle) toggle.checked = s[key];
+    }
+
+    // The same thing bindings.js does when the switch is tapped.
+    const voteLimitBox = field('vote-limit-box');
+    if (voteLimitBox) voteLimitBox.classList[s.voteLimitEnabled ? 'remove' : 'add']('hidden');
+    syncCheckboxChipVisuals('category-chips-container', 'chip-item');
+    syncCheckboxChipVisuals('difficulty-chips-container', 'chip-item');
+    syncCheckboxChipVisuals('hint-chips-container', 'hint-chip');
+}
+
+/**
+ * Put the setup of the last match that was started back into the form, at start-up and after "new match".
+ * Returns true when something was restored.
+ *
+ * Nothing usable saved (see `loadSetupSettings`) leaves the form exactly as it is, so a person whose storage
+ * is blocked keeps what they typed this session. The form is the NEXT match's, and nothing here reads or
+ * writes `gameState`, so a match that is running or has been resumed keeps its own settings; while one is
+ * running (every phase but welcome and setup) this does not even touch the form.
+ */
+export function restoreSavedSetup() {
+    if (isMatchInProgress()) return false;
+    const saved = loadSetupSettings();
+    if (!saved) return false;
+    applySetupSettingsToForm(saved);
+    // The number of name inputs and the spies hint follow the restored player count.
+    renderNameInputs();
+    updateSetupLimitHints();
     return true;
 }
 

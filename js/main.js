@@ -15,7 +15,7 @@ import { renderCustomWordsList } from './ui/customWords.js';
 import { clearToasts } from './ui/feedback.js';
 import { initHandoffGate } from './ui/handoff.js';
 import { syncLangSwitch } from './ui/langSwitch.js';
-import { renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './ui/setup.js';
+import { renderNameInputs, restoreSavedSetup, syncCheckboxChipVisuals, updateSetupLimitHints } from './ui/setup.js';
 import { initTheme } from './ui/theme.js';
 
 /** Initial render and saved-game detection. */
@@ -25,6 +25,9 @@ function start() {
     renderBuildInfo();
 
     initBuildInfoReveal();
+
+    // The setup of the last match goes into the form first: the number of name inputs follows its player count.
+    restoreSavedSetup();
 
     renderNameInputs();
 

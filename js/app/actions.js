@@ -22,7 +22,7 @@ import { trapFocus } from '../ui/focusTrap.js';
 import { hideHandoffGate } from '../ui/handoff.js';
 import { renderRoleModalContent } from '../ui/render.js';
 import { exportScorecardImage } from '../ui/scorecard.js';
-import { renderNameInputs, validateAndSaveSettings } from '../ui/setup.js';
+import { renderNameInputs, restoreSavedSetup, validateAndSaveSettings } from '../ui/setup.js';
 import { updateThemeMeta } from '../ui/theme.js';
 
 let lastPanicTap = 0;
@@ -267,6 +267,8 @@ export function handleAction(action) {
                         // one with an unsupported or malformed value.
                         const savedLang = normalizeLang(parsed.state.match && parsed.state.match.lang);
                         if (savedLang !== getLang()) setLang(savedLang);
+                        // The match keeps the settings it was saved with: the setup kept for the next match
+                        // (`spy_setup_settings`) is never applied here, and `restoreSavedSetup` never writes gameState.
                         replaceGameState(parsed.state);
                         const match = gameState.match;
                         if (match && typeof match === 'object' && !Array.isArray(match)) match.lang = savedLang;
@@ -309,6 +311,8 @@ export function handleAction(action) {
             gameState.players = [];
             renderNameInputs();
             setPhase('welcome');
+            // Back outside a match: the form gets the setup of the last match again (it only writes the form).
+            restoreSavedSetup();
             break;
         case 'RESET_NAMES':
             try {

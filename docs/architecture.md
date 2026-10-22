@@ -42,12 +42,22 @@ The round-result screen is drawn from the state, not written once: `renderRoundR
 
 The countdown never compares wall-clock times. `gameState.timer.pausedSec` is decremented once per tick, so reloading, backgrounding, or pausing cannot make time jump.
 
+### The saved setup
+
+The plain setup options of the last match that was started are kept under `spy_setup_settings` as `{ version: 1, settings }` (`saveSetupSettings` / `loadSetupSettings` in `core/storage.js`), so the next visit starts from them instead of the defaults.
+
+- **What is saved.** Exactly the keys of `defaultSetupSettings()` (`core/config.js`): players, spies, timer, categories, difficulty (an array of levels, as `settings.diff` holds it), reveal mode, hint types, the switches and the emergency-vote limit. Not saved: player names (`spy_saved_player_names`), custom words, language, theme, sound, `detectiveUsed`. `gameState.settings` itself starts from the same `defaultSetupSettings()`, so there is one list of defaults.
+- **When.** At the end of `validateAndSaveSettings` (`ui/setup.js`), after the names are validated and saved, so a refused start writes nothing.
+- **What is read is untrusted.** `sanitizeSetupSettings` is the one gate, for reading, writing and filling the form. Each field is judged alone and a bad one takes only its own default: numbers must be whole and are clamped to `RULES`; spies are clamped to `getMaxSpiesAllowed(players)` for the restored count; switches must be booleans; unknown category and hint ids are dropped (none left is the default list); difficulty goes through `normalizeDifficulties` (so the single string of older data is still read); unknown keys are ignored. A record that is not JSON, not `{ version: 1, settings }`, or a storage that throws gives `null`, and `null` means "leave the form as it is". A new format changes `SETUP_SETTINGS_VERSION`; a record of another version is ignored whole.
+- **When it is put back.** `restoreSavedSetup` (`ui/setup.js`) runs in `start()` of `main.js` and after `setPhase('welcome')` in `RESET_MATCH`. It writes the form only (values, chips and their pressed look, the emergency-vote box, then the name inputs and hints follow the player count) and never `gameState`, and it does nothing while `isMatchInProgress()`. `RESTORE_GAME` does not call it, so a resumed match keeps the settings it was saved with and the saved setup stays for the next match.
+- **Tests.** `tests/unit/setup-settings.test.mjs` (defaults against `index.html` and the word banks, the validator field by field, the record, the form, `RESTORE_GAME`, `RESET_MATCH`) and `tests/e2e/setup-memory.test.mjs` (reload, damaged record, blocked storage, resume, new match).
+
 ## Modules
 
 | Layer | Modules | Notes |
 | :--- | :--- | :--- |
 | `app/` | `actions`, `wire` | The action handler (the big `switch`) and the composition root. Only `wire` imports `actions`, and only `main.js` imports `wire`. |
-| `core/` | `config`, `state`, `storage`, `phase`, `dispatch`, `buildInfo` | `config` is pure data plus two pure functions. `buildInfo` is two stamped constants (version, hash) and imports nothing. `dispatch` is a port and `phase` holds `setPhase` and `commitState`; neither imports `game/`, `ui/` or `app/`. |
+| `core/` | `config`, `state`, `storage`, `phase`, `dispatch`, `buildInfo` | `config` is pure data plus pure functions (the limits, the difficulty helpers, and the defaults and validator of the saved setup). `buildInfo` is two stamped constants (version, hash) and imports nothing. `dispatch` is a port and `phase` holds `setPhase` and `commitState`; neither imports `game/`, `ui/` or `app/`. |
 | `game/` | `timer`, `rounds`, `voting`, `resolution`, `ranking` | `ranking` is pure. `timer`, `rounds`, `voting` and `resolution` read and write `gameState`; they are unit-tested against the fake browser in `tests/unit/helpers/`. |
 | `ui/` | `render`, `results`, `setup`, `wheel`, `handoff`, `scorecard`, `customWords`, `bindings`, `feedback`, `focusTrap`, `langSwitch`, `theme`, `buildInfo`, `buildInfoReveal` | All DOM code lives here (plus `timer.js` for the countdown text). |
 | `platform/` | `audio`, `wakeLock`, `antiZoom`, `install`, `serviceWorker` | Browser capabilities. |

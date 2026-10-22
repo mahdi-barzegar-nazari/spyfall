@@ -1,7 +1,8 @@
 /**
- * localStorage persistence: saved match, player names and custom word bank.
+ * localStorage persistence: saved match, player names, custom word bank and the setup options of the last match.
  */
 
+import { sanitizeSetupSettings } from './config.js';
 import { SAVE_VERSION, gameState, serializeSecrets } from './state.js';
 import { getLang, t, translationsOf } from '../i18n/index.js';
 
@@ -73,6 +74,44 @@ export function saveCurrentNames(names) {
     try {
         const kept = Array.isArray(names) ? names.map((name) => (isDefaultPlayerName(name) ? '' : name)) : names;
         localStorage.setItem('spy_saved_player_names', JSON.stringify(kept));
+    } catch(e) {
+        console.warn("Storage write restricted:", e);
+    }
+}
+
+/** The key under which the setup options of the last match that was started are kept. */
+export const SETUP_SETTINGS_KEY = 'spy_setup_settings';
+
+/** The format of what is kept under `SETUP_SETTINGS_KEY`: `{ version, settings }`. A record of any other version is ignored. */
+export const SETUP_SETTINGS_VERSION = 1;
+
+/**
+ * The plain setup options of the match that was last started, as `sanitizeSetupSettings` returns them, or
+ * `null` when there is nothing usable to restore: nothing saved, text that is not JSON, not a record of this
+ * version, or a storage that throws. `null` means the setup screen is left exactly as it is. A usable record is
+ * never trusted: every field that is wrong in it (type, range, unknown id, spies that do not fit the players)
+ * has the default of that field, and the other fields are kept.
+ */
+export function loadSetupSettings() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(SETUP_SETTINGS_KEY));
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+        if (parsed.version !== SETUP_SETTINGS_VERSION) return null;
+        return sanitizeSetupSettings(parsed.settings);
+    } catch(e) { return null; }
+}
+
+/**
+ * Keep the setup options of a match that has just started. Only the plain options are written (`settings` goes
+ * through `sanitizeSetupSettings`, which drops every key that is not one of them, `detectiveUsed` included):
+ * never the player names (`spy_saved_player_names`), the custom words, the language, the theme or the sound.
+ */
+export function saveSetupSettings(settings) {
+    try {
+        localStorage.setItem(SETUP_SETTINGS_KEY, JSON.stringify({
+            version: SETUP_SETTINGS_VERSION,
+            settings: sanitizeSetupSettings(settings)
+        }));
     } catch(e) {
         console.warn("Storage write restricted:", e);
     }

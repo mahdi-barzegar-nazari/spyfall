@@ -2,7 +2,7 @@
  * The single mutable game state, plus ephemeral per-page session state.
  */
 
-import { DIFFICULTY_LEVELS } from './config.js';
+import { defaultSetupSettings } from './config.js';
 
 export const SAVE_VERSION = 12;
 
@@ -11,15 +11,9 @@ export const gameState = {
     stateVersion: 1,
     phase: 'welcome',
     match: { usedWordKeys: [] },
-    settings: {
-        playersCount: 4, spiesCount: 1, timerMin: 4, cats: ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'], diff: [...DIFFICULTY_LEVELS],
-        revealHold: false, hints: ['related_word'], fool: false, detective: false,
-        knownSpies: false, director: false, oneword: false, quests: false,
-        wager: false, sudden: false, voteLimitEnabled: false, maxVotes: 2,
-        roleRevealConfirm: true, voteConfirm: false, quickVoting: false,
-        spyLastChance: true,
-        detectiveUsed: false
-    },
+    // The defaults of the plain setup options live in config.js (`defaultSetupSettings`), so the saved setup
+    // falls back to the very same values; `detectiveUsed` belongs to the running match, not to the setup.
+    settings: { ...defaultSetupSettings(), detectiveUsed: false },
     players: [],
     round: { num: 0, category: null, currentHintType: 'related_word', pointsMap: {}, history: [], roundId: null },
     timer: { running: false, pausedSec: 0, reason: 'emergency', wasRunningBeforePanic: false },

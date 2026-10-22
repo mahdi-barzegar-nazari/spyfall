@@ -31,6 +31,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Roles and modifiers.** Spies (1 to 5), Detective, Fool, known-spy networks, secret side quests, one-word rounds, a question director, sudden death, a last-chance word guess for a caught spy (optional, on by default; a correct guess pays 1 to 3 points by word difficulty), and player wagers.
 - **Fair tie-breaking.** Tied votes are settled by a spinning SVG wheel backed by a crypto-random pick, plus a hidden scoring tie-breaker so shared ranks are rare.
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
+- **Remembers your setup.** The players count, spies, timer, categories, difficulty and the other setup options of the last match you started come back the next time you open the app (the player names were already saved). A resumed match keeps its own settings.
 - **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
 - **Round counter.** The result screen of every round says which round it was ("Round 3", in Persian the word for round and a Persian digit), also after you resume a saved match, which brings back the winner, the secret word and the score table of that screen exactly as they were, in the language of the match.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
