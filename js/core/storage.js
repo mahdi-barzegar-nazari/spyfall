@@ -1,5 +1,6 @@
 /**
- * localStorage persistence: saved match, player names, custom word bank and the setup options of the last match.
+ * localStorage persistence: saved match, player names, custom word bank, the setup options of the last match and the
+ * words chosen most recently.
  */
 
 import { sanitizeSetupSettings } from './config.js';
@@ -112,6 +113,62 @@ export function saveSetupSettings(settings) {
             version: SETUP_SETTINGS_VERSION,
             settings: sanitizeSetupSettings(settings)
         }));
+    } catch(e) {
+        console.warn("Storage write restricted:", e);
+    }
+}
+
+/** The key under which the normalized keys of the most recently chosen secret words are kept (a JSON array, newest last). */
+export const RECENT_WORDS_KEY = 'spy_recent_words';
+
+/** How many words are remembered: the list never holds more, when written or when read. */
+export const RECENT_WORDS_LIMIT = 100;
+
+/**
+ * The longest key that is accepted. A custom word has at most 30 characters and the longest built-in key has 22,
+ * so a longer text is not a word key of this game; the margin only covers `toLowerCase` making a text longer.
+ */
+export const RECENT_WORD_MAX_LENGTH = 60;
+
+/** True for what can be a remembered key: a non-empty string of at most `RECENT_WORD_MAX_LENGTH` characters. */
+function isRecentWordKey(key) {
+    return typeof key === 'string' && key.length > 0 && key.length <= RECENT_WORD_MAX_LENGTH;
+}
+
+/**
+ * The keys (`normalizeWord` of the word, see game/rounds.js) of the words chosen most recently, in the order they
+ * were chosen, the newest last, at most `RECENT_WORDS_LIMIT` of them. What is stored is never trusted: anything
+ * that is not a JSON array gives `[]`; inside an array an entry that is not a short non-empty string is skipped
+ * (the others are kept), a key that appears twice counts once, at its newest place, and only the newest
+ * `RECENT_WORDS_LIMIT` are returned. A storage that throws gives `[]`.
+ */
+export function loadRecentWords() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(RECENT_WORDS_KEY));
+        if (!Array.isArray(parsed)) return [];
+        const seen = new Set();
+        const newestFirst = [];
+        for (let i = parsed.length - 1; i >= 0 && newestFirst.length < RECENT_WORDS_LIMIT; i--) {
+            const key = parsed[i];
+            if (!isRecentWordKey(key) || seen.has(key)) continue;
+            seen.add(key);
+            newestFirst.push(key);
+        }
+        return newestFirst.reverse();
+    } catch(e) { return []; }
+}
+
+/**
+ * Remember that the word with this key has just been chosen: it goes last in the list (moved there if it was
+ * already in it, so a key is in the list once), and the list is cut to the newest `RECENT_WORDS_LIMIT`. A key
+ * that cannot be remembered (`isRecentWordKey`) and a storage that throws change nothing.
+ */
+export function rememberRecentWord(key) {
+    if (!isRecentWordKey(key)) return;
+    try {
+        const list = loadRecentWords().filter((kept) => kept !== key);
+        list.push(key);
+        localStorage.setItem(RECENT_WORDS_KEY, JSON.stringify(list.slice(-RECENT_WORDS_LIMIT)));
     } catch(e) {
         console.warn("Storage write restricted:", e);
     }

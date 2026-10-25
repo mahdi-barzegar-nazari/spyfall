@@ -5,7 +5,7 @@
 import { DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
-import { displayHint, getCustomWords } from '../core/storage.js';
+import { displayHint, getCustomWords, loadRecentWords, rememberRecentWord } from '../core/storage.js';
 import { getSideQuests, getWordPacks } from '../data/banks.js';
 import { getLang, t } from '../i18n/index.js';
 import { generateId, getRandomCryptoInt, shuffle } from '../utils/random.js';
@@ -65,6 +65,30 @@ export function filterPoolByDifficulty(pool, selection) {
     return filtered.length > 0 ? filtered : pool;
 }
 
+/**
+ * The words the next secret word is drawn from, and whether the match's used-words list has to start over.
+ * `pool` is the word pool of the round (categories and difficulty already applied), `usedKeys` the keys
+ * (`normalizeWord`) of the words already used in this match, `recentKeys` the keys remembered from earlier
+ * matches (`loadRecentWords`). The rule, in this order:
+ *
+ * 1. Words used in this match are never drawn. If that leaves no word, every word of the pool is available again
+ *    and `startOver` is true (the caller clears the used list); the recent list plays no part then.
+ * 2. Otherwise, words in the recent list are left out as well, but only while the words that are neither used in
+ *    this match nor recent are at least half of the whole pool (`fresh * 2 >= pool.length`). With fewer, the
+ *    recent list is ignored and only rule 1 applies: a small pool (one category and one difficulty is about 16
+ *    words) would otherwise run out of words that were not heard lately and stop varying.
+ *
+ * Neither rule can leave nothing: when no fresh word is left the half test fails, so the words of rule 1 are used.
+ */
+export function selectableWords(pool, usedKeys, recentKeys) {
+    const used = new Set(usedKeys);
+    const unused = pool.filter(w => !used.has(normalizeWord(w.word)));
+    if (unused.length === 0) return { words: pool, startOver: true };
+    const recent = new Set(recentKeys);
+    const fresh = unused.filter(w => !recent.has(normalizeWord(w.word)));
+    return { words: fresh.length * 2 >= pool.length ? fresh : unused, startOver: false };
+}
+
 export function startNextRound() {
     // The word, the hint, the category label and the quests all come from the language that is active now.
     const lang = getLang();
@@ -91,13 +115,13 @@ export function startNextRound() {
 
     pool = filterPoolByDifficulty(pool, gameState.settings.diff);
 
-    let availablePool = pool.filter(w => !gameState.match.usedWordKeys.includes(normalizeWord(w.word)));
-    if (availablePool.length === 0) {
-        gameState.match.usedWordKeys = [];
-        availablePool = pool;
-    }
+    const { words: availablePool, startOver } = selectableWords(pool, gameState.match.usedWordKeys, loadRecentWords());
+    if (startOver) gameState.match.usedWordKeys = [];
     let chosen = availablePool[getRandomCryptoInt(availablePool.length)];
-    gameState.match.usedWordKeys.push(normalizeWord(chosen.word));
+    const chosenKey = normalizeWord(chosen.word);
+    gameState.match.usedWordKeys.push(chosenKey);
+    // Remembered across matches (spy_recent_words), so the next match does not start with a word heard lately.
+    rememberRecentWord(chosenKey);
     gameState.round.category = getCategoryLabel(chosen._cat || 'places');
     // Custom words carry an internal default 'medium' rating with no real
     // user-provided difficulty, so they must score as neutral (1.0x).
