@@ -38,13 +38,16 @@ export const en = {
     'meta.description': 'Spy (Spyfall) party mystery game: an upgraded web version, no install needed',
     'meta.title': 'Spy Party Game',
 
-    // ---- App chrome: cover mode and install button
+    // ---- App chrome: cover mode, install button and install hint
     'panic.shield.aria': 'Exit cover mode',
     'panic.shield.text': 'Cover mode is on (double-tap to exit)',
     'panic.open.aria': 'Turn on cover mode',
     'panic.open.text': '🛡️ Cover mode',
     'install.aria': 'Install the app on your phone',
     'install.text': '⬇️ Install on your phone',
+    'install.hint.ios': 'Share, then Add to Home Screen',
+    'install.hint.firefoxAndroid': 'Menu, then Install / Add to Home screen',
+    'install.hint.close.aria': 'Dismiss install tip',
 
     // ---- Hand-over gate
     'handoff.caption': 'Hand the phone to:',

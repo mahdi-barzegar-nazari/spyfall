@@ -633,6 +633,33 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 :root[dir="rtl"] .panic-btn-floating { inset-inline-start: max(16px, env(safe-area-inset-right)); }
 :root[dir="rtl"] .install-btn-floating { inset-inline-end: max(16px, env(safe-area-inset-left)); }
 
+/* Install hint: the first line of the welcome screen on the browsers that never fire `beforeinstallprompt`
+   (iPhone, iPad, Firefox for Android), one line on how to install from the browser's own menu plus a close
+   button. platform/install.js shows it (it carries .hidden in index.html), and it sits inside #screen-welcome,
+   so no other screen can show it. It is part of the page flow, not fixed, and it never shares the screen with
+   the install button (it is shown only when that button is not available). It is the first thing on the screen,
+   far from the fixed cover-mode button at the bottom edge, and the content below it keeps its usual room above
+   the bottom buttons when the page is scrolled to the end. Colours come from the theme variables only, so it
+   reads the same in all eight themes. The close button is a 44px target. At 360px the longest of the four texts
+   (Persian and English, iOS and Firefox) is 221px wide and the room for it is 236px, so each is one line; on a
+   narrower phone it wraps and the box grows. Logical properties only (the close button is on the inline-end
+   side). */
+.install-hint {
+    display: flex; align-items: center;
+    margin-bottom: 12px; padding-inline-start: 12px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); border-radius: 14px;
+    color: var(--text-primary); font-size: 0.75rem; font-weight: 500; line-height: 1.5;
+}
+.install-hint-text { flex: 1; min-width: 0; padding-block: 8px; text-align: start; }
+.install-hint-close {
+    flex: none; display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    background: none; border: none; border-radius: 12px;
+    color: var(--text-secondary); font-size: 1.6rem; line-height: 1; cursor: pointer;
+    touch-action: manipulation;
+}
+.install-hint-close:hover, .install-hint-close:active { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); }
+
 #panic-shield {
     position: fixed; inset: 0; background: #000000; z-index: 99999;
     display: flex; flex-direction: column; justify-content: center; align-items: center;

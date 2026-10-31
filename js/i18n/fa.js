@@ -11,13 +11,16 @@ export const fa = {
     'meta.description': 'بازی دورهمی و معمایی جاسوس (Spyfall) - نسخه پیشرفته تحت وب بدون نیاز به نصب',
     'meta.title': 'بازی دورهمی جاسوس',
 
-    // ---- App chrome: cover mode and install button
+    // ---- App chrome: cover mode, install button and install hint
     'panic.shield.aria': 'خروج از حالت پوشش',
     'panic.shield.text': 'حالت پوشش فعال است (برای خروج دو بار ضربه بزنید)',
     'panic.open.aria': 'فعال‌سازی حالت پوشش امنیتی',
     'panic.open.text': '🛡️ حالت پوشش',
     'install.aria': 'نصب برنامه روی گوشی',
     'install.text': '⬇️ نصب برنامه روی گوشی',
+    'install.hint.ios': 'اشتراک‌گذاری، سپس «افزودن به صفحه اصلی»',
+    'install.hint.firefoxAndroid': 'منو، سپس «نصب» یا «افزودن به صفحه اصلی»',
+    'install.hint.close.aria': 'بستن راهنمای نصب',
 
     // ---- Hand-over gate
     'handoff.caption': 'گوشی را به این بازیکن بده:',

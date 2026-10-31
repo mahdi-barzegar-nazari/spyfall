@@ -44,7 +44,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 ### Just play
 
-Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Android also shows an install button).
+Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*); close it with ✕ and it stays closed.
 
 ### Switch the language
 
@@ -86,7 +86,7 @@ npm run lint
 │   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port, buildInfo (stamped version and hash)
 │   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
-│   ├── platform/              # audio, wake lock, anti-zoom, install prompt, service worker registration
+│   ├── platform/              # audio, wake lock, anti-zoom, install prompt and install hint, service worker registration
 │   ├── data/                  # word banks and side quests (one per language), help-text keys
 │   ├── i18n/                  # translation core (t, language switching) and the Persian and English catalogs
 │   └── utils/                 # text and random helpers (pure)
