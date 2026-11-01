@@ -6,6 +6,7 @@
 import {
     HINT_FIREFOX_ANDROID,
     HINT_IOS,
+    HINT_IOS_IN_APP,
     INSTALL_HINT_DISMISSED_KEY,
     detectInstallHint
 } from './installHint.js';
@@ -54,6 +55,7 @@ function initInstallHint() {
     const closeBtn = document.getElementById('btn-install-hint-close');
     const lines = {
         [HINT_IOS]: document.getElementById('install-hint-ios'),
+        [HINT_IOS_IN_APP]: document.getElementById('install-hint-ios-in-app'),
         [HINT_FIREFOX_ANDROID]: document.getElementById('install-hint-firefox-android')
     };
     if (!box || !closeBtn || Object.values(lines).some((line) => !line)) return { installPromptFired() {} };

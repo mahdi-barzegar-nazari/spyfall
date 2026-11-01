@@ -47,6 +47,7 @@ export const en = {
     'install.text': '⬇️ Install on your phone',
     'install.hint.ios': 'Share, then Add to Home Screen',
     'install.hint.firefoxAndroid': 'Menu, then Install / Add to Home screen',
+    'install.hint.iosInApp': 'To install, open this page in Safari',
     'install.hint.close.aria': 'Dismiss install tip',
 
     // ---- Hand-over gate

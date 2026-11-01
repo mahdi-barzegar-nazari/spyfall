@@ -44,7 +44,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 ### Just play
 
-Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*); close it with ✕ and it stays closed.
+Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
 
 ### Switch the language
 

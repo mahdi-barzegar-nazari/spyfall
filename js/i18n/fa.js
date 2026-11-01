@@ -20,6 +20,7 @@ export const fa = {
     'install.text': '⬇️ نصب برنامه روی گوشی',
     'install.hint.ios': 'اشتراک‌گذاری، سپس «افزودن به صفحه اصلی»',
     'install.hint.firefoxAndroid': 'منو، سپس «نصب» یا «افزودن به صفحه اصلی»',
+    'install.hint.iosInApp': 'برای نصب، این صفحه را در Safari باز کنید',
     'install.hint.close.aria': 'بستن راهنمای نصب',
 
     // ---- Hand-over gate

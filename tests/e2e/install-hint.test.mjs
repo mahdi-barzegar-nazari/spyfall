@@ -23,6 +23,24 @@ const AGENTS = {
         'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.153 Mobile/15E148 Safari/604.1',
     ipadDesktopMode:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+    iphoneFirefox:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/127.0 Mobile/15E148 Safari/605.1.15',
+    iphoneEdge:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 EdgiOS/125.2535.60 Mobile/15E148 Safari/605.1.15',
+    // Built-in browsers of other apps (the shapes these apps send; not checked on a real device).
+    iphoneInstagram:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90 Instagram 330.0.0.20.113 (iPhone14,5; iOS 17_5; en_US; en; scale=3.00; 1170x2532; 575238203)',
+    iphoneFacebook:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90 [FBAN/FBIOS;FBAV/460.0.0.35.108;FBBV/579283000;FBDV/iPhone14,5;FBMD/iPhone;FBSN/iOS;FBSV/17.5;FBSS/3;FBID/phone;FBLC/en_US;FBOP/5;FBRV/0]',
+    // An iPad in desktop mode with no Safari/ and no app token: not provably a WebView, so the normal hint.
+    ipadDesktopNoSafariToken:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)',
+    iphoneBareWebView:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90',
+    iphoneSnapchat:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Snapchat/12.99.0.30 (like Safari/8617.1.17.10.9, panda)',
+    ipadDesktopFacebook:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) [FBAN/FBIOS;FBAV/460.0.0.35.108;FBDV/iPad13,8;FBMD/iPad;FBSN/iOS;FBSV/17.5]',
     firefoxAndroid: 'Mozilla/5.0 (Android 14; Mobile; rv:128.0) Gecko/128.0 Firefox/128.0',
     chromeAndroid:
         'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
@@ -81,10 +99,22 @@ async function open(page, reload = false) {
 }
 
 const hintShown = (page) => page.locator('#install-hint').isVisible();
+const LINE_IDS = {
+    ios: 'install-hint-ios',
+    inApp: 'install-hint-ios-in-app',
+    firefox: 'install-hint-firefox-android'
+};
 const linesShown = async (page) => ({
-    ios: await page.locator('#install-hint-ios').isVisible(),
-    firefox: await page.locator('#install-hint-firefox-android').isVisible()
+    ios: await page.locator(`#${LINE_IDS.ios}`).isVisible(),
+    inApp: await page.locator(`#${LINE_IDS.inApp}`).isVisible(),
+    firefox: await page.locator(`#${LINE_IDS.firefox}`).isVisible()
 });
+/** The ids of the hint lines that are on screen: at most one. */
+const visibleLineIds = (page) =>
+    page.evaluate(() => [...document.querySelectorAll('.install-hint-text')].filter((el) => el.getBoundingClientRect().width > 0).map((el) => el.id));
+
+/** The iPhone browsers the dismissal, focus, match, layout and theme checks run for: a real browser and an app's WebView. */
+const IOS_VARIANTS = { 'iPhone Safari': AGENTS.iphoneSafari, 'iPhone Instagram': AGENTS.iphoneInstagram };
 const box = (page, selector) => page.locator(selector).boundingBox();
 const storedFlag = (page) => page.evaluate((key) => localStorage.getItem(key), INSTALL_HINT_DISMISSED_KEY);
 
@@ -95,7 +125,7 @@ describe('install hint (production build)', () => {
         await withPage(
             async (page) => {
                 assert.equal(await hintShown(page), true);
-                assert.deepEqual(await linesShown(page), { ios: true, firefox: false });
+                assert.deepEqual(await linesShown(page), { ios: true, inApp: false, firefox: false });
                 assert.equal((await page.locator('#install-hint-ios').innerText()).trim(), fa['install.hint.ios']);
 
                 const close = page.getByRole('button', { name: fa['install.hint.close.aria'] });
@@ -118,7 +148,7 @@ describe('install hint (production build)', () => {
         await withPage(
             async (page) => {
                 assert.equal(await page.evaluate(() => document.documentElement.dir), 'ltr');
-                assert.deepEqual(await linesShown(page), { ios: true, firefox: false });
+                assert.deepEqual(await linesShown(page), { ios: true, inApp: false, firefox: false });
                 const text = (await page.locator('#install-hint-ios').innerText()).trim();
                 const name = await page.locator('#btn-install-hint-close').getAttribute('aria-label');
                 assert.equal(text, en['install.hint.ios']);
@@ -136,8 +166,8 @@ describe('install hint (production build)', () => {
     });
 
     it('other iOS browsers and an iPad in desktop mode get the iOS line too', async () => {
-        await withPage(async (page) => assert.deepEqual(await linesShown(page), { ios: true, firefox: false }), { userAgent: AGENTS.iphoneChrome });
-        await withPage(async (page) => assert.deepEqual(await linesShown(page), { ios: true, firefox: false }), {
+        await withPage(async (page) => assert.deepEqual(await linesShown(page), { ios: true, inApp: false, firefox: false }), { userAgent: AGENTS.iphoneChrome });
+        await withPage(async (page) => assert.deepEqual(await linesShown(page), { ios: true, inApp: false, firefox: false }), {
             userAgent: AGENTS.ipadDesktopMode,
             script: IPAD_AS_MAC
         });
@@ -153,7 +183,7 @@ describe('install hint (production build)', () => {
     it('Firefox on Android gets its own line, in both languages', async () => {
         await withPage(
             async (page) => {
-                assert.deepEqual(await linesShown(page), { ios: false, firefox: true });
+                assert.deepEqual(await linesShown(page), { ios: false, inApp: false, firefox: true });
                 assert.equal((await page.locator('#install-hint-firefox-android').innerText()).trim(), fa['install.hint.firefoxAndroid']);
                 assert.ok((await box(page, '#install-hint')).height < 60, 'one line');
             },
@@ -161,13 +191,123 @@ describe('install hint (production build)', () => {
         );
         await withPage(
             async (page) => {
-                assert.deepEqual(await linesShown(page), { ios: false, firefox: true });
+                assert.deepEqual(await linesShown(page), { ios: false, inApp: false, firefox: true });
                 const text = (await page.locator('#install-hint-firefox-android').innerText()).trim();
                 assert.equal(text, en['install.hint.firefoxAndroid']);
                 assert.doesNotMatch(text, PERSIAN_LETTER);
                 assert.ok((await box(page, '#install-hint')).height < 60, 'one line');
             },
             { userAgent: AGENTS.firefoxAndroid, lang: 'en' }
+        );
+    });
+
+    it('an iPhone inside Instagram, Persian: the "open in Safari" line appears, on one line, and the iOS menu line does not', async () => {
+        await withPage(
+            async (page) => {
+                assert.equal(await hintShown(page), true);
+                assert.deepEqual(await linesShown(page), { ios: false, inApp: true, firefox: false });
+                assert.equal((await page.locator(`#${LINE_IDS.inApp}`).innerText()).trim(), fa['install.hint.iosInApp']);
+                assert.match(fa['install.hint.iosInApp'], /Safari/);
+
+                const hintBox = await box(page, '#install-hint');
+                assert.ok(hintBox.height < 60, `one line of text, not two (box is ${hintBox.height}px high)`);
+                const lineBox = await box(page, `#${LINE_IDS.inApp}`);
+                const closeBox = await box(page, '#btn-install-hint-close');
+                assert.ok(closeBox.width >= 44 && closeBox.height >= 44, `${closeBox.width}x${closeBox.height}`);
+                assert.ok(closeBox.x < lineBox.x, 'Persian reads right to left: the close button is on the left');
+                assert.equal(await page.getByRole('button', { name: fa['install.hint.close.aria'] }).count(), 1);
+                assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), PHONE.width, 'no sideways scroll');
+            },
+            { userAgent: AGENTS.iphoneInstagram }
+        );
+    });
+
+    it('an iPhone inside Instagram, English: "To install, open this page in Safari", on one line, no Persian letter', async () => {
+        await withPage(
+            async (page) => {
+                assert.equal(await page.evaluate(() => document.documentElement.dir), 'ltr');
+                assert.deepEqual(await linesShown(page), { ios: false, inApp: true, firefox: false });
+                const text = (await page.locator(`#${LINE_IDS.inApp}`).innerText()).trim();
+                assert.equal(text, en['install.hint.iosInApp']);
+                assert.equal(text, 'To install, open this page in Safari');
+                assert.doesNotMatch(text, PERSIAN_LETTER);
+                assert.ok((await box(page, '#install-hint')).height < 60, 'one line');
+                assert.equal(await page.getByRole('button', { name: en['install.hint.close.aria'] }).count(), 1);
+                assert.ok((await box(page, '#btn-install-hint-close')).x > (await box(page, `#${LINE_IDS.inApp}`)).x, 'close on the right');
+            },
+            { userAgent: AGENTS.iphoneInstagram, lang: 'en' }
+        );
+    });
+
+    it('other app browsers get the same line: Facebook, a bare WebView with no Safari/, Snapchat, and an iPad in desktop mode with an app token', async () => {
+        for (const name of ['iphoneFacebook', 'iphoneBareWebView', 'iphoneSnapchat']) {
+            await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), [LINE_IDS.inApp], name), { userAgent: AGENTS[name] });
+        }
+        await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), [LINE_IDS.inApp], 'iPad in desktop mode'), {
+            userAgent: AGENTS.ipadDesktopFacebook,
+            script: IPAD_AS_MAC
+        });
+    });
+
+    it('real browsers on iPhone keep the old iOS line: Safari, Chrome, Firefox and Edge, and an iPad in desktop mode', async () => {
+        for (const name of ['iphoneSafari', 'iphoneChrome', 'iphoneFirefox', 'iphoneEdge']) {
+            await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), [LINE_IDS.ios], name), { userAgent: AGENTS[name] });
+        }
+        await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), [LINE_IDS.ios], 'iPad in desktop mode'), {
+            userAgent: AGENTS.ipadDesktopMode,
+            script: IPAD_AS_MAC
+        });
+        // The Safari/ rule is not applied to an iPad in desktop mode: no Safari/ and no token is not proof of a WebView.
+        await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), [LINE_IDS.ios], 'iPad in desktop mode, no Safari/'), {
+            userAgent: AGENTS.ipadDesktopNoSafariToken,
+            script: IPAD_AS_MAC
+        });
+    });
+
+    it('exactly one line is on screen for a browser that has a hint, none for one that has not', async () => {
+        const wanted = {
+            iphoneSafari: [LINE_IDS.ios],
+            iphoneInstagram: [LINE_IDS.inApp],
+            iphoneBareWebView: [LINE_IDS.inApp],
+            firefoxAndroid: [LINE_IDS.firefox],
+            chromeAndroid: [],
+            desktopChrome: []
+        };
+        for (const [name, ids] of Object.entries(wanted)) {
+            for (const lang of ['fa', 'en']) {
+                await withPage(async (page) => assert.deepEqual(await visibleLineIds(page), ids, `${name} ${lang}`), { userAgent: AGENTS[name], lang });
+            }
+        }
+    });
+
+    it('the language switch changes the text of the line that is showing and keeps it the only one', async () => {
+        await withPage(
+            async (page) => {
+                assert.equal((await page.locator(`#${LINE_IDS.inApp}`).innerText()).trim(), fa['install.hint.iosInApp']);
+                await page.click('#btn-lang-en');
+                assert.deepEqual(await visibleLineIds(page), [LINE_IDS.inApp]);
+                assert.equal((await page.locator(`#${LINE_IDS.inApp}`).innerText()).trim(), en['install.hint.iosInApp']);
+                assert.ok((await box(page, '#install-hint')).height < 60, 'still one line in English');
+                await page.click('#btn-lang-fa');
+                assert.equal((await page.locator(`#${LINE_IDS.inApp}`).innerText()).trim(), fa['install.hint.iosInApp']);
+            },
+            { userAgent: AGENTS.iphoneInstagram }
+        );
+    });
+
+    it('nothing is shown inside an app browser when the app already runs installed or the install button is there', async () => {
+        await withPage(async (page) => assert.equal(await hintShown(page), false, 'navigator.standalone'), {
+            userAgent: AGENTS.iphoneInstagram,
+            script: `Object.defineProperty(navigator, 'standalone', { get: () => true });`
+        });
+        await withPage(
+            async (page) => {
+                assert.deepEqual(await visibleLineIds(page), [LINE_IDS.inApp]);
+                await page.evaluate(() => window.dispatchEvent(new Event('beforeinstallprompt', { cancelable: true })));
+                assert.equal(await page.locator('#btn-install-app').isVisible(), true);
+                assert.deepEqual(await visibleLineIds(page), [], 'never both');
+            },
+            { userAgent: AGENTS.iphoneInstagram }
         );
     });
 
@@ -214,7 +354,7 @@ describe('install hint (production build)', () => {
         );
     });
 
-    it('the close button hides the hint, the choice is remembered, and a reload keeps it hidden', async () => {
+    for (const [label, userAgent] of Object.entries(IOS_VARIANTS)) it(`${label}: the close button hides the hint, the choice is remembered, and a reload keeps it hidden`, async () => {
         await withPage(
             async (page) => {
                 assert.equal(await hintShown(page), true);
@@ -235,7 +375,7 @@ describe('install hint (production build)', () => {
                 await open(page, true);
                 assert.equal(await hintShown(page), true, 'back once the stored choice is gone');
             },
-            { userAgent: AGENTS.iphoneSafari }
+            { userAgent }
         );
     });
 
@@ -252,7 +392,7 @@ describe('install hint (production build)', () => {
         );
     });
 
-    it('a keyboard user who closes it lands on the start button, not on <body>', async () => {
+    for (const [label, userAgent] of Object.entries(IOS_VARIANTS)) it(`${label}: a keyboard user who closes it lands on the start button, not on <body>`, async () => {
         await withPage(
             async (page) => {
                 await page.focus('#btn-install-hint-close');
@@ -260,7 +400,7 @@ describe('install hint (production build)', () => {
                 assert.equal(await hintShown(page), false);
                 assert.equal(await page.evaluate(() => document.activeElement.id), 'btn-nav-setup');
             },
-            { userAgent: AGENTS.iphoneSafari }
+            { userAgent }
         );
     });
 
@@ -295,7 +435,7 @@ describe('install hint (production build)', () => {
         );
     });
 
-    it('it is on the welcome screen only: not on the setup screen and not during a match', async () => {
+    for (const [label, userAgent] of Object.entries(IOS_VARIANTS)) it(`${label}: it is on the welcome screen only: not on the setup screen and not during a match`, async () => {
         await withPage(
             async (page) => {
                 assert.equal(await page.evaluate(() => !!document.getElementById('install-hint').closest('#screen-welcome')), true);
@@ -310,11 +450,11 @@ describe('install hint (production build)', () => {
                 assert.equal(await hintShown(page), false, 'role reveal');
                 assert.equal(await page.getByRole('button', { name: fa['install.hint.close.aria'] }).count(), 0);
             },
-            { userAgent: AGENTS.iphoneSafari }
+            { userAgent }
         );
     });
 
-    it('it keeps clear of the cover-mode and install buttons: phone and short phone, both directions, top and end of the page', async () => {
+    for (const [label, userAgent] of Object.entries(IOS_VARIANTS)) it(`${label}: it keeps clear of the cover-mode and install buttons: phone and short phone, both directions, top and end of the page`, async () => {
         for (const lang of ['fa', 'en']) {
             for (const viewport of [PHONE, { width: 360, height: 520 }]) {
                 await withPage(
@@ -329,13 +469,13 @@ describe('install hint (production build)', () => {
                             }
                         }
                     },
-                    { userAgent: AGENTS.iphoneSafari, lang, viewport }
+                    { userAgent, lang, viewport }
                 );
             }
         }
     });
 
-    it('in every one of the 8 themes it follows the theme colours, keeps its size and stays inside the screen', async () => {
+    for (const [label, userAgent] of Object.entries(IOS_VARIANTS)) it(`${label}: in every one of the 8 themes it follows the theme colours, keeps its size and stays inside the screen`, async () => {
         for (const lang of ['fa', 'en']) {
             await withPage(
                 async (page) => {
@@ -371,22 +511,25 @@ describe('install hint (production build)', () => {
                         assert.ok(hint.x >= 0 && hint.x + hint.width <= PHONE.width, `${lang} ${theme}: inside the screen`);
                     }
                 },
-                { userAgent: AGENTS.iphoneSafari, lang }
+                { userAgent, lang }
             );
         }
     });
 
-    it('the screen recorder leaves the hint out, so a shown hint does not change a recording of the welcome screen', async () => {
+    it('the screen recorder leaves every line of the hint out, so a shown hint does not change a recording of the welcome screen', async () => {
         let plain;
         await withPage(async (page) => {
             plain = await recordScreen(page);
         });
-        await withPage(
-            async (page) => {
-                assert.equal(await hintShown(page), true);
-                assert.deepEqual(await recordScreen(page), plain);
-            },
-            { userAgent: AGENTS.iphoneSafari }
-        );
+        for (const name of ['iphoneSafari', 'iphoneInstagram', 'firefoxAndroid']) {
+            await withPage(
+                async (page) => {
+                    assert.equal(await hintShown(page), true, name);
+                    assert.deepEqual(await recordScreen(page), plain, name);
+                },
+                { userAgent: AGENTS[name] }
+            );
+        }
     });
+
 });
