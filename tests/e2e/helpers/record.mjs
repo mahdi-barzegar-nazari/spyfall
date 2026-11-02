@@ -11,6 +11,11 @@
  * tests, but its close button's `aria-label` is in the page whether or not it is shown, and the Persian text
  * of the other screens is compared with a recording made before the hint existed.
  *
+ * The welcome screen's "How to play" button (`#btn-how-to-play`) is always left out too: the Persian text of the other
+ * screens is compared with a recording made before the button existed, and its label (not the help text it opens,
+ * which is a modal that `recordModal` records on request) is the one thing that is new. It is left out in English as
+ * well; tests/e2e/how-to-play.test.mjs checks the button and its texts in both languages.
+ *
  * The build line (`#build-info`, "v2.1.0 · 8f33eec" or "dev") is always left out: it is a number, not a text
  * a language owns, and it changes with every build, so it can never be part of a recording of the Persian text.
  * It is hidden by default (a long press on the welcome title shows it), so `innerText` normally does not see it
@@ -20,16 +25,17 @@
 export async function recordScreen(page, { includeSwitch = false } = {}) {
     return page.evaluate((withSwitch) => {
         const norm = (s) => s.replace(/\s+/g, ' ').trim();
-        const outside = (el) => !el.closest('.install-hint') && (withSwitch || !el.closest('.lang-switch-wrap'));
+        const outside = (el) => !el.closest('.install-hint') && !el.closest('#btn-how-to-play') && (withSwitch || !el.closest('.lang-switch-wrap'));
         const labels = withSwitch ? [] : [...document.querySelectorAll('.lang-btn')].map((b) => norm(b.textContent));
         const hintLines = [...document.querySelectorAll('.install-hint span, .install-hint button')].map((el) => norm(el.textContent));
         const buildLine = norm(document.getElementById('build-info')?.textContent ?? '');
+        const howToLine = norm(document.getElementById('btn-how-to-play')?.textContent ?? '');
         const main = document.getElementById('main-content-root');
 
         const text = main.innerText
             .split('\n')
             .map(norm)
-            .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine);
+            .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine && line !== howToLine);
 
         const attrs = [];
         for (const el of document.querySelectorAll('[aria-label], [placeholder], [title]')) {

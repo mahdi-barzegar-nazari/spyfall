@@ -839,8 +839,8 @@ body::after {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin: 22px 0 24px;
+    gap: 6px;
+    margin: 14px 0 14px;
 }
 .play-button {
     width: 128px;
@@ -883,6 +883,9 @@ body::after {
 }
 .play-button-label { font-weight: 800; font-size: 1.02rem; color: var(--text-primary); }
 .play-button-caption { font-size: 0.78rem; color: var(--text-secondary); text-align: center; max-width: 260px; }
+/* "How to play" (welcome screen): a small ghost pill under the caption, so the round play button stays the one big
+   action. It opens the same help modal as the (i) buttons (data-info="howToPlay"). 44px is the usual touch target. */
+.how-to-play-btn { min-height: 44px; padding-inline: 20px; font-size: 0.86rem; }
 /* Language switch (welcome screen only). The wrapper in index.html is dir="ltr", so the two buttons keep the
    same visual order ("فارسی  English") in both UI languages and a person can find his own language without
    reading the current one. The selected state is drawn from aria-pressed, so what is shown and what a screen

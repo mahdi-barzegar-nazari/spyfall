@@ -214,6 +214,14 @@ The install button (`#btn-install-app`) only appears when the browser fires `bef
 - **Welcome screen only**, structurally: the box is inside `#screen-welcome`, so it is shown and hidden with that screen and has no phase logic of its own. Texts are static (`data-i18n`, `data-i18n-attr` on the close button), so the language switch needs no code for it.
 - **Tests and the recorder.** `tests/e2e/helpers/record.mjs` leaves `.install-hint` out of a recording like the language switch (its close button's `aria-label` is in the page even when the hint is hidden, and the Persian baseline predates it).
 
+## How to play help
+
+A first-time player gets a short summary of a round from a button on the welcome screen (`#btn-how-to-play`, label `welcome.howToPlay`: «چطور بازی کنیم؟» / "How to play"), a small ghost pill inside the play button group under the caption, so the round play button stays the main action.
+
+- **It is an info modal, not a new one.** The button carries `data-info="howToPlay"`, `howToPlay` is an entry of `INFO_KEYS` (`data/infoTexts.js`) and the texts are `info.howToPlay.title` / `info.howToPlay.text` in both catalogs. `ui/bindings.js` wires every element with `data-info` (the (i) buttons and this one) to `showInfoModal` in `core/dispatch.js`, which writes the texts with `t()` when it opens, so the language switch needs no code for it. The focus trap (`ui/focusTrap.js`), the close button and the focus returning to the button that opened it (`OPEN_MODAL` / `CLOSE_MODAL` in `app/actions.js`) are the ones every help modal uses.
+- **Content.** About six short bullet lines, written for each language: who sees the word and who only a hint, the turns of questions without saying the word, the vote, the caught spy's last chance, how the spy wins. It does not describe wagers, side quests or scoring (they have their own (i) help), and it keeps the glossary at the top of `i18n/en.js`.
+- **Tests and the recorder.** `tests/unit/how-to-play.test.mjs` (catalog entries, `INFO_KEYS`, the markup, `showInfoModal`) and `tests/e2e/how-to-play.test.mjs` (layout at 360x740, opening, the focus trap, the focus coming back). `tests/e2e/helpers/record.mjs` leaves `#btn-how-to-play` out of a recording like the language switch and the install hint: the Persian baseline predates the button.
+
 ## Known trade-offs
 
 - **`game/` and `ui/` still know each other.** There are no import cycles between files, but some helpers are shared across the folders in both directions (for example `game/timer.js` calls `ui/render.js` to draw the countdown, and `ui/render.js` reads `game/voting.js`). Only `core/` is kept strictly below them.

@@ -34,7 +34,7 @@ export function bindEvents() {
         }
     });
 
-    document.querySelectorAll('.info-btn').forEach(btn => {
+    document.querySelectorAll('[data-info]').forEach(btn => {
         btn.onclick = (e) => {
             e.stopPropagation();
             showInfoModal(btn.dataset.info);

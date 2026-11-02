@@ -123,6 +123,7 @@ export const en = {
     'welcome.start.aria': 'Start game',
     'welcome.start.label': 'Start game',
     'welcome.start.caption': 'One phone, passed around the group',
+    'welcome.howToPlay': 'How to play',
     'welcome.words': '✏️ Custom word bank',
     'welcome.lang.aria': 'Language',
     'welcome.credit.author.aria': 'Creator’s page',
@@ -393,7 +394,7 @@ export const en = {
     // ---- Accessibility labels
     'a11y.infoButton': 'About this option',
 
-    // ---- Help texts shown by the (i) buttons
+    // ---- Help texts shown by the (i) buttons and by the welcome screen's "How to play" button
     'info.detective.title': '🔍 Detective role',
     'info.detective.text': 'The detective is a citizen who knows more than the rest. Once per round, they can secretly check one player’s identity to find out whether that player is a spy or an innocent citizen.',
     'info.knownSpies.title': '🕵️ Fellow spies',
@@ -421,5 +422,7 @@ export const en = {
     'info.quickVoting.title': '⚡ Quick voting',
     'info.quickVoting.text': 'Normally, before showing the voting options to each player, the game asks them to take the phone and say they’re ready. Quick voting skips that step: as soon as it’s a player’s turn, the voting screen shows up right away. Note: this is separate from “Vote confirmation”, which is the final confirmation message after you pick a suspect.',
     'info.hintTypes.title': '🕵️ What’s a spy hint?',
-    'info.hintTypes.text': 'Instead of the secret word, the spy sees one of these hints:\n• Related word: a word close to the secret word\n• Category name: just the word’s general category\n• First letter: only the first letter of the secret word\n• No hint: the hardest mode, no clue at all\n\nYou can turn on several at once. Each round picks one of the active hints at random.'
+    'info.hintTypes.text': 'Instead of the secret word, the spy sees one of these hints:\n• Related word: a word close to the secret word\n• Category name: just the word’s general category\n• First letter: only the first letter of the secret word\n• No hint: the hardest mode, no clue at all\n\nYou can turn on several at once. Each round picks one of the active hints at random.',
+    'info.howToPlay.title': '🎮 How to play',
+    'info.howToPlay.text': '• Everyone except the spy sees the secret word on their card. The spy only gets a hint.\n• Take turns asking each other questions about the word, without ever saying it.\n• Answer with care: don’t hand the spy the word, but don’t sound clueless either!\n• When the discussion ends, vote for who you think the spy is.\n• A spy who gets caught has one last chance to say the secret word out loud.\n• The spy wins by staying hidden or by guessing the word. You win by catching them.'
 };

@@ -19,5 +19,6 @@ export const INFO_KEYS = Object.freeze([
     'roleRevealConfirm',
     'voteConfirm',
     'quickVoting',
-    'hintTypes'
+    'hintTypes',
+    'howToPlay'
 ]);

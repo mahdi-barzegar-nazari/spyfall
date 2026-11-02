@@ -46,6 +46,8 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
 
+New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round. The (i) buttons next to single options on the setup screen explain those options.
+
 ### Switch the language
 
 On the welcome screen, under the custom-word button, tap **English** (or **فارسی** to go back). The two buttons always sit in the same left-to-right order, each written in its own language, so you can find yours even when the page is in the other one. The choice is remembered on the device (`localStorage` key `spy_lang`) and applies at the next visit too. The language can only be changed outside a match: a running match keeps the language it was started in, and **Resume match** puts the app back in the language of the saved match. Persian stays the default; the browser's language is never used to guess.
@@ -67,9 +69,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 919 unit tests (built-in node:test, no dependencies)
+npm test               # 1124 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
 npm run lint
 ```
 
