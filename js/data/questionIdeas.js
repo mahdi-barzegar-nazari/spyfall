@@ -1,0 +1,68 @@
+/**
+ * Question ideas for the discussion screen, in Persian (the English bank is `questionIdeasEn.js`).
+ *
+ * One short question each, for players to ask one another when they run out of things to ask. Written the way
+ * people talk (spoken register, not translated from English). Every question has to fit ANY secret word of ANY
+ * category, so none of them names or hints at a category or at a word, and none may contain a secret word of
+ * the built-in banks as a whole word (tests/unit/question-ideas.test.mjs checks both). The bank is public: it is
+ * the same for every player and every round, and it never depends on the word.
+ *
+ * Open and yes/no questions are mixed. A question is plain text (it is written with textContent), ends with the
+ * Persian question mark and is at most 80 characters, which is one or two lines at 360 px. Append to grow it;
+ * no entry may repeat.
+ */
+
+export const questionIdeasPool = [
+    'آخرین بار کی باهاش روبه‌رو شدی؟',
+    'یه بچه ازش خوشش میاد؟',
+    'تابستون بهتره یا زمستون؟',
+    'به‌نظرت گرونه؟',
+    'با خودت می‌بردیش سفر؟',
+    'سر و صدا داره؟',
+    'اولین چیزی که ازش یادت میاد چیه؟',
+    'چه وقتی از روز بیشتر بهش میاد؟',
+    'هر چند وقت یه بار باهاش سروکار داری؟',
+    'آخرین بار با کی درباره‌ش حرف زدی؟',
+    'اولین چیزی که به یه دوستت درباره‌ش می‌گی چیه؟',
+    'بهترین قسمتش چیه؟',
+    'اعصاب‌خردکن‌ترین قسمتش چیه؟',
+    'اولین بار کجا باهاش آشنا شدی؟',
+    'مامان‌بزرگت درباره‌ش چی می‌گه؟',
+    'به یه بچه‌ی شش‌ساله چطوری توضیحش می‌دی؟',
+    'مردم معمولاً از چی‌ش گله دارن؟',
+    'مردم بیشتر درباره‌ی چی‌ش اشتباه فکر می‌کنن؟',
+    'تو رو یاد چی می‌ندازه؟',
+    'بهت چه حسی می‌ده؟',
+    'بهش که فکر می‌کنی چه صدایی تو گوشته؟',
+    'کدوم گروه سنی بیشتر ازش خوششون میاد؟',
+    'کجا از همه کمتر انتظار داری ببینیش؟',
+    'چی لازمه تا ازش لذت ببری؟',
+    'تو جمع بیشتر حال می‌ده یا تنهایی؟',
+    'ازش دلشوره می‌گیری؟',
+    'پیدا کردنش آسونه؟',
+    'دوست داری تو تولدت هم باشه؟',
+    'سرش بحث و جدل پیش میاد؟',
+    'به یه دوست پیشنهادش می‌کنی؟',
+    'تو منطقه‌ی شما معروفه؟',
+    'از خودت قدیمی‌تره؟',
+    'تو یه روز بارونی هم حال می‌ده؟',
+    'بیشتر مال صبحه یا مال شب؟',
+    'تو اولین قرار ازش حرف می‌زنی؟',
+    'خطرناکه؟',
+    'بدونش یه ماه سر می‌کنی؟',
+    'بیشتر مردم دوستش دارن؟',
+    'جای زیادی می‌خواد؟',
+    'بیشتر خسته‌ت می‌کنه یا آروم‌ت می‌کنه؟',
+    'آدم‌ها رو خوشحال می‌کنه؟',
+    'سال به سال خیلی عوض می‌شه؟',
+    'بهش پز می‌دی؟',
+    'وقت زیادی می‌گیره؟',
+    'بیشتر جدیه یا بامزه؟',
+    'برای سورپرایز خوبه؟',
+    'مهارت خاصی می‌خواد؟',
+    'تو یه دقیقه می‌تونی نقاشیش کنی؟',
+    'ازش تو خبرها می‌شنوی؟',
+    'تو خونه‌ی مادربزرگ هم پیداش می‌کنی؟',
+    'برای بعضی‌ها یه کم ترسناکه؟',
+    'بیشتر شبیه جایزه‌س یا شبیه وظیفه؟'
+];

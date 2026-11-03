@@ -20,6 +20,7 @@ import { addCustomWordDOM, exportCustomWordsJSON, importCustomWordsJSON } from '
 import { showToast } from '../ui/feedback.js';
 import { trapFocus } from '../ui/focusTrap.js';
 import { hideHandoffGate } from '../ui/handoff.js';
+import { clearQuestionIdea, showQuestionIdea } from '../ui/questionIdea.js';
 import { renderRoleModalContent } from '../ui/render.js';
 import { exportScorecardImage } from '../ui/scorecard.js';
 import { renderNameInputs, restoreSavedSetup, validateAndSaveSettings } from '../ui/setup.js';
@@ -126,10 +127,11 @@ export function handleAction(action) {
             gameState.round.num = 0;
             initMatchPlayers();
             if (!startNextRound()) return;
+            clearQuestionIdea();
             break;
         case 'NEXT_ROUND':
             if (gameState.phase !== 'result') return;
-            startNextRound();
+            if (startNextRound()) clearQuestionIdea();
             break;
         case 'START_TIMER':
             if (gameState.phase !== 'reveal' || gameState.timer.running) return;
@@ -139,6 +141,12 @@ export function handleAction(action) {
             if (gameState.phase !== 'timer' || !gameState.settings.director) return;
             calcDirectorTurn(); 
             commitState();
+            break;
+
+        case 'SHOW_QUESTION_IDEA':
+            // Public and the same for everyone; no state is read or written, so there is nothing to commit.
+            if (gameState.phase !== 'timer') return;
+            showQuestionIdea();
             break;
 
         case 'REQUEST_VOTE':

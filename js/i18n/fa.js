@@ -182,6 +182,7 @@ export const fa = {
     'timer.director.next': 'نوبت بعدی 🔄',
     'timer.emergency': '🚨 اعلام زنگ اضطراری و رای‌گیری',
     'timer.end': 'پایان مسابقه و کارنامه 🏆',
+    'timer.idea.button': 'ایده‌ی سؤال',
     'timer.director.turn': '«{asker}» سوال بپرسد از «{target}»',
     'timer.votes.unlimited': 'زنگ: نامحدود',
     'timer.votes.remaining': 'سهمیه زنگ باقی‌مانده: {limit}',

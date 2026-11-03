@@ -209,6 +209,7 @@ export const en = {
     'timer.director.next': 'Next turn 🔄',
     'timer.emergency': '🚨 Sound the alarm & vote',
     'timer.end': 'End match & scorecard 🏆',
+    'timer.idea.button': 'Question idea',
     'timer.director.turn': '{asker}, ask {target} a question',
     'timer.votes.unlimited': 'Alarms: unlimited',
     'timer.votes.remaining': 'Alarms left: {limit}',

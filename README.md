@@ -46,7 +46,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
 
-New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round. The (i) buttons next to single options on the setup screen explain those options.
+New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round, and during the discussion tap **Question idea** (**ایده‌ی سؤال**) under the timer for a suggested question to ask each other (a new one on every press, none repeated until all have been used). The (i) buttons next to single options on the setup screen explain those options.
 
 ### Switch the language
 
@@ -69,9 +69,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 1124 unit tests (built-in node:test, no dependencies)
+npm test               # 1196 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, the discussion screen's Question idea button, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
 npm run lint
 ```
 
@@ -86,10 +86,10 @@ npm run lint
 │   ├── preinit.js             # classic <head> script: language and direction before the first paint (English users)
 │   ├── app/                   # composition root: the action handler behind dispatch(), and wireApp()
 │   ├── core/                  # config (rules, scoring), state, storage, phase (setPhase, commitState), dispatch port, buildInfo (stamped version and hash)
-│   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking
+│   ├── game/                  # timer, rounds, voting, resolution and scoring, ranking, question picker
 │   ├── ui/                    # rendering, setup form, wheel, podium, scorecard, event bindings
 │   ├── platform/              # audio, wake lock, anti-zoom, install prompt and install hint, service worker registration
-│   ├── data/                  # word banks and side quests (one per language), help-text keys
+│   ├── data/                  # word banks, side quests and question ideas (one per language), help-text keys
 │   ├── i18n/                  # translation core (t, language switching) and the Persian and English catalogs
 │   └── utils/                 # text and random helpers (pure)
 ├── sw.js                      # service worker (versioned app-shell precache)

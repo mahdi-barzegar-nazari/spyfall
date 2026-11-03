@@ -442,6 +442,14 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .timer-warning { color: var(--brand-amber); animation: pulse 1s infinite; }
 .timer-danger { color: var(--brand-rose); animation: pulse 0.5s infinite; }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+/* "Question idea" (discussion screen): a small ghost pill under the timer card and, below it, the suggested question,
+   a polite live region. 44px is the usual touch target. The region takes no room while it is empty (and stays in the
+   page, not display:none, so a screen reader announces what is written into it); once it holds a question it keeps two
+   lines of height, so the controls below do not jump between a one-line and a two-line question. */
+.question-idea { text-align: center; }
+.question-idea-btn { display: inline-flex; min-height: 44px; padding-inline: 20px; font-size: 0.86rem; }
+.question-idea-text { margin: 0; font-size: 0.95rem; line-height: 1.45; color: var(--text-primary); overflow-wrap: anywhere; }
+.question-idea-text:not(:empty) { margin-top: 10px; min-height: 2.9em; }
 
 .modal-overlay {
     position: fixed; inset: 0; background: rgba(2, 4, 10, 0.88);

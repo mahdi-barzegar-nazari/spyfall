@@ -175,6 +175,8 @@ export function bindEvents() {
 
     document.getElementById('btn-next-director').onclick = () => dispatch({type: 'NEXT_DIRECTOR'});
 
+    document.getElementById('btn-question-idea').onclick = () => dispatch({type: 'SHOW_QUESTION_IDEA'});
+
     document.getElementById('btn-emergency-vote').onclick = () => dispatch({type: 'REQUEST_VOTE'});
 
     document.getElementById('btn-confirm-end-1').onclick = () => dispatch({type: 'CONFIRM_END_MATCH'});

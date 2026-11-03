@@ -16,6 +16,12 @@
  * which is a modal that `recordModal` records on request) is the one thing that is new. It is left out in English as
  * well; tests/e2e/how-to-play.test.mjs checks the button and its texts in both languages.
  *
+ * The discussion screen's "Question idea" block (`#question-idea`: the button `#btn-question-idea` and the suggested question
+ * in `#question-idea-text`) is always left out too, in the text, the text attributes and the lines: the Persian text of the
+ * screens is compared with a recording made before the button existed, and the suggested question is a text that changes with
+ * every press. It is left out in English as well; tests/e2e/question-idea.test.mjs checks the button and the questions in both
+ * languages.
+ *
  * The build line (`#build-info`, "v2.1.0 · 8f33eec" or "dev") is always left out: it is a number, not a text
  * a language owns, and it changes with every build, so it can never be part of a recording of the Persian text.
  * It is hidden by default (a long press on the welcome title shows it), so `innerText` normally does not see it
@@ -25,17 +31,18 @@
 export async function recordScreen(page, { includeSwitch = false } = {}) {
     return page.evaluate((withSwitch) => {
         const norm = (s) => s.replace(/\s+/g, ' ').trim();
-        const outside = (el) => !el.closest('.install-hint') && !el.closest('#btn-how-to-play') && (withSwitch || !el.closest('.lang-switch-wrap'));
+        const outside = (el) => !el.closest('.install-hint') && !el.closest('#btn-how-to-play') && !el.closest('#question-idea') && (withSwitch || !el.closest('.lang-switch-wrap'));
         const labels = withSwitch ? [] : [...document.querySelectorAll('.lang-btn')].map((b) => norm(b.textContent));
         const hintLines = [...document.querySelectorAll('.install-hint span, .install-hint button')].map((el) => norm(el.textContent));
         const buildLine = norm(document.getElementById('build-info')?.textContent ?? '');
         const howToLine = norm(document.getElementById('btn-how-to-play')?.textContent ?? '');
+        const ideaLines = ['btn-question-idea', 'question-idea-text'].map((id) => norm(document.getElementById(id)?.textContent ?? ''));
         const main = document.getElementById('main-content-root');
 
         const text = main.innerText
             .split('\n')
             .map(norm)
-            .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine && line !== howToLine);
+            .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine && line !== howToLine && !ideaLines.includes(line));
 
         const attrs = [];
         for (const el of document.querySelectorAll('[aria-label], [placeholder], [title]')) {
