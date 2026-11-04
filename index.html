@@ -106,152 +106,195 @@
 
     <section id="screen-setup" class="screen-view hidden">
         <h2 data-i18n="setup.title">تنظیمات مسابقه</h2>
-        <div class="grid-2">
+        <div class="setup-core" id="setup-core">
+            <div class="grid-2">
+                <div class="input-group">
+                    <label for="setup-players-count" data-i18n="setup.players.label">تعداد کل بازیکنان:</label>
+                    <input type="text" id="setup-players-count" class="input-control" value="4" inputmode="numeric" aria-describedby="players-limit-hint">
+                    <div id="players-limit-hint" class="field-hint"></div>
+                </div>
+                <div class="input-group">
+                    <label for="setup-spies-count" data-i18n="setup.spies.label">تعداد جاسوس‌ها:</label>
+                    <input type="text" id="setup-spies-count" class="input-control" value="1" inputmode="numeric" aria-describedby="spies-limit-hint">
+                    <div id="spies-limit-hint" class="field-hint"></div>
+                </div>
+            </div>
+
             <div class="input-group">
-                <label for="setup-players-count" data-i18n="setup.players.label">تعداد کل بازیکنان:</label>
-                <input type="text" id="setup-players-count" class="input-control" value="4" inputmode="numeric" aria-describedby="players-limit-hint">
-                <div id="players-limit-hint" class="field-hint"></div>
+                <div class="label-text">
+                    <span data-i18n="setup.categories.label">دسته‌بندی موضوعات کلمات:</span>
+                    <button type="button" id="btn-toggle-all-cats" class="btn btn-ghost btn-sm u-compact" data-i18n="setup.categories.all">همه موضوعات (+700 کلمه)</button>
+                </div>
+                <div class="chips-grid" id="category-chips-container">
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="places" checked> <span data-i18n="setup.cat.places">اماکن و فضاها</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="jobs" checked> <span data-i18n="setup.cat.jobs">مشاغل و حرفه‌ها</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="foods" checked> <span data-i18n="setup.cat.foods">غذاها و خوراکی‌ها</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="objects" checked> <span data-i18n="setup.cat.objects">اشیاء و فناوری</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="vehicles" checked> <span data-i18n="setup.cat.vehicles">وسایل نقلیه</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="animals" checked> <span data-i18n="setup.cat.animals">حیوانات و طبیعت</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="sports" checked> <span data-i18n="setup.cat.sports">ورزش و بازی‌ها</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="events" checked> <span data-i18n="setup.cat.events">رویدادها و پدیده‌ها</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-cat" value="custom"> <span data-i18n="setup.cat.custom">کلمات سفارشی</span></label>
+                </div>
             </div>
+
+            <fieldset class="input-group" id="difficulty-section-container">
+                <legend class="label-text u-legend-full" data-i18n="setup.difficulty.label">سطح دشواری:</legend>
+                <div class="chips-grid chips-grid-3" id="difficulty-chips-container">
+                    <label class="chip-item"><input type="checkbox" name="setup-diff" value="easy" checked> <span data-i18n="setup.difficulty.easy">ساده</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-diff" value="medium" checked> <span data-i18n="setup.difficulty.medium">متوسط</span></label>
+                    <label class="chip-item"><input type="checkbox" name="setup-diff" value="hard" checked> <span data-i18n="setup.difficulty.hard">سخت</span></label>
+                </div>
+            </fieldset>
+
             <div class="input-group">
-                <label for="setup-spies-count" data-i18n="setup.spies.label">تعداد جاسوس‌ها:</label>
-                <input type="text" id="setup-spies-count" class="input-control" value="1" inputmode="numeric" aria-describedby="spies-limit-hint">
-                <div id="spies-limit-hint" class="field-hint"></div>
+                <label for="setup-timer" data-i18n="setup.timer.label">زمان گفتگو (دقیقه):</label>
+                <input type="text" id="setup-timer" class="input-control" value="4" inputmode="numeric" aria-describedby="timer-limit-hint">
+                <div id="timer-limit-hint" class="field-hint"></div>
             </div>
         </div>
 
-        <div class="input-group">
-            <div class="label-text">
-                <span data-i18n="setup.categories.label">دسته‌بندی موضوعات کلمات:</span>
-                <button type="button" id="btn-toggle-all-cats" class="btn btn-ghost btn-sm u-compact" data-i18n="setup.categories.all">همه موضوعات (+700 کلمه)</button>
-            </div>
-            <div class="chips-grid" id="category-chips-container">
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="places" checked> <span data-i18n="setup.cat.places">اماکن و فضاها</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="jobs" checked> <span data-i18n="setup.cat.jobs">مشاغل و حرفه‌ها</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="foods" checked> <span data-i18n="setup.cat.foods">غذاها و خوراکی‌ها</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="objects" checked> <span data-i18n="setup.cat.objects">اشیاء و فناوری</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="vehicles" checked> <span data-i18n="setup.cat.vehicles">وسایل نقلیه</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="animals" checked> <span data-i18n="setup.cat.animals">حیوانات و طبیعت</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="sports" checked> <span data-i18n="setup.cat.sports">ورزش و بازی‌ها</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="events" checked> <span data-i18n="setup.cat.events">رویدادها و پدیده‌ها</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-cat" value="custom"> <span data-i18n="setup.cat.custom">کلمات سفارشی</span></label>
-            </div>
+        <div class="setup-groups" id="setup-groups">
+            <details class="setup-group" id="setup-group-roles">
+                <summary class="setup-group-summary">
+                    <span class="setup-group-title" data-i18n="setup.group.roles">نقش‌ها</span>
+                    <span class="setup-group-badge" id="setup-group-roles-badge"></span>
+                    <span class="setup-group-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="setup-group-body">
+                    <div class="input-group">
+                        <div class="label-text">
+                            <span data-i18n="setup.hints.label">نوع راهنمای جاسوس:</span>
+                            <button type="button" class="info-btn" data-info="hintTypes" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton">ℹ️</button>
+                        </div>
+                        <p class="hint-note" data-i18n="setup.hints.note">می‌توانید چند مورد را همزمان فعال نگه دارید؛ هر دور یکی از موارد فعال به‌صورت تصادفی انتخاب می‌شود.</p>
+                        <div class="hint-grid" id="hint-chips-container">
+                            <label class="hint-chip">
+                                <input type="checkbox" name="setup-hint" value="related_word" checked>
+                                <span class="hint-chip-icon">🔗</span>
+                                <span class="hint-chip-text" data-i18n="setup.hint.related">کلمه مرتبط</span>
+                            </label>
+                            <label class="hint-chip">
+                                <input type="checkbox" name="setup-hint" value="category">
+                                <span class="hint-chip-icon">🗂️</span>
+                                <span class="hint-chip-text" data-i18n="setup.hint.category">نام موضوع</span>
+                            </label>
+                            <label class="hint-chip">
+                                <input type="checkbox" name="setup-hint" value="first_letter">
+                                <span class="hint-chip-icon">🔤</span>
+                                <span class="hint-chip-text" data-i18n="setup.hint.firstLetter">حرف اول کلمه</span>
+                            </label>
+                            <label class="hint-chip hint-chip-hard">
+                                <input type="checkbox" name="setup-hint" value="none">
+                                <span class="hint-chip-icon">🔥</span>
+                                <span class="hint-chip-text" data-i18n="setup.hint.none">بدون راهنما</span>
+                                <span class="hint-chip-tag" data-i18n="setup.hint.noneTag">سخت</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setup-group-grid">
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-detective" data-i18n="setup.toggle.detective">کارآگاه</span><button class="info-btn" data-info="detective" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-detective" aria-labelledby="lbl-detective"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-known" data-i18n="setup.toggle.known">همکاران</span><button class="info-btn" data-info="knownSpies" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-known" aria-labelledby="lbl-known"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-fool" data-i18n="setup.toggle.fool">ساده‌لوح</span><button class="info-btn" data-info="fool" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-fool" aria-labelledby="lbl-fool"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            <details class="setup-group" id="setup-group-discussion">
+                <summary class="setup-group-summary">
+                    <span class="setup-group-title" data-i18n="setup.group.discussion">گفتگو</span>
+                    <span class="setup-group-badge" id="setup-group-discussion-badge"></span>
+                    <span class="setup-group-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="setup-group-body">
+                    <div class="setup-group-grid">
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-director" data-i18n="setup.toggle.director">دستیار نوبت</span><button class="info-btn" data-info="director" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-director" aria-labelledby="lbl-director"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-oneword" data-i18n="setup.toggle.oneword">تک‌کلمه‌ای</span><button class="info-btn" data-info="oneword" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-oneword" aria-labelledby="lbl-oneword"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-quests" data-i18n="setup.toggle.quests">ماموریت</span><button class="info-btn" data-info="quests" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-quests" aria-labelledby="lbl-quests"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-limit" data-i18n="setup.toggle.limit">سقف زنگ</span><button class="info-btn" data-info="voteLimit" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-limit" aria-labelledby="lbl-limit"><span class="slider"></span></label>
+                        </div>
+                        <div id="vote-limit-box" class="input-group setup-group-wide hidden">
+                            <label for="setup-max-votes" class="sr-only" data-i18n="setup.maxVotes.label">حداکثر سهمیه زنگ اضطراری</label>
+                            <input type="text" id="setup-max-votes" class="input-control" value="2" placeholder="حداکثر سهمیه زنگ اضطراری" inputmode="numeric" aria-describedby="maxvotes-limit-hint" data-i18n-attr="placeholder:setup.maxVotes.placeholder">
+                            <div id="maxvotes-limit-hint" class="field-hint"></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            <details class="setup-group" id="setup-group-stakes">
+                <summary class="setup-group-summary">
+                    <span class="setup-group-title" data-i18n="setup.group.stakes">ریسک و پایان</span>
+                    <span class="setup-group-badge" id="setup-group-stakes-badge"></span>
+                    <span class="setup-group-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="setup-group-body">
+                    <div class="setup-group-grid">
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-wager" data-i18n="setup.toggle.wager">شرط‌بندی</span><button class="info-btn" data-info="wager" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-wager" aria-labelledby="lbl-wager"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-sudden" data-i18n="setup.toggle.sudden">حذف درجا</span><button class="info-btn" data-info="sudden" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-sudden" aria-labelledby="lbl-sudden"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-last-chance" data-i18n="setup.toggle.lastChance">شانس آخر جاسوس</span><button class="info-btn" data-info="spyLastChance" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-last-chance" checked aria-labelledby="lbl-last-chance"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            <details class="setup-group" id="setup-group-speed">
+                <summary class="setup-group-summary">
+                    <span class="setup-group-title" data-i18n="setup.group.speed">سرعت و تأیید</span>
+                    <span class="setup-group-badge" id="setup-group-speed-badge"></span>
+                    <span class="setup-group-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="setup-group-body">
+                    <div class="input-group">
+                        <label for="setup-reveal-mode" data-i18n="setup.reveal.label">نحوه مشاهده کارت:</label>
+                        <select id="setup-reveal-mode" class="input-control">
+                            <option value="click" data-i18n="setup.reveal.click">کلیک ساده</option>
+                            <option value="hold" data-i18n="setup.reveal.hold">نگه‌داشتن انگشت (Hold)</option>
+                        </select>
+                    </div>
+                    <div class="setup-group-grid">
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-role-reveal-confirm" data-i18n="setup.toggle.roleRevealConfirm">تأییدیه دیدن نقش</span><button class="info-btn" data-info="roleRevealConfirm" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-role-reveal-confirm" checked aria-labelledby="lbl-role-reveal-confirm"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-vote-confirm" data-i18n="setup.toggle.voteConfirm">تأییدیه ثبت رأی</span><button class="info-btn" data-info="voteConfirm" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-vote-confirm" aria-labelledby="lbl-vote-confirm"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-quick-voting" data-i18n="setup.toggle.quickVoting">رای‌گیری سریع</span><button class="info-btn" data-info="quickVoting" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-quick-voting" aria-labelledby="lbl-quick-voting"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
 
-        <fieldset class="input-group" id="difficulty-section-container">
-            <legend class="label-text u-legend-full" data-i18n="setup.difficulty.label">سطح دشواری:</legend>
-            <div class="chips-grid chips-grid-3" id="difficulty-chips-container">
-                <label class="chip-item"><input type="checkbox" name="setup-diff" value="easy" checked> <span data-i18n="setup.difficulty.easy">ساده</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-diff" value="medium" checked> <span data-i18n="setup.difficulty.medium">متوسط</span></label>
-                <label class="chip-item"><input type="checkbox" name="setup-diff" value="hard" checked> <span data-i18n="setup.difficulty.hard">سخت</span></label>
-            </div>
-        </fieldset>
-
-        <div class="input-group">
-            <label for="setup-timer" data-i18n="setup.timer.label">زمان گفتگو (دقیقه):</label>
-            <input type="text" id="setup-timer" class="input-control" value="4" inputmode="numeric" aria-describedby="timer-limit-hint">
-            <div id="timer-limit-hint" class="field-hint"></div>
-        </div>
-
-        <div class="input-group">
-            <label for="setup-reveal-mode" data-i18n="setup.reveal.label">نحوه مشاهده کارت:</label>
-            <select id="setup-reveal-mode" class="input-control">
-                <option value="click" data-i18n="setup.reveal.click">کلیک ساده</option>
-                <option value="hold" data-i18n="setup.reveal.hold">نگه‌داشتن انگشت (Hold)</option>
-            </select>
-        </div>
-
-        <div class="input-group">
-            <div class="label-text">
-                <span data-i18n="setup.hints.label">نوع راهنمای جاسوس:</span>
-                <button type="button" class="info-btn" data-info="hintTypes" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton">ℹ️</button>
-            </div>
-            <p class="hint-note" data-i18n="setup.hints.note">می‌توانید چند مورد را همزمان فعال نگه دارید؛ هر دور یکی از موارد فعال به‌صورت تصادفی انتخاب می‌شود.</p>
-            <div class="hint-grid" id="hint-chips-container">
-                <label class="hint-chip">
-                    <input type="checkbox" name="setup-hint" value="related_word" checked>
-                    <span class="hint-chip-icon">🔗</span>
-                    <span class="hint-chip-text" data-i18n="setup.hint.related">کلمه مرتبط</span>
-                </label>
-                <label class="hint-chip">
-                    <input type="checkbox" name="setup-hint" value="category">
-                    <span class="hint-chip-icon">🗂️</span>
-                    <span class="hint-chip-text" data-i18n="setup.hint.category">نام موضوع</span>
-                </label>
-                <label class="hint-chip">
-                    <input type="checkbox" name="setup-hint" value="first_letter">
-                    <span class="hint-chip-icon">🔤</span>
-                    <span class="hint-chip-text" data-i18n="setup.hint.firstLetter">حرف اول کلمه</span>
-                </label>
-                <label class="hint-chip hint-chip-hard">
-                    <input type="checkbox" name="setup-hint" value="none">
-                    <span class="hint-chip-icon">🔥</span>
-                    <span class="hint-chip-text" data-i18n="setup.hint.none">بدون راهنما</span>
-                    <span class="hint-chip-tag" data-i18n="setup.hint.noneTag">سخت</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-detective" data-i18n="setup.toggle.detective">کارآگاه</span><button class="info-btn" data-info="detective" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-detective" aria-labelledby="lbl-detective"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-known" data-i18n="setup.toggle.known">همکاران</span><button class="info-btn" data-info="knownSpies" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-known" aria-labelledby="lbl-known"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-fool" data-i18n="setup.toggle.fool">ساده‌لوح</span><button class="info-btn" data-info="fool" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-fool" aria-labelledby="lbl-fool"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-director" data-i18n="setup.toggle.director">دستیار نوبت</span><button class="info-btn" data-info="director" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-director" aria-labelledby="lbl-director"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-oneword" data-i18n="setup.toggle.oneword">تک‌کلمه‌ای</span><button class="info-btn" data-info="oneword" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-oneword" aria-labelledby="lbl-oneword"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-quests" data-i18n="setup.toggle.quests">ماموریت</span><button class="info-btn" data-info="quests" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-quests" aria-labelledby="lbl-quests"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-wager" data-i18n="setup.toggle.wager">شرط‌بندی</span><button class="info-btn" data-info="wager" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-wager" aria-labelledby="lbl-wager"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-sudden" data-i18n="setup.toggle.sudden">حذف درجا</span><button class="info-btn" data-info="sudden" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-sudden" aria-labelledby="lbl-sudden"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-last-chance" data-i18n="setup.toggle.lastChance">شانس آخر جاسوس</span><button class="info-btn" data-info="spyLastChance" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-last-chance" checked aria-labelledby="lbl-last-chance"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-limit" data-i18n="setup.toggle.limit">سقف زنگ</span><button class="info-btn" data-info="voteLimit" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-limit" aria-labelledby="lbl-limit"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-role-reveal-confirm" data-i18n="setup.toggle.roleRevealConfirm">تأییدیه دیدن نقش</span><button class="info-btn" data-info="roleRevealConfirm" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-role-reveal-confirm" checked aria-labelledby="lbl-role-reveal-confirm"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-vote-confirm" data-i18n="setup.toggle.voteConfirm">تأییدیه ثبت رأی</span><button class="info-btn" data-info="voteConfirm" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-vote-confirm" aria-labelledby="lbl-vote-confirm"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-item">
-                <div class="toggle-label-wrap"><span id="lbl-quick-voting" data-i18n="setup.toggle.quickVoting">رای‌گیری سریع</span><button class="info-btn" data-info="quickVoting" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
-                <label class="switch"><input type="checkbox" id="toggle-quick-voting" aria-labelledby="lbl-quick-voting"><span class="slider"></span></label>
-            </div>
-        </div>
-        
-        <div id="vote-limit-box" class="input-group hidden">
-            <label for="setup-max-votes" class="sr-only" data-i18n="setup.maxVotes.label">حداکثر سهمیه زنگ اضطراری</label>
-            <input type="text" id="setup-max-votes" class="input-control" value="2" placeholder="حداکثر سهمیه زنگ اضطراری" inputmode="numeric" aria-describedby="maxvotes-limit-hint" data-i18n-attr="placeholder:setup.maxVotes.placeholder">
-            <div id="maxvotes-limit-hint" class="field-hint"></div>
-        </div>
-        
         <fieldset class="input-group mt-14" id="names-section-container">
             <legend class="label-text u-legend-full" id="names-section-label">
                 <span class="u-row-between">

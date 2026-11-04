@@ -11,6 +11,7 @@ import { en } from '../../js/i18n/en.js';
 import { fa } from '../../js/i18n/fa.js';
 import { PHONE, newPage, startApp } from './helpers/app.mjs';
 import { persianIn, recordModal } from './helpers/record.mjs';
+import { openSetupGroup } from './helpers/setupGroups.mjs';
 
 const CATALOGS = { fa, en };
 const BUTTON = '#btn-how-to-play';
@@ -163,6 +164,7 @@ describe('the welcome screen "How to play" button (360x740)', () => {
         await withPage(async (page) => {
             await page.click('#btn-nav-setup');
             await page.waitForSelector('#screen-setup:not(.hidden)');
+            await openSetupGroup(page, 'roles');
             await page.click('.info-btn[data-info="detective"]');
             await page.waitForSelector(`${MODAL}:not(.hidden)`);
             const state = await modalState(page);

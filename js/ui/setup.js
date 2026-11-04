@@ -11,6 +11,7 @@ import { flagFieldError, pulseInvalidField, showToast } from './feedback.js';
 import { formatNumber, t, tn } from '../i18n/index.js';
 import { generateId } from '../utils/random.js';
 import { normalizeWord, toLatinDigits } from '../utils/text.js';
+import { refreshSetupGroupBadges } from './setupGroups.js';
 
 export function validateAndSaveSettings() {
     let c = parseInt(toLatinDigits(document.getElementById('setup-players-count').value), 10);
@@ -65,6 +66,7 @@ export function validateAndSaveSettings() {
         selectedHints = ['related_word'];
         const defHint = document.querySelector('input[name="setup-hint"][value="related_word"]');
         if (defHint) defHint.checked = true;
+        refreshSetupGroupBadges();
     }
 
     // The chips never let the last one go (keepOneDifficultyChecked), so this is the same safety net as for the
@@ -164,6 +166,8 @@ export function applySetupSettingsToForm(settings) {
     syncCheckboxChipVisuals('category-chips-container', 'chip-item');
     syncCheckboxChipVisuals('difficulty-chips-container', 'chip-item');
     syncCheckboxChipVisuals('hint-chips-container', 'hint-chip');
+    // The badges of the setup groups count these controls (see setupGroups.js); a change by code fires no event.
+    refreshSetupGroupBadges();
 }
 
 /**

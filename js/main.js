@@ -17,6 +17,7 @@ import { initHandoffGate } from './ui/handoff.js';
 import { syncLangSwitch } from './ui/langSwitch.js';
 import { clearQuestionIdea } from './ui/questionIdea.js';
 import { renderNameInputs, restoreSavedSetup, syncCheckboxChipVisuals, updateSetupLimitHints } from './ui/setup.js';
+import { refreshSetupGroupBadges } from './ui/setupGroups.js';
 import { initTheme } from './ui/theme.js';
 
 /** Initial render and saved-game detection. */
@@ -33,6 +34,9 @@ function start() {
     renderNameInputs();
 
     updateSetupLimitHints();
+
+    // The badges of the setup groups: right for the restored setup, or for the defaults when nothing was saved.
+    refreshSetupGroupBadges();
 
     renderCustomWordsList();
 
@@ -65,7 +69,8 @@ function start() {
  * What JS writes into the page once, and so does not follow the static translator by itself: the pressed
  * state of the language switch, the default names (and the names' placeholders and labels), the limit
  * hints, the custom-word count and list, any toast still on screen, and the question idea of the discussion
- * screen (cleared: it was drawn from the other language's bank). Redo them when the language
+ * screen (cleared: it was drawn from the other language's bank), and the "N on" badges of the setup groups (their
+ * wording and digits are the language's). Redo them when the language
  * changes: after a click on the switch, and when a saved match is restored in the language it was started
  * in. Texts built when something opens (the info modals, the role card) need nothing here.
  */
@@ -73,6 +78,7 @@ function refreshLanguageDependentUi() {
     syncLangSwitch();
     clearToasts();
     updateSetupLimitHints();
+    refreshSetupGroupBadges();
     renderNameInputs(false, true);
     renderCustomWordsList();
     clearQuestionIdea();

@@ -14,6 +14,7 @@ import { BUILT_IN_CATEGORIES, defaultSetupSettings } from '../../js/core/config.
 import { fa } from '../../js/i18n/fa.js';
 import { PHONE, newPage, startApp } from './helpers/app.mjs';
 import { chooseCategories, chooseLevels } from './helpers/play.mjs';
+import { openAllSetupGroups } from './helpers/setupGroups.mjs';
 
 const KEY = 'spy_setup_settings';
 const TOGGLES = {
@@ -61,9 +62,11 @@ async function withApp(fn, { beforeLoad } = {}) {
     }
 }
 
+// The options sit in collapsed groups; a person taps them open, so the helper does, and the assertions below stay as they were.
 const openSetup = async (page) => {
     await page.click('#btn-nav-setup');
     await page.waitForSelector('#screen-setup:not(.hidden)');
+    await openAllSetupGroups(page);
 };
 
 /** What the setup screen shows, as settings in the key order of the defaults, plus what the page does with it. */

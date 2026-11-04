@@ -11,6 +11,7 @@ import { t } from '../i18n/index.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
 import { renderPlayerDetails } from './results.js';
 import { keepOneDifficultyChecked, renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
+import { refreshSetupGroupBadges } from './setupGroups.js';
 
 /** Attach every listener. Call once at start-up. */
 export function bindEvents() {
@@ -51,6 +52,9 @@ export function bindEvents() {
         keepOneDifficultyChecked(e.target);
         syncCheckboxChipVisuals('difficulty-chips-container', 'chip-item');
     });
+
+    // The "N on" badge on each setup group header follows every change of a control inside the groups.
+    document.getElementById('setup-groups').addEventListener('change', refreshSetupGroupBadges);
 
     document.getElementById('btn-toggle-all-cats').onclick = () => {
         const boxes = document.querySelectorAll('input[name="setup-cat"]');

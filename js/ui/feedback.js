@@ -21,10 +21,23 @@ export function clearToasts() {
     if (c) c.replaceChildren();
 }
 
+/**
+ * Open every closed `<details>` around `el` (the setup screen keeps its options in collapsed groups). A control
+ * inside a closed one is not rendered, so it can be neither focused nor scrolled to until its group is open.
+ */
+function openGroupsAround(el) {
+    if (typeof el.closest !== 'function') return;
+    for (let group = el.closest('details'); group; group = group.parentElement && group.parentElement.closest('details')) {
+        if (!group.open) group.open = true;
+    }
+}
+
 // Targeted field validation: shows the toast AND pulses the exact
 // offending input so the person immediately knows which field to fix.
+// A field inside a collapsed group opens the group first, so the problem is on screen.
 export function pulseInvalidField(el) {
     if (!el) return;
+    openGroupsAround(el);
     el.setAttribute('aria-invalid', 'true');
     el.classList.remove('field-error-pulse');
     void el.offsetWidth; // restart the animation if it's already mid-pulse

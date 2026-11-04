@@ -8,7 +8,8 @@ import { readFileSync } from 'node:fs';
 import { after, before, describe, it } from 'node:test';
 import { getSideQuests, getWordPacks } from '../../js/data/banks.js';
 import { PHONE, newPage, startApp } from './helpers/app.mjs';
-import { PERSIAN_LETTER, persianIn, recordModal, recordScreen } from './helpers/record.mjs';
+import { PERSIAN_LETTER, assertSetupMatchesBaseline, assertWelcomeMatchesBaseline, persianIn, recordModal, recordScreen } from './helpers/record.mjs';
+import { openSetupGroup } from './helpers/setupGroups.mjs';
 
 /** The Persian welcome and setup screens as the zip BEFORE the switch showed them (see fixtures/make-persian-baseline.mjs). */
 const recorded = JSON.parse(readFileSync(new URL('./fixtures/persian-baseline.json', import.meta.url), 'utf8'));
@@ -163,6 +164,7 @@ describe('the language switch (production build, 360x740)', () => {
             assert.deepEqual(persianIn(setup), [], 'setup screen (text, attributes, fields, select options, title)');
             assert.ok(setup.fields.some((field) => field.endsWith('=Player 1')), 'default names are English');
 
+            await openSetupGroup(page, 'roles');
             await openModal(page, '.info-btn[data-info="detective"]', '#info-modal');
             assert.deepEqual(persianIn(await recordModal(page, '#info-modal')), [], 'a help text is built when it opens');
             await closeModal(page, '#btn-info-modal-close', '#info-modal');
@@ -224,18 +226,20 @@ describe('the language switch (production build, 360x740)', () => {
             assert.deepEqual(persianAgain.setup, persianFirst.setup);
             assert.deepEqual(await pressed(page), { fa: 'true', en: 'false' });
 
-            // And identical to the zip we were given, with the switch left out (it is the one new element).
-            assert.deepEqual(await recordScreen(page), baseline.welcome);
+            // And identical to the zip we were given, with the switch left out (it is the one new element). The setup
+            // options moved into groups, so these comparisons ignore the order of the options and the place of one
+            // attribute (see assertSetupMatchesBaseline and assertWelcomeMatchesBaseline in helpers/record.mjs).
+            assertWelcomeMatchesBaseline(await recordScreen(page), baseline.welcome);
             await goSetup(page);
-            assert.deepEqual(await recordScreen(page), baseline.setup);
+            assertSetupMatchesBaseline(await recordScreen(page), baseline.setup);
         });
     });
 
     it('the Persian welcome and setup screens do not differ from the original zip', async () => {
         await withPage(async (page) => {
-            assert.deepEqual(await recordScreen(page), baseline.welcome);
+            assertWelcomeMatchesBaseline(await recordScreen(page), baseline.welcome);
             await goSetup(page);
-            assert.deepEqual(await recordScreen(page), baseline.setup);
+            assertSetupMatchesBaseline(await recordScreen(page), baseline.setup);
         });
     });
 

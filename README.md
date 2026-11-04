@@ -46,7 +46,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
 
-New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round, and during the discussion tap **Question idea** (**ایده‌ی سؤال**) under the timer for a suggested question to ask each other (a new one on every press, none repeated until all have been used). The (i) buttons next to single options on the setup screen explain those options.
+New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round, and during the discussion tap **Question idea** (**ایده‌ی سؤال**) under the timer for a suggested question to ask each other (a new one on every press, none repeated until all have been used). The (i) buttons next to single options on the setup screen explain those options. Under the five basic fields (players, spies, categories, difficulty, timer) the options sit in four folding groups (**Roles**, **Discussion**, **Stakes and ending**, **Speed and confirmations**; in Persian «نقش‌ها», «گفتگو», «ریسک و پایان», «سرعت و تأیید»), all closed at first, and each header shows how many of its options are switched on.
 
 ### Switch the language
 
@@ -69,9 +69,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 1196 unit tests (built-in node:test, no dependencies)
+npm test               # 1227 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, the discussion screen's Question idea button, first paint, build line and its long-press reveal, round-result screen after a reload, scorecard image of a 20-player match
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, the discussion screen's Question idea button, first paint, build line and its long-press reveal, round-result screen after a reload, the setup screen's folding groups and their badges, scorecard image of a 20-player match
 npm run lint
 ```
 
