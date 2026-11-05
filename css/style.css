@@ -181,7 +181,7 @@ input, textarea, select, .secret-word, .copyable, .modal-card p {
 .app-container {
     width: 100%;
     max-width: 500px;
-    background: rgba(15, 23, 42, 0.96);
+    background: var(--bg-body);
     border: 1px solid var(--border-glow);
     border-radius: 28px;
     padding: 24px;
@@ -246,19 +246,29 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
-.btn-primary { background: linear-gradient(135deg, #0284c7, #7c3aed); color: #ffffff; }
+/* The main button is the theme's own two colours, each mixed 45% with the page colour so that the label
+   (--text-primary) keeps at least 4.5:1 on every part of the gradient in all eight themes (the lightest brand
+   colours, classic's silver and the ocean cyan, need the mix; tests/e2e/theme-colors.test.mjs measures it).
+   The first background is the fallback for a browser without color-mix. The emerald, rose and amber buttons
+   below are not themed on purpose: they carry meaning (go, danger, caution). */
+.btn-primary {
+    background: var(--surface-input);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--brand-primary) 45%, var(--bg-body)), color-mix(in srgb, var(--brand-secondary) 45%, var(--bg-body)));
+    color: var(--text-primary);
+}
 .btn-emerald { background: linear-gradient(135deg, #059669, #047857); color: #ffffff; }
 .btn-rose { background: linear-gradient(135deg, #e11d48, #9f1239); color: #ffffff; }
 .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; }
 
-.btn-ghost { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); color: var(--text-secondary); box-shadow: none; }
-.btn-ghost:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
+.btn-ghost { background: color-mix(in srgb, var(--text-primary) 5%, transparent); border: 1px solid var(--border-glow); color: var(--text-secondary); box-shadow: none; }
+.btn-ghost:hover { background: color-mix(in srgb, var(--text-primary) 10%, transparent); color: var(--text-primary); }
 .btn-sm { padding: 6px 12px; min-height: 40px; font-size: 0.78rem; border-radius: 10px; width: auto; margin: 0; }
 
 .card-menu {
     display: block;
     width: 100%;
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--surface-input);
+    background: color-mix(in srgb, var(--surface-input) 60%, transparent);
     border: 1px solid var(--border-glow);
     border-radius: 20px;
     padding: 16px;
@@ -271,7 +281,7 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 .card-menu:hover, .card-menu:focus-visible {
     border-color: var(--brand-primary);
     transform: translateY(-2px);
-    background: rgba(15, 23, 42, 0.85);
+    background: color-mix(in srgb, var(--surface-input) 85%, transparent);
 }
 .card-menu-title {
     display: block;
@@ -293,7 +303,7 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 .input-group label, .label-text { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
 .input-control {
     width: 100%; padding: 11px 14px; background: var(--surface-input); border: 1px solid var(--border-glow);
-    border-radius: 14px; color: white; font-size: max(16px, 0.95rem); transition: all 0.2s;
+    border-radius: 14px; color: var(--text-primary); font-size: max(16px, 0.95rem); transition: all 0.2s;
 }
 .input-control:focus { border-color: var(--brand-primary); }
 
@@ -322,11 +332,11 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 }
 .chip-item:hover {
     border-color: var(--brand-primary);
-    background: rgba(15, 23, 42, 0.8);
+    background: color-mix(in srgb, var(--surface-input) 80%, transparent);
 }
 .chip-item.is-checked {
     border-color: var(--brand-primary);
-    background: rgba(6, 182, 212, 0.12);
+    background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
 }
 .chip-item input[type="checkbox"] {
     accent-color: var(--brand-primary);
@@ -371,7 +381,7 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 .hint-chip:hover { border-color: var(--brand-primary); }
 .hint-chip.is-checked {
     border-color: var(--brand-primary);
-    background: rgba(6, 182, 212, 0.12);
+    background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
 }
 .hint-chip.is-checked .hint-chip-text { color: var(--text-primary); }
 .hint-chip-hard {
@@ -404,7 +414,7 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
     .chips-grid { grid-template-columns: 1fr; }
 }
 
-.toggle-item { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-glow); padding: 10px 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.toggle-item { background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 50%, transparent); border: 1px solid var(--border-glow); padding: 10px 14px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
 .toggle-label-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; }
 .info-btn {
@@ -412,15 +422,15 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
     font-size: 0.95rem; cursor: pointer; padding: 4px; line-height: 1; border-radius: 50%;
     min-width: 40px; min-height: 40px; display: inline-grid; place-items: center;
 }
-.info-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+.info-btn:hover { color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 10%, transparent); }
 
 .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
 .switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; inset: 0; background-color: #334155; transition: 0.3s; border-radius: 24px; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--surface-input); background-color: color-mix(in srgb, var(--text-secondary) 28%, var(--bg-body)); transition: 0.3s; border-radius: 24px; }
 .slider:before {
     position: absolute; content: ""; height: 18px; width: 18px; top: 3px;
     inset-inline-start: 3px;
-    background-color: white; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%;
+    background-color: var(--text-primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%;
 }
 input:checked + .slider { background-color: var(--brand-primary); }
 input:checked + .slider:before { transform: translateX(calc(20px * var(--dir))); }
@@ -468,7 +478,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 }
 
 .player-card {
-    background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border-glow);
+    background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 65%, transparent); border: 1px solid var(--border-glow);
     padding: 15px 12px; border-radius: 16px; text-align: center; cursor: pointer;
     font-weight: 600; color: var(--text-primary); transition: all 0.2s;
     width: 100%; font-size: max(16px, 0.95rem);
@@ -494,7 +504,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .question-idea-text:not(:empty) { margin-top: 10px; min-height: 2.9em; }
 
 .modal-overlay {
-    position: fixed; inset: 0; background: rgba(2, 4, 10, 0.88);
+    position: fixed; inset: 0; background: var(--bg-body); background: color-mix(in srgb, var(--bg-body) 88%, transparent);
     display: flex; overflow-y: auto; padding: 16px; z-index: 1000;
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -521,16 +531,16 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .role-badge { display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.85rem; margin-bottom: 12px; font-weight: bold; }
 .role-citizen { background: rgba(16, 185, 129, 0.15); color: var(--brand-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
 .role-spy { background: rgba(244, 63, 94, 0.15); color: var(--brand-rose); border: 1px solid rgba(244, 63, 94, 0.3); }
-.role-detective { background: rgba(6, 182, 212, 0.15); color: var(--brand-primary); border: 1px solid rgba(6, 182, 212, 0.3); }
-.role-spectator { background: rgba(168, 85, 247, 0.15); color: var(--brand-secondary); border: 1px solid rgba(168, 85, 247, 0.3); }
+.role-detective { background: color-mix(in srgb, var(--brand-primary) 15%, transparent); color: var(--brand-primary); border: 1px solid var(--border-glow); border-color: color-mix(in srgb, var(--brand-primary) 30%, transparent); }
+.role-spectator { background: color-mix(in srgb, var(--brand-secondary) 15%, transparent); color: var(--brand-secondary); border: 1px solid var(--border-glow); border-color: color-mix(in srgb, var(--brand-secondary) 30%, transparent); }
 
-.secret-box { background: var(--surface-input); padding: 14px; border-radius: 16px; margin: 14px 0; border: 1px dashed rgba(255, 255, 255, 0.15); }
+.secret-box { background: var(--surface-input); padding: 14px; border-radius: 16px; margin: 14px 0; border: 1px dashed var(--border-glow); }
 .secret-word { font-size: 1.45rem; font-weight: 800; color: var(--brand-amber); margin-top: 4px; }
-.quest-box { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; color: var(--brand-primary); text-align: start; }
+.quest-box { background: color-mix(in srgb, var(--text-primary) 5%, transparent); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; color: var(--brand-primary); text-align: start; }
 
 .score-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
 .score-table th { color: var(--text-secondary); font-size: 0.78rem; padding: 8px; border-bottom: 1px solid var(--border-glow); }
-.score-table td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); text-align: center; }
+.score-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-glow); border-bottom-color: color-mix(in srgb, var(--text-primary) 4%, transparent); text-align: center; }
 .score-table th[scope="row"] { text-align: start; font-weight: 600; color: var(--text-primary); }
 .score-table .rank-cell { font-size: 1rem; white-space: nowrap; }
 .tie-note { display: block; font-size: 0.68rem; color: var(--text-secondary); font-weight: 500; opacity: 0.8; }
@@ -593,7 +603,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     font-weight: 700;
     padding: 1px 8px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
     color: var(--text-secondary);
 }
 /* Plain fixed-height spacer now — no border/background of its own,
@@ -648,14 +658,14 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     animation: fieldErrorPulse 0.6s ease-in-out 2;
 }
 
-.accolade-card { background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-glow); border-radius: 16px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; text-align: start; }
+.accolade-card { background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 70%, transparent); border: 1px solid var(--border-glow); border-radius: 16px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; text-align: start; }
 .accolade-icon { font-size: 1.8rem; }
 
 .panic-btn-floating {
     position: fixed;
     bottom: max(16px, env(safe-area-inset-bottom));
     inset-inline-start: max(16px, env(safe-area-inset-left));
-    background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-glow);
+    background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 85%, transparent); border: 1px solid var(--border-glow);
     color: var(--brand-amber); border-radius: 30px; padding: 8px 14px;
     font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 6px;
     cursor: pointer; z-index: 2000; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -668,7 +678,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     position: fixed;
     bottom: max(16px, env(safe-area-inset-bottom));
     inset-inline-end: max(16px, env(safe-area-inset-right));
-    background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-glow);
+    background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 90%, transparent); border: 1px solid var(--border-glow);
     color: var(--brand-primary); border-radius: 30px; padding: 8px 14px;
     font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 6px;
     cursor: pointer; z-index: 2000; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -697,7 +707,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .install-hint {
     display: flex; align-items: center;
     margin-bottom: 12px; padding-inline-start: 12px;
-    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glow); border-radius: 14px;
+    background: color-mix(in srgb, var(--text-primary) 5%, transparent); border: 1px solid var(--border-glow); border-radius: 14px;
     color: var(--text-primary); font-size: 0.75rem; font-weight: 500; line-height: 1.5;
 }
 .install-hint-text { flex: 1; min-width: 0; padding-block: 8px; text-align: start; }
@@ -708,7 +718,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     color: var(--text-secondary); font-size: 1.6rem; line-height: 1; cursor: pointer;
     touch-action: manipulation;
 }
-.install-hint-close:hover, .install-hint-close:active { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); }
+.install-hint-close:hover, .install-hint-close:active { color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 10%, transparent); }
 
 #panic-shield {
     position: fixed; inset: 0; background: #000000; z-index: 99999;
@@ -723,7 +733,8 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
    card opening on top of it. */
 #handoff-gate {
     position: fixed; inset: 0; z-index: 500;
-    background: rgba(2, 4, 10, 0.97);
+    background: var(--bg-body);
+    background: color-mix(in srgb, var(--bg-body) 97%, transparent);
     display: flex; align-items: center; justify-content: center; padding: 24px;
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -746,7 +757,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .handoff-action.holding { transform: scale(0.97); filter: brightness(1.15); }
 
 #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 400px; }
-.toast { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glow); padding: 10px 16px; border-radius: 14px; color: var(--text-primary); font-size: 0.85rem; font-weight: 600; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.6); backdrop-filter: blur(12px); animation: fadeInDown 0.3s ease; }
+.toast { background: var(--surface-input); background: color-mix(in srgb, var(--surface-input) 95%, transparent); border: 1px solid var(--border-glow); padding: 10px 16px; border-radius: 14px; color: var(--text-primary); font-size: 0.85rem; font-weight: 600; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.6); backdrop-filter: blur(12px); animation: fadeInDown 0.3s ease; }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 .sr-only {
@@ -783,6 +794,9 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .color-primary { color: var(--brand-primary); }
 .color-emerald { color: var(--brand-emerald); }
 .color-secondary { color: var(--text-secondary); }
+/* The violet of the "victim" accolade is one of five hues that tell the accolade cards apart (rose, amber, emerald,
+   primary, violet), so it stays fixed: in the emerald and sunset themes the secondary colour is almost the green and
+   the rose of two other cards. */
 .color-violet { color: #a855f7; }
 .border-amber { border-color: var(--brand-amber); }
 .border-rose { border-color: var(--brand-rose); }
@@ -811,7 +825,8 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 
 /* Player details modal — one card per player, grouped stat rows */
 .detail-player-card {
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--surface-input);
+    background: color-mix(in srgb, var(--surface-input) 50%, transparent);
     border: 1px solid var(--border-glow);
     border-radius: 14px;
     padding: 14px;
@@ -836,7 +851,8 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     gap: 10px;
     font-size: 0.8rem;
     padding: 4px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    border-bottom: 1px dashed var(--border-glow);
+    border-bottom-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
     color: var(--text-secondary);
 }
 .detail-row span:last-child { font-weight: 700; color: var(--text-primary); flex-shrink: 0; }
@@ -899,11 +915,13 @@ body::after {
     border: none;
     cursor: pointer;
     background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--brand-primary) 45%, var(--bg-body)), color-mix(in srgb, var(--brand-secondary) 45%, var(--bg-body)));
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 18px 40px -12px rgba(0, 0, 0, 0.75), 0 0 36px -4px var(--brand-primary);
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.75), 0 0 36px -4px var(--brand-primary);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--text-primary) 5%, transparent), 0 18px 40px -12px rgba(0, 0, 0, 0.75), 0 0 36px -4px var(--brand-primary);
     transition: transform 0.2s ease;
     animation: playPulse 3.2s ease-in-out infinite;
     flex-shrink: 0;
@@ -923,13 +941,13 @@ body::after {
     border-top: 19px solid transparent;
     border-bottom: 19px solid transparent;
     /* The play symbol points right in both directions, like every media control, so these two stay physical. */
-    border-left: 30px solid #ffffff;
+    border-left: 30px solid var(--text-primary);
     margin-left: 6px;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
 }
 @keyframes playPulse {
-    0%, 100% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 18px 40px -12px rgba(0, 0, 0, 0.75), 0 0 36px -4px var(--brand-primary); }
-    50% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.03), 0 18px 50px -10px rgba(0, 0, 0, 0.8), 0 0 54px 2px var(--brand-primary); }
+    0%, 100% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--text-primary) 5%, transparent), 0 18px 40px -12px rgba(0, 0, 0, 0.75), 0 0 36px -4px var(--brand-primary); }
+    50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--text-primary) 3%, transparent), 0 18px 50px -10px rgba(0, 0, 0, 0.8), 0 0 54px 2px var(--brand-primary); }
 }
 .play-button-label { font-weight: 800; font-size: 1.02rem; color: var(--text-primary); }
 .play-button-caption { font-size: 0.78rem; color: var(--text-secondary); text-align: center; max-width: 260px; }
@@ -945,10 +963,11 @@ body::after {
 .lang-btn { flex: 1; min-height: 44px; font-size: 0.9rem; }
 .lang-btn[aria-pressed="true"],
 .lang-btn[aria-pressed="true"]:hover {
-    background: linear-gradient(135deg, #0284c7, #7c3aed);
-    border-color: transparent;
-    background-origin: border-box;
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+    background: color-mix(in srgb, var(--brand-primary) 28%, var(--surface-input));
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 14px -4px var(--brand-primary);
+    color: var(--text-primary);
     cursor: default;
 }
 .credit-line { font-size: 0.66rem; color: var(--text-secondary); opacity: 0.45; text-align: center; margin-top: 16px; letter-spacing: 0.2px; }
@@ -1033,8 +1052,9 @@ body::after {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
 }
 .wheel-hub {
-    fill: #0f172a;
-    stroke: rgba(255, 255, 255, 0.6);
+    fill: var(--bg-body);
+    stroke: var(--text-primary);
+    stroke: color-mix(in srgb, var(--text-primary) 60%, transparent);
     stroke-width: 3;
 }
 .tie-wheel-result-text { font-size: 1rem; font-weight: 800; min-height: 1.4em; color: var(--brand-amber); }

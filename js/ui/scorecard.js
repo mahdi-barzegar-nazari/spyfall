@@ -23,17 +23,26 @@ import {
     isolateLine
 } from './scorecard-layout.js';
 
-const SCORECARD_THEME_ACCENTS = {
-    default: { primary: '#06b6d4', secondary: '#a855f7', bg1: '#111827', bg2: '#020617' },
-    noir:    { primary: '#f59e0b', secondary: '#d97706', bg1: '#1f160a', bg2: '#0a0704' },
-    emerald: { primary: '#10b981', secondary: '#059669', bg1: '#0b241d', bg2: '#020807' },
-    crimson: { primary: '#f43f5e', secondary: '#be123c', bg1: '#260a13', bg2: '#080203' },
-    sunset:  { primary: '#fb923c', secondary: '#ec4899', bg1: '#271208', bg2: '#0a0503' },
-    cyber:   { primary: '#e11d9c', secondary: '#00e5ff', bg1: '#170a2c', bg2: '#05010f' },
-    ocean:   { primary: '#22d3ee', secondary: '#3b82f6', bg1: '#0b2c3c', bg2: '#04121a' }
+// The colours of the exported image, one entry per theme of css/style.css (a canvas cannot read the CSS variables
+// in a unit test, so the table mirrors them and tests/unit/theme-colors.test.mjs keeps the two in step):
+// primary / secondary = --brand-primary / --brand-secondary, text / muted = --text-primary / --text-secondary,
+// panel = the colour of --surface-card (the row panels and the avatar discs). bg1 / bg2 are the two stops of the
+// image background, which have no CSS variable of their own. Only the medal colours below stay the same in every
+// theme: gold, silver and bronze say which rank a name has.
+export const SCORECARD_THEME_ACCENTS = {
+    default: { primary: '#06b6d4', secondary: '#a855f7', text: '#f8fafc', muted: '#a0aec0', panel: '#121826', bg1: '#111827', bg2: '#020617' },
+    noir:    { primary: '#f59e0b', secondary: '#d97706', text: '#fef3c7', muted: '#fbbf24', panel: '#201812', bg1: '#1f160a', bg2: '#0a0704' },
+    classic: { primary: '#d4d4cf', secondary: '#6e6e68', text: '#f4f4f2', muted: '#b3b3ad', panel: '#1a1a1a', bg1: '#1a1a1a', bg2: '#030303' },
+    emerald: { primary: '#10b981', secondary: '#059669', text: '#ecfdf5', muted: '#a7f3d0', panel: '#061e1a', bg1: '#0b241d', bg2: '#020807' },
+    crimson: { primary: '#f43f5e', secondary: '#be123c', text: '#fff1f2', muted: '#fecdd3', panel: '#1e0a0f', bg1: '#260a13', bg2: '#080203' },
+    sunset:  { primary: '#fb923c', secondary: '#ec4899', text: '#fff7ed', muted: '#fdba9f', panel: '#23140e', bg1: '#271208', bg2: '#0a0503' },
+    cyber:   { primary: '#e11d9c', secondary: '#00e5ff', text: '#fdf4ff', muted: '#e9b8fb', panel: '#10061e', bg1: '#170a2c', bg2: '#05010f' },
+    ocean:   { primary: '#22d3ee', secondary: '#3b82f6', text: '#ecfeff', muted: '#a5f3fc', panel: '#081e28', bg1: '#0b2c3c', bg2: '#04121a' }
 };
+// The gold, silver and bronze of ranks 1 to 3: the same in every theme on purpose.
+export const SCORECARD_MEDAL_COLORS = ['#f59e0b', '#cbd5e1', '#d97706'];
 
-function hexWithAlpha(hex, alpha) {
+export function hexWithAlpha(hex, alpha) {
     let h = hex.replace('#', '');
     if (h.length === 3) h = h.split('').map(c => c + c).join('');
     const r = parseInt(h.substring(0, 2), 16);
@@ -171,15 +180,15 @@ function drawHeader(ctx, layout, accent, fontFam, { titleText, metaParts }) {
     ctx.fillText('🕵️', cx, h.badgeCY + 3);
     ctx.textBaseline = 'alphabetic';
 
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = accent.text;
     ctx.font = `800 ${h.titleFontPx}px ${fontFam}`;
     ctx.fillText(titleText, cx, h.titleY);
 
     ctx.font = `${h.metaFontPx}px ${fontFam}`;
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = accent.muted;
     ctx.fillText(metaParts.join('   ·   '), cx, h.metaY);
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = hexWithAlpha(accent.text, 0.08);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(50, h.dividerY);
@@ -198,9 +207,9 @@ function formatGroupNamesForCanvas(group) {
 }
 
 // Podium (top 3 ranks — a rank slot may hold more than one tied player).
-function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
+function drawPodium(ctx, layout, podiumGroups, accent, fontFam, direction) {
     if (podiumGroups.length === 0) return;
-    const medalColors = ['#f59e0b', '#cbd5e1', '#d97706'];
+    const medalColors = SCORECARD_MEDAL_COLORS;
     const medalEmoji = ['🥇', '🥈', '🥉'];
 
     podiumGroups.forEach(g => {
@@ -218,7 +227,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
 
         ctx.textAlign = 'center';
         ctx.font = `800 ${p.rankFontPx}px ${fontFam}`;
-        ctx.fillStyle = 'rgba(255,255,255,0.16)';
+        ctx.fillStyle = hexWithAlpha(accent.text, 0.16);
         ctx.fillText(formatNumber(g.rank), p.colX, p.rankY);
 
         if (g.rank === 1) {
@@ -227,7 +236,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
         }
         ctx.beginPath();
         ctx.arc(p.colX, p.avatarY, p.avatarR, 0, Math.PI * 2);
-        ctx.fillStyle = '#1e293b';
+        ctx.fillStyle = accent.panel;
         ctx.fill();
         ctx.lineWidth = 3;
         ctx.strokeStyle = medalColors[p.rankIdx];
@@ -238,7 +247,7 @@ function drawPodium(ctx, layout, podiumGroups, fontFam, direction) {
         ctx.textBaseline = 'alphabetic';
 
         ctx.font = `800 ${p.nameFontPx}px ${fontFam}`;
-        ctx.fillStyle = '#f1f5f9';
+        ctx.fillStyle = accent.text;
         const rawName = formatGroupNamesForCanvas(g);
         const displayName = g.players.length > 1 ? t('scorecard.tied', { name: rawName }) : rawName;
         const nameLines = balanceIsolates(wrapCanvasText(ctx, displayName, p.pedW - 8, 2));
@@ -266,13 +275,13 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
     let y = layout.blockTop + layout.podiumH;
     ctx.textAlign = col.headerAlign;
     ctx.font = `700 13px ${fontFam}`;
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = hexWithAlpha(accent.muted, 0.7);
     ctx.fillText(t('scorecard.others'), col.headerX, y + row.headerBaselineY);
     y += layout.restHeaderH;
 
     restRows.forEach((r) => {
-        ctx.fillStyle = 'rgba(30, 41, 59, 0.75)';
-        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillStyle = hexWithAlpha(accent.panel, 0.75);
+        ctx.strokeStyle = hexWithAlpha(accent.text, 0.08);
         ctx.lineWidth = 1;
         drawRoundedRectPath(ctx, 40, y, width - 80, row.rowHeight, row.cornerR);
         ctx.fill();
@@ -280,10 +289,10 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
 
         ctx.beginPath();
         ctx.arc(col.circleX, y + row.rowHeight / 2, row.circleR, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillStyle = hexWithAlpha(accent.text, 0.06);
         ctx.fill();
         ctx.font = `700 ${row.rankFontPx}px ${fontFam}`;
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = accent.muted;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(formatNumber(r.rank), col.circleX, y + row.rowHeight / 2 + 1);
@@ -296,7 +305,7 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
 
         ctx.textAlign = col.nameAlign;
         ctx.font = `700 ${row.nameFontPx}px ${fontFam}`;
-        ctx.fillStyle = '#e2e8f0';
+        ctx.fillStyle = accent.text;
         const displayName = r.tied ? t('scorecard.tied', { name: isolate(r.p.name) }) : isolate(r.p.name);
         const [truncatedName] = balanceIsolates([truncateCanvasText(ctx, displayName, nameMaxWidth)]);
         ctx.fillText(isolateLine(truncatedName, direction), col.nameX, y + row.rowHeight / 2 + 5);
@@ -313,18 +322,18 @@ function drawRestRows(ctx, layout, restRows, accent, fontFam, direction) {
 // If there's still a meaningful gap between the content and the footer
 // (typical with only a few players), fill it with an actual closing line
 // instead of leaving it blank.
-function drawClosingLine(ctx, layout, fontFam) {
+function drawClosingLine(ctx, layout, accent, fontFam) {
     if (layout.bottomGap <= 90) return;
     ctx.textAlign = 'center';
     ctx.font = `700 16px ${fontFam}`;
-    ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
+    ctx.fillStyle = hexWithAlpha(accent.text, 0.55);
     ctx.fillText(t('scorecard.closing'), layout.width / 2, layout.blockBottom + layout.bottomGap / 2);
 }
 
 // Footer credit — subtle divider + small, low-opacity, non-bold signature,
 // always pinned to the very bottom of the fixed canvas.
-function drawFooter(ctx, layout, fontFam) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+function drawFooter(ctx, layout, accent, fontFam) {
+    ctx.strokeStyle = hexWithAlpha(accent.text, 0.06);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(layout.width / 2 - 60, layout.height - layout.footerH + 16);
@@ -333,7 +342,7 @@ function drawFooter(ctx, layout, fontFam) {
 
     ctx.textAlign = 'center';
     ctx.font = `400 10px ${fontFam}`;
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+    ctx.fillStyle = hexWithAlpha(accent.muted, 0.45);
     ctx.fillText(t('welcome.credit.author'), layout.width / 2, layout.height - 20);
 }
 
@@ -371,10 +380,10 @@ export function exportScorecardImage() {
         ].filter(Boolean);
         drawHeader(ctx, layout, accent, fontFam, { titleText: t('scorecard.title'), metaParts });
 
-        drawPodium(ctx, layout, podiumGroups, fontFam, direction);
+        drawPodium(ctx, layout, podiumGroups, accent, fontFam, direction);
         drawRestRows(ctx, layout, restRows, accent, fontFam, direction);
-        drawClosingLine(ctx, layout, fontFam);
-        drawFooter(ctx, layout, fontFam);
+        drawClosingLine(ctx, layout, accent, fontFam);
+        drawFooter(ctx, layout, accent, fontFam);
 
         const link = document.createElement('a');
         link.download = `SpyGame-Scorecard-${Date.now()}.png`;

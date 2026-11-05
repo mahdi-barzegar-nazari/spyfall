@@ -38,7 +38,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
 - **741 Persian and 703 English built-in words**, each bank in 8 categories with difficulty ratings (easy, medium and hard: setup lets you play any mix of them, and the mix only narrows the built-in words: your custom words are always in the pool; the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
 - **Persian and English.** Persian is the default; English is one tap away on the welcome screen (see [Switch the language](#switch-the-language)). The whole interface, the scorecard image and the side quests follow the language; each language has its own word bank.
-- **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones.
+- **8 themes**, dynamic viewport sizing (`100dvh`) and safe-area padding for edge-to-edge phones. Buttons, chips, switches, cards, the language switch, the title, the play button and the scorecard image all follow the selected theme; only the colours that carry a meaning stay the same in every theme (green / red / amber buttons and badges, the gold, silver and bronze of the podium, the cover-mode screen, the wheel).
 
 ## Quickstart
 
