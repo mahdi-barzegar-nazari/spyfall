@@ -1,0 +1,399 @@
+diff -ruN '--exclude=node_modules' '--exclude=dist' '--exclude=tests' '--exclude=dist-plain' '--exclude=package-lock.json' a/.github/workflows/deploy.yml spyfall-main/.github/workflows/deploy.yml
+--- a/.github/workflows/deploy.yml	2026-10-04 15:46:50.000000000 +0000
++++ b/.github/workflows/deploy.yml	2026-11-01 21:00:44.814041585 +0000
+@@ -23,10 +23,12 @@
+       - uses: actions/setup-node@v4
+         with:
+           node-version: 22
+-      # The unit tests and the build need no npm dependencies, so this job installs none.
++      # The unit tests need no npm dependencies; the bundling step (scripts/bundle.mjs) needs esbuild.
++      - name: Install dependencies
++        run: npm ci --no-audit --no-fund
+       - name: Unit tests
+         run: npm test
+-      - name: Build (stamps the service worker with a content hash)
++      - name: Build (stamps the service worker with a content hash, then bundles the site into one file)
+         run: npm run build
+       - uses: actions/configure-pages@v5
+       - uses: actions/upload-pages-artifact@v3
+diff -ruN '--exclude=node_modules' '--exclude=dist' '--exclude=tests' '--exclude=dist-plain' '--exclude=package-lock.json' a/js/platform/serviceWorker.js spyfall-main/js/platform/serviceWorker.js
+--- a/js/platform/serviceWorker.js	2026-10-04 15:46:50.000000000 +0000
++++ b/js/platform/serviceWorker.js	2026-11-01 20:54:40.588778023 +0000
+@@ -5,6 +5,9 @@
+ import { showToast } from '../ui/feedback.js';
+ import { t } from '../i18n/index.js';
+ 
++/** Longest the registration waits for the page's 'load' event. */
++const REGISTER_FALLBACK_MS = 3000;
++
+ /** Register the service worker (production builds only do real caching; see sw.js). */
+ export function registerServiceWorker() {
+     if (!('serviceWorker' in navigator)) return;
+@@ -25,6 +28,18 @@
+         }).catch(console.error);
+     };
+ 
+-    if (document.readyState === 'complete') register();
+-    else window.addEventListener('load', register);
++    // Not only on 'load': the load event also waits for web fonts, and on a network that drops packets a
++    // font request can hang for 20-40 s. The timer means the worker is registered a few seconds after
++    // start-up whatever a slow file is doing; whichever comes first wins and the other one is ignored.
++    let registered = false;
++    const registerOnce = () => {
++        if (registered) return;
++        registered = true;
++        register();
++    };
++    if (document.readyState === 'complete') registerOnce();
++    else {
++        window.addEventListener('load', registerOnce);
++        setTimeout(registerOnce, REGISTER_FALLBACK_MS);
++    }
+ }
+diff -ruN '--exclude=node_modules' '--exclude=dist' '--exclude=tests' '--exclude=dist-plain' '--exclude=package-lock.json' a/package.json spyfall-main/package.json
+--- a/package.json	2026-10-04 15:46:50.000000000 +0000
++++ b/package.json	2026-11-01 21:00:44.813694227 +0000
+@@ -15,7 +15,9 @@
+   },
+   "scripts": {
+     "dev": "node scripts/serve.mjs . 8080",
+-    "build": "node scripts/build.mjs",
++    "build": "node scripts/build.mjs && node scripts/bundle.mjs",
++    "build:split": "node scripts/build.mjs && node scripts/bundle.mjs --split",
++    "build:unbundled": "node scripts/build.mjs",
+     "preview": "node scripts/serve.mjs dist 8080",
+     "test": "node --test tests/unit/*.test.mjs",
+     "test:e2e": "node --test tests/e2e/*.test.mjs",
+@@ -25,6 +27,7 @@
+   },
+   "devDependencies": {
+     "@eslint/js": "^9.0.0",
++    "esbuild": "^0.27.7",
+     "eslint": "^9.0.0",
+     "globals": "^15.0.0",
+     "playwright": "^1.48.0",
+diff -ruN '--exclude=node_modules' '--exclude=dist' '--exclude=tests' '--exclude=dist-plain' '--exclude=package-lock.json' a/scripts/bundle.mjs spyfall-main/scripts/bundle.mjs
+--- a/scripts/bundle.mjs	1970-01-01 00:00:00.000000000 +0000
++++ b/scripts/bundle.mjs	2026-11-01 20:52:06.921186044 +0000
+@@ -0,0 +1,152 @@
++#!/usr/bin/env node
++/**
++ * Turn the site that `scripts/build.mjs` wrote into ./dist into one with as few requests as possible.
++ *
++ *   node scripts/bundle.mjs [--out dist] [--split]
++ *
++ * Why: on a network that drops packets every request is a separate gamble (20-40 s each when TCP has to
++ * retransmit), and ES modules are loaded as a chain: main.js, then the modules it imports, then theirs.
++ * One missing file anywhere in that chain stops the whole app, and the service worker (registered by the
++ * last line of main.js) never gets a chance to install. After this step the site needs:
++ *
++ *   default  one request: index.html with the CSS, the JS and the first-paint script inlined
++ *   --split  three requests: index.html, app.css, app.js (plus js/preinit.js); the CSP stays untouched
++ *
++ * Fonts and icons stay separate files on purpose: the page works without them (`font-display: swap`).
++ *
++ * The inlined scripts and styles are allowed through the Content-Security-Policy by their SHA-256 hashes,
++ * written into the policy of dist/index.html (the source index.html keeps `'self'` only).
++ *
++ * The service worker's PRECACHE list is rewritten for the new file set. The VERSION hash is kept: it comes
++ * from the sources, so after upgrading esbuild alone, bump "version" in package.json to ship new bytes.
++ *
++ * Needs `esbuild` (devDependency). Run it after the build: `npm run build` does both.
++ */
++import { createHash } from 'node:crypto';
++import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
++import { dirname, join, posix, relative, resolve, sep } from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { gzipSync } from 'node:zlib';
++import { build, transform } from 'esbuild';
++
++const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
++const outArg = process.argv.indexOf('--out');
++const OUT = resolve(ROOT, outArg > -1 ? process.argv[outArg + 1] : 'dist');
++const SPLIT = process.argv.includes('--split');
++const TARGET = 'es2018';
++
++const fail = (message) => {
++    console.error(`Bundle failed: ${message}`);
++    process.exit(1);
++};
++const listFiles = (dir) =>
++    readdirSync(dir).flatMap((name) => {
++        const full = join(dir, name);
++        return statSync(full).isDirectory() ? listFiles(full) : [full];
++    });
++const toUrl = (file) => './' + relative(OUT, file).split(sep).join(posix.sep);
++const sha256 = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`;
++const read = (path) => readFileSync(join(OUT, path), 'utf8');
++
++for (const required of ['index.html', 'sw.js', 'js/main.js', 'js/preinit.js', 'css/style.css']) {
++    if (!existsSync(join(OUT, required))) fail(`${required} is missing in ${OUT}; run scripts/build.mjs first.`);
++}
++
++// ---- 1. the three pieces
++const bundled = await build({
++    entryPoints: [join(OUT, 'js', 'main.js')],
++    bundle: true,
++    format: 'esm',
++    target: TARGET,
++    minify: true,
++    charset: 'utf8', // keep Persian text as UTF-8 (the default would write every letter as a 6-byte \uXXXX escape)
++    legalComments: 'none',
++    write: false,
++    outfile: join(OUT, 'app.js'),
++    logLevel: 'silent'
++});
++const appJs = bundled.outputFiles[0].text;
++
++const css = await transform(read('css/style.css'), { loader: 'css', minify: true, charset: 'utf8' });
++if (!css.code.includes('../assets/')) fail('css/style.css no longer points at ../assets/ (the font path rewrite found nothing).');
++const appCss = css.code.replaceAll('../assets/', './assets/'); // the CSS moves from css/ to the site root
++
++const preinitSource = read('js/preinit.js');
++const preinit = (await transform(preinitSource, { loader: 'js', minify: true, charset: 'utf8', target: TARGET })).code;
++
++// ---- 2. index.html
++let html = read('index.html');
++const TAGS = {
++    preinit: '<script src="./js/preinit.js"></script>',
++    css: '<link rel="stylesheet" href="./css/style.css">',
++    main: '<script type="module" src="./js/main.js"></script>'
++};
++for (const [name, tag] of Object.entries(TAGS)) {
++    if (html.split(tag).length !== 2) fail(`index.html must contain ${tag} exactly once (${name}).`);
++}
++// Inline code is placed inside <script>/<style>; two sequences would end it early or open a comment there.
++const safeScript = (code) => code.replaceAll('</script', '<\\/script').replaceAll('<!--', '<\\!--');
++if (appCss.includes('</style')) fail('the CSS contains "</style"; it cannot be inlined.');
++
++const CSP = /(<meta http-equiv="Content-Security-Policy" content=")([^"]*)(")/;
++const policy = html.match(CSP);
++if (!policy || !/script-src 'self'(?=[;"\s])/.test(policy[2]) || !/style-src 'self'(?=[;"\s])/.test(policy[2])) {
++    fail("index.html needs a Content-Security-Policy meta with \"script-src 'self'\" and \"style-src 'self'\".");
++}
++
++if (SPLIT) {
++    html = html.replace(TAGS.css, () => '<link rel="stylesheet" href="./app.css">');
++    html = html.replace(TAGS.main, () => '<script type="module" src="./app.js"></script>');
++    writeFileSync(join(OUT, 'app.js'), appJs);
++    writeFileSync(join(OUT, 'app.css'), appCss);
++} else {
++    const inlinePreinit = safeScript(preinit);
++    const inlineMain = safeScript(appJs);
++    html = html.replace(TAGS.preinit, () => `<script>${inlinePreinit}</script>`);
++    html = html.replace(TAGS.css, () => `<style>${appCss}</style>`);
++    html = html.replace(TAGS.main, () => `<script type="module">${inlineMain}</script>`);
++    const scriptHashes = [inlinePreinit, inlineMain].map(sha256).join(' ');
++    html = html.replace(CSP, (_, head, value, tail) =>
++        head +
++        value
++            .replace(/script-src 'self'(?=[;"\s]|$)/, (m) => `${m} ${scriptHashes}`)
++            .replace(/style-src 'self'(?=[;"\s]|$)/, (m) => `${m} ${sha256(appCss)}`) +
++        tail
++    );
++}
++writeFileSync(join(OUT, 'index.html'), html);
++
++// ---- 3. drop what is bundled now
++rmSync(join(OUT, 'css'), { recursive: true, force: true });
++for (const file of listFiles(join(OUT, 'js'))) {
++    if (!(SPLIT && file === join(OUT, 'js', 'preinit.js'))) rmSync(file);
++}
++if (!SPLIT) rmSync(join(OUT, 'js'), { recursive: true, force: true });
++else {
++    // keep only js/preinit.js: remove the now-empty folders
++    for (const dir of readdirSync(join(OUT, 'js'), { withFileTypes: true }).filter((e) => e.isDirectory())) {
++        rmSync(join(OUT, 'js', dir.name), { recursive: true, force: true });
++    }
++}
++
++// ---- 4. the service worker's precache list: what is really on disk now
++const swPath = join(OUT, 'sw.js');
++const files = listFiles(OUT).filter((f) => f !== swPath).sort();
++const precache = ['./', ...files.map(toUrl)];
++const sw = readFileSync(swPath, 'utf8');
++const listPattern = /const PRECACHE = (\[[^\]]*\]);/;
++const old = sw.match(listPattern);
++if (!old) fail('sw.js has no stamped "const PRECACHE = [...]" list; run scripts/build.mjs first.');
++JSON.parse(old[1]);
++writeFileSync(swPath, sw.replace(listPattern, () => `const PRECACHE = ${JSON.stringify(precache, null, 4)};`));
++
++// ---- 5. integrity: nothing may still point at a removed file
++const leftovers = [...html.matchAll(/\b(?:href|src)="(\.\/[^"#?]+)"/g)].map((m) => m[1]).filter((ref) => !existsSync(join(OUT, ref)));
++if (leftovers.length) fail(`index.html references missing ${leftovers.join(', ')}`);
++
++const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
++console.log(
++    `Bundled ${SPLIT ? 'into 3 files' : 'into one index.html'}: ${files.length} files in ${relative(ROOT, OUT) || '.'}; ` +
++        `index.html ${kb(Buffer.byteLength(html))} (${kb(gzipSync(html, { level: 9 }).length)} gzipped), ` +
++        `app.js ${kb(Buffer.byteLength(appJs))}, css ${kb(Buffer.byteLength(appCss))}.`
++);
+diff -ruN '--exclude=node_modules' '--exclude=dist' '--exclude=tests' '--exclude=dist-plain' '--exclude=package-lock.json' a/sw.js spyfall-main/sw.js
+--- a/sw.js	2026-10-04 15:46:50.000000000 +0000
++++ b/sw.js	2026-11-01 20:55:13.025937300 +0000
+@@ -1,17 +1,23 @@
+ /*
+  * Spyfall service worker
+  * ------------------------------------------------------------------
+- * Strategy: a versioned app-shell precache served cache-first.
++ * Built for networks that drop packets: a single slow or failed file must never stop the app from
++ * installing or from working offline.
+  *
+- *  - `scripts/build.mjs` replaces __BUILD_VERSION__ with a hash of every shipped file and
+- *    fills PRECACHE with the file list. Any change to any file therefore yields a new
+- *    service worker and a brand-new cache, so installed users always get updates.
+- *  - In a source checkout the placeholders stay untouched. The worker then detects DEV mode
+- *    and never caches, so local edits show up immediately.
+- *  - Precaching bypasses the HTTP cache (cache: 'reload') so a cache can never mix files
+- *    from two different builds.
+- *  - Old caches are deleted on activate. This also clears the legacy `spyfall-v1` cache
+- *    left behind by the previous, never-invalidated worker.
++ *  - `scripts/build.mjs` replaces __BUILD_VERSION__ with a hash of every shipped file and fills PRECACHE
++ *    with the file list (`scripts/bundle.mjs` then rewrites that list for the bundled site). Any change
++ *    yields a new worker and a new shell cache, so installed users always get updates.
++ *  - In a source checkout the placeholders stay untouched. The worker then detects DEV mode and never
++ *    caches, so local edits show up immediately.
++ *
++ * Two caches:
++ *  - SHELL_CACHE (versioned): the page itself (HTML / JS / CSS / manifest). These files are REQUIRED:
++ *    each one is fetched with a timeout and retries; if one still fails, the install fails and the
++ *    browser simply tries again later. The previous worker keeps serving meanwhile, so nothing breaks.
++ *  - STATIC_CACHE (not versioned, survives updates): fonts and icons under ./assets/. These are
++ *    BEST-EFFORT: a timeout or error here never fails the install, and the file is cached the first time
++ *    the page manages to load it (runtime caching). Because it is never wiped on update, a font that
++ *    was hard to download is not downloaded again for every new version.
+  */
+ const VERSION = '__BUILD_VERSION__';
+ const PRECACHE = /* __PRECACHE__ */ [];
+@@ -19,6 +25,57 @@
+ const DEV = VERSION.startsWith('__');
+ const CACHE_PREFIX = 'spyfall-';
+ const SHELL_CACHE = `${CACHE_PREFIX}shell-${VERSION}`;
++// Bump this name only when a file under ./assets/ changes without changing its file name.
++const STATIC_CACHE = `${CACHE_PREFIX}static-v1`;
++
++const REQUIRED_TIMEOUT_MS = 45000;
++const REQUIRED_ATTEMPTS = 3;
++const OPTIONAL_TIMEOUT_MS = 30000;
++// The install does not wait longer than this for the optional files; they keep loading in the background.
++const OPTIONAL_GRACE_MS = 10000;
++const RETRY_DELAY_MS = 1500;
++
++const scopeUrl = (path) => new URL(path, self.location).href;
++const isStatic = (path) => path.startsWith('./assets/');
++const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
++
++/** `./` and `./index.html` are the same page: download it once, store it under both keys. */
++const ALIASES = { './': ['./index.html'] };
++const SKIP = new Set(Object.values(ALIASES).flat());
++
++/**
++ * Download `path` (bypassing the HTTP cache so a cache never mixes two builds) and store it in `cache`.
++ * The timeout covers the whole transfer, headers and body, because on a lossy network the body is what stalls.
++ */
++async function download(cache, path, timeoutMs) {
++    const controller = new AbortController();
++    const timer = setTimeout(() => controller.abort(), timeoutMs);
++    try {
++        const response = await fetch(new Request(scopeUrl(path), { cache: 'reload', signal: controller.signal }));
++        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
++        // The body is buffered once, so every key gets its own complete copy.
++        const body = await response.blob();
++        const type = response.headers.get('content-type') ?? 'application/octet-stream';
++        const keys = [path, ...(ALIASES[path] ?? [])];
++        await Promise.all(keys.map((key) => cache.put(scopeUrl(key), new Response(body, { headers: { 'content-type': type } }))));
++    } finally {
++        clearTimeout(timer);
++    }
++}
++
++async function downloadWithRetries(cache, path, attempts, timeoutMs) {
++    let lastError;
++    for (let attempt = 1; attempt <= attempts; attempt++) {
++        try {
++            await download(cache, path, timeoutMs);
++            return;
++        } catch (error) {
++            lastError = error;
++            if (attempt < attempts) await sleep(RETRY_DELAY_MS * attempt);
++        }
++    }
++    throw lastError;
++}
+ 
+ self.addEventListener('install', (event) => {
+     if (DEV) {
+@@ -26,15 +83,32 @@
+         return;
+     }
+     event.waitUntil((async () => {
+-        const cache = await caches.open(SHELL_CACHE);
+-        await cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' })));
++        const shell = await caches.open(SHELL_CACHE);
++        const statics = await caches.open(STATIC_CACHE);
++        const paths = PRECACHE.filter((path) => !SKIP.has(path));
++        const required = paths.filter((path) => !isStatic(path));
++        const optional = paths.filter(isStatic);
++
++        // Optional files start now, in parallel with the required ones, and never reject.
++        const optionalDone = Promise.allSettled(
++            optional.map(async (path) => {
++                if (await statics.match(scopeUrl(path))) return; // already have it from an earlier version
++                await downloadWithRetries(statics, path, 2, OPTIONAL_TIMEOUT_MS);
++            })
++        );
++
++        // Required files: all of them, or the install fails (and the old worker stays in charge).
++        await Promise.all(required.map((path) => downloadWithRetries(shell, path, REQUIRED_ATTEMPTS, REQUIRED_TIMEOUT_MS)));
++
++        // The page is safe offline now. Give the optional files a short grace period, not more.
++        await Promise.race([optionalDone, sleep(OPTIONAL_GRACE_MS)]);
+         await self.skipWaiting();
+     })());
+ });
+ 
+ self.addEventListener('activate', (event) => {
+     event.waitUntil((async () => {
+-        const keep = new Set([SHELL_CACHE]);
++        const keep = new Set([SHELL_CACHE, STATIC_CACHE]);
+         const keys = await caches.keys();
+         await Promise.all(
+             keys.filter((key) => key.startsWith(CACHE_PREFIX) && !keep.has(key)).map((key) => caches.delete(key))
+@@ -49,21 +123,29 @@
+ 
+     const url = new URL(request.url);
+     if (url.origin === self.location.origin) {
+-        event.respondWith(shellFirst(request));
++        event.respondWith(cacheFirst(request, event));
+     }
+ });
+ 
+-/** Serve the app shell from this build's cache; fall back to the network. */
+-async function shellFirst(request) {
+-    const cache = await caches.open(SHELL_CACHE);
+-    const cached = await cache.match(request, { ignoreSearch: true });
+-    if (cached) return cached;
++/** Look in this build's shell cache, then in the static cache, then the network (and remember what the network gave). */
++async function cacheFirst(request, event) {
++    const hit =
++        (await (await caches.open(SHELL_CACHE)).match(request, { ignoreSearch: true })) ||
++        (await (await caches.open(STATIC_CACHE)).match(request, { ignoreSearch: true }));
++    if (hit) return hit;
++
+     try {
+-        return await fetch(request);
++        const response = await fetch(request);
++        // Runtime caching: a font or icon that arrives late is kept, so it is not downloaded again and works offline.
++        if (response.ok && response.type === 'basic' && new URL(request.url).pathname.includes('/assets/')) {
++            const copy = response.clone();
++            event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy)).catch(() => {}));
++        }
++        return response;
+     } catch (error) {
+         // Offline navigation to an unknown URL: show the app instead of a browser error page.
+         if (request.mode === 'navigate') {
+-            const shell = await cache.match('./index.html');
++            const shell = await (await caches.open(SHELL_CACHE)).match(scopeUrl('./index.html'));
+             if (shell) return shell;
+         }
+         throw error;

@@ -15,7 +15,9 @@
   },
   "scripts": {
     "dev": "node scripts/serve.mjs . 8080",
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build.mjs && node scripts/bundle.mjs",
+    "build:split": "node scripts/build.mjs && node scripts/bundle.mjs --split",
+    "build:unbundled": "node scripts/build.mjs",
     "preview": "node scripts/serve.mjs dist 8080",
     "test": "node --test tests/unit/*.test.mjs",
     "test:e2e": "node --test tests/e2e/*.test.mjs",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "esbuild": "^0.27.7",
     "eslint": "^9.0.0",
     "globals": "^15.0.0",
     "playwright": "^1.48.0",
