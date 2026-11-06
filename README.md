@@ -6,14 +6,13 @@
 Persian (RTL) and English (LTR) UI · zero runtime dependencies · installable on Android and iOS
 
 [![CI](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/ci.yml)
-[![Deploy](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml/badge.svg)](https://github.com/mahdi-barzegar-nazari/spyfall/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/github/license/mahdi-barzegar-nazari/spyfall?style=flat-square)](./LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--ready-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](#offline-first-and-safe-updates)
 [![Vanilla JS](https://img.shields.io/badge/vanilla-ES_modules-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](#architecture)
 [![Dependencies: 0](https://img.shields.io/badge/runtime_dependencies-0-brightgreen?style=flat-square)](./package.json)
 [![Support](https://img.shields.io/badge/support-buy_me_a_coffee-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black)](https://www.coffeete.ir/MahdiBN)
 
-**[▶ Play the live demo](https://mahdi-barzegar-nazari.github.io/spyfall/)**
+**[▶ Play the live demo](https://jasoosbazi.vercel.app/)**
 
 </div>
 
@@ -44,7 +43,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 
 ### Just play
 
-Open the [live demo](https://mahdi-barzegar-nazari.github.io/spyfall/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
+Open the [live demo](https://jasoosbazi.vercel.app/) and choose *Add to Home Screen* (Chrome and Edge on Android also show an install button). On iPhone and iPad, and in Firefox for Android, which have no install button, the welcome screen shows a small line that says where to find it (Share, then *Add to Home Screen*; or the menu, then *Install*). If the page is open inside another app's built-in browser on iPhone or iPad (Telegram, Instagram, Facebook and the like), where that menu usually does not exist, the line asks you to open the page in Safari first. Close it with × and it stays closed.
 
 New to the game? Tap **How to play** (**چطور بازی کنیم؟**) under the play button on the welcome screen for a six-line summary of a round, and during the discussion tap **Question idea** (**ایده‌ی سؤال**) under the timer for a suggested question to ask each other (a new one on every press, none repeated until all have been used). The (i) buttons next to single options on the setup screen explain those options. Under the five basic fields (players, spies, categories, difficulty, timer) the options sit in four folding groups (**Roles**, **Discussion**, **Stakes and ending**, **Speed and confirmations**; in Persian «نقش‌ها», «گفتگو», «ریسک و پایان», «سرعت و تأیید»), all closed at first, and each header shows how many of its options are switched on.
 
@@ -121,7 +120,7 @@ The welcome screen has one small, faint build line, the same in Persian and Engl
 
 ## Deployment
 
-Pushes to `main` run [`deploy.yml`](./.github/workflows/deploy.yml): unit tests, then build, then publish `dist/` to GitHub Pages. One-time setup: **Settings → Pages → Source: GitHub Actions**.
+The production site is hosted on [Vercel](https://jasoosbazi.vercel.app/). Pushes to `main` trigger an automatic build and zero-downtime deployment.
 
 ## Roadmap
 
