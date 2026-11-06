@@ -96,7 +96,7 @@ npm run lint
 ├── assets/icons/              # 192, 512 and padded maskable icons
 ├── scripts/                   # build.mjs (dist + SW and build-info stamping), serve.mjs (dev server)
 ├── tests/                     # unit (node:test) and e2e (Playwright)
-└── .github/workflows/         # CI and GitHub Pages deployment
+└── .github/workflows/         # CI workflows
 ```
 
 State lives in one object (`core/state.js`). Every user action becomes a `dispatch({ type, payload })` call, which mutates state, re-renders, and persists it. Modules call `dispatch` through a small port in `core/dispatch.js`; `app/wire.js` connects the real handler at start-up, so there are no import cycles (a unit test enforces it). A short walkthrough of the modules, the state model, and the known trade-offs is in [`docs/architecture.md`](./docs/architecture.md).
