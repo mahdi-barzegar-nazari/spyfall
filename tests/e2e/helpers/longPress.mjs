@@ -7,10 +7,17 @@
  * running, the fake clock would keep following real time and a "599 ms" check would depend on how long
  * Playwright took to send the previous command.) The pointer itself is real: `page.mouse` and touch events sent
  * through the DevTools protocol reach the page as trusted pointer events.
+ *
+ * Until it is paused the fake clock does follow real time, so loading the page can take it past any fixed time
+ * (on a slow CI runner past one second, and `pauseAt` then fails with "Cannot fast-forward to the past"). The
+ * pause is therefore set a little AFTER the time the page's clock has reached, which is read from the page.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PHONE, newPage } from './app.mjs';
+
+/** How far ahead of the page's current fake time the clock is paused: room for the protocol round trip, even on a slow runner. */
+const PAUSE_AHEAD_MS = 2000;
 
 const pkg = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8'));
 
@@ -26,7 +33,7 @@ export async function withWelcome(browser, url, fn, { lang = 'fa', clock = true,
         if (clock) await page.clock.install({ time: 0 });
         await page.goto(url);
         await page.waitForSelector('#screen-welcome:not(.hidden)');
-        if (clock) await page.clock.pauseAt(1000);
+        if (clock) await page.clock.pauseAt((await page.evaluate(() => Date.now())) + PAUSE_AHEAD_MS);
         await fn({ page, context });
         assert.deepEqual(problems, []);
     } finally {
