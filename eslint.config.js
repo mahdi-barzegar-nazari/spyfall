@@ -10,7 +10,13 @@ export default [
     },
     {
         files: ['sw.js'],
-        languageOptions: { ecmaVersion: 2022, sourceType: 'script', globals: { ...globals.serviceworker } }
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'script',
+            // `globals.serviceworker` does not list AbortController, but it exists in service workers
+            // and sw.js uses it for the download timeout.
+            globals: { ...globals.serviceworker, AbortController: 'readonly' }
+        }
     },
     {
         files: ['scripts/**/*.mjs', 'tests/**/*.mjs', 'eslint.config.js'],
