@@ -108,7 +108,7 @@ export const fa = {
     'setup.players.label': 'تعداد کل بازیکنان:',
     'setup.spies.label': 'تعداد جاسوس‌ها:',
     'setup.categories.label': 'دسته‌بندی موضوعات کلمات:',
-    'setup.categories.all': 'همه موضوعات (+700 کلمه)',
+    'setup.categories.all': 'همه موضوعات (+2100 کلمه)',
     'setup.cat.places': 'اماکن و فضاها',
     'setup.cat.jobs': 'مشاغل و حرفه‌ها',
     'setup.cat.foods': 'غذاها و خوراکی‌ها',
