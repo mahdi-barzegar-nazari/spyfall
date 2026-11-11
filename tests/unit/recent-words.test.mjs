@@ -98,7 +98,7 @@ function withThrowingStorage(fn) {
 describe('loadRecentWords / rememberRecentWord', () => {
     it('the key and the limit are what the feature promises', () => {
         assert.equal(RECENT_WORDS_KEY, 'spy_recent_words');
-        assert.equal(RECENT_WORDS_LIMIT, 100);
+        assert.equal(RECENT_WORDS_LIMIT, 300);
     });
 
     it('nothing stored reads as an empty list', () => {
@@ -121,28 +121,28 @@ describe('loadRecentWords / rememberRecentWord', () => {
         assert.deepEqual(stored(), ['b', 'c', 'a']);
     });
 
-    it('is cut to the newest 100 when written: 105 keys leave the last 100, in order', () => {
-        const all = keys(105);
+    it('is cut to the newest 300 when written: 305 keys leave the last 300, in order', () => {
+        const all = keys(305);
         all.forEach(rememberRecentWord);
         const raw = stored();
         assert.equal(raw.length, RECENT_WORDS_LIMIT);
         assert.deepEqual(raw, all.slice(5));
     });
 
-    it('a key written to a list of exactly 100 pushes out only the oldest', () => {
-        seedRecent(keys(100));
+    it('a key written to a list of exactly 300 pushes out only the oldest', () => {
+        seedRecent(keys(300));
         rememberRecentWord('fresh');
         const raw = stored();
-        assert.equal(raw.length, 100);
+        assert.equal(raw.length, 300);
         assert.equal(raw[0], 'k1');
-        assert.equal(raw[99], 'fresh');
+        assert.equal(raw[299], 'fresh');
     });
 
-    it('a list that is too long in the store (written by something else) reads as its newest 100', () => {
-        seedRecent(keys(250));
+    it('a list that is too long in the store (written by something else) reads as its newest 300', () => {
+        seedRecent(keys(450));
         const list = loadRecentWords();
         assert.equal(list.length, RECENT_WORDS_LIMIT);
-        assert.deepEqual(list, keys(250).slice(150));
+        assert.deepEqual(list, keys(450).slice(150));
     });
 
     it('a repeated key in the store counts once, at its newest place', () => {
@@ -349,13 +349,13 @@ describe('startNextRound remembers the words it chooses', () => {
         assert.deepEqual(stored(), [...first, ...second].map(normalizeWord));
     });
 
-    it('is cut to the last 100 chosen words: 105 rounds leave the keys of the last 100, in order', () => {
+    it('is cut to the last 300 chosen words: 305 rounds leave the keys of the last 300, in order', () => {
         env.seedRandom(103);
-        arrange({ words: customWords(150) });
-        const drawn = playMatch(105);
-        assert.equal(new Set(drawn).size, 105);
+        arrange({ words: customWords(350) });
+        const drawn = playMatch(305);
+        assert.equal(new Set(drawn).size, 305);
         assert.equal(stored().length, RECENT_WORDS_LIMIT);
-        assert.deepEqual(stored(), drawn.slice(-100).map(normalizeWord));
+        assert.deepEqual(stored(), drawn.slice(-300).map(normalizeWord));
     });
 });
 
@@ -526,25 +526,25 @@ describe('startNextRound with a small pool', () => {
     });
 });
 
-describe('startNextRound when a match uses a pool of more than 100 words up', () => {
-    it('the round after the reset is drawn from the whole pool: the recent list (cut to 100, so it covers only part of it) plays no part', () => {
-        // 120 words, one match of 120 rounds: no word twice, every word once. The recent list then holds the last 100
-        // of them, so 20 words are "not recent". Round 121 starts the used list over (rule 1) and may draw any word,
+describe('startNextRound when a match uses a pool of more than 300 words up', () => {
+    it('the round after the reset is drawn from the whole pool: the recent list (cut to 300, so it covers only part of it) plays no part', () => {
+        // 320 words, one match of 320 rounds: no word twice, every word once. The recent list then holds the last 300
+        // of them, so 20 words are "not recent". Round 321 starts the used list over (rule 1) and may draw any word,
         // the recent ones included; if the recent list were still applied after the reset, only those 20 could be drawn.
         let fromRecent = 0;
         for (let seed = 1; seed <= 10; seed++) {
             env.reset();
             env.seedRandom(1400 + seed);
-            arrange({ words: customWords(120) });
-            const drawn = playMatch(120);
-            assert.equal(new Set(drawn).size, 120, `seed ${seed}: no word twice before the pool is used up`);
+            arrange({ words: customWords(320) });
+            const drawn = playMatch(320);
+            assert.equal(new Set(drawn).size, 320, `seed ${seed}: no word twice before the pool is used up`);
             const recent = new Set(stored());
             assert.equal(recent.size, RECENT_WORDS_LIMIT, `seed ${seed}`);
             startNextRound();
             assert.deepEqual(gameState.match.usedWordKeys, [normalizeWord(hostSecretState.secretWord)], `seed ${seed}: the list started over`);
             if (recent.has(normalizeWord(hostSecretState.secretWord))) fromRecent++;
         }
-        assert.ok(fromRecent > 0, `${fromRecent} of 10 draws after the reset were recent words (about 8 expected)`);
+        assert.ok(fromRecent > 0, `${fromRecent} of 10 draws after the reset were recent words (about 9 expected)`);
     });
 });
 

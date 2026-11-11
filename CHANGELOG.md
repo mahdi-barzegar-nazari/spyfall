@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **The memory of recently used secret words is 300 words, not 100.** `RECENT_WORDS_LIMIT` in `core/storage.js` went from 100 to 300, because the Persian bank is now 2,147 words (100 was about 13% of the old 741-word bank and would be about 5% of the new one; 300 is about 14%). Only the number changed: the key `spy_recent_words`, the half-pool fallback rule, the way a stored list is read back and `SAVE_VERSION` are as before. A list of up to 100 words already stored on a device simply keeps growing to 300. `tests/unit/recent-words.test.mjs` now states the limit as 300 (the cut, the exact-limit and over-long lists, the 305-round match and the 320-word pool that is used up), and the README and `docs/architecture.md` say 300.
+
 ### Added
 
 - **The Persian word bank grows from 741 to 2,147 words.** 1,406 words from a public Persian word list were added, each one given a category, a decoy word (`foolWord`), a one-word spy hint and a difficulty written for this bank's own format, not copied from the source. Nothing was added to the English bank (a later step). They went into the existing eight categories (places +291, jobs +77, foods +186, objects +361, vehicles +11, animals +137, sports +30, events +313), so no category id, setup checkbox or saved setting changed. The list had 1,899 words; 396 were already in the bank (compared with `normalizeWord`, so spelling variants with a half-space or a different alef count as the same word) and 97 were left out on purpose: names of living political figures and clergy titles, ideological or crude words, ambiguous or unclear entries, historical persons (the bank has no "people" category) and six words that clash with a question already in the bank. Difficulty is now 999 easy, 815 medium and 333 hard (it was 459, 153 and 129), so the "hard" setting no longer repeats words quickly.

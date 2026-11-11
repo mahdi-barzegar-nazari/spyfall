@@ -122,7 +122,7 @@ export function saveSetupSettings(settings) {
 export const RECENT_WORDS_KEY = 'spy_recent_words';
 
 /** How many words are remembered: the list never holds more, when written or when read. */
-export const RECENT_WORDS_LIMIT = 100;
+export const RECENT_WORDS_LIMIT = 300;
 
 /**
  * The longest key that is accepted. A custom word has at most 30 characters and the longest built-in key has 22,
