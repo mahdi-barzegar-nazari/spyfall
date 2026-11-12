@@ -811,5 +811,16 @@ export const WORD_PACKS_EN = {
         { word: "Windy day", foolWord: "Rain shower", hint: "Gusts", diff: "hard" },
         { word: "Low tide", foolWord: "High tide", hint: "Rocks", diff: "hard" },
         { word: "Morning dew", foolWord: "Frost", hint: "Droplets", diff: "hard" }
+    ],
+    concepts: [
+        // Seed: the full category is written in a later step
+        { word: "Gravity", foolWord: "Magnetism", hint: "Apple", diff: "easy" },
+        { word: "Chemistry", foolWord: "Physics", hint: "Lab", diff: "easy" },
+        { word: "Friendship", foolWord: "Partnership", hint: "Trust", diff: "easy" },
+        { word: "Courage", foolWord: "Confidence", hint: "Brave", diff: "medium" },
+        { word: "Evolution", foolWord: "Genetics", hint: "Species", diff: "medium" },
+        { word: "Curiosity", foolWord: "Imagination", hint: "Questions", diff: "medium" },
+        { word: "Probability", foolWord: "Statistics", hint: "Dice", diff: "hard" },
+        { word: "Photosynthesis", foolWord: "Respiration", hint: "Sunlight", diff: "hard" }
     ]
 };

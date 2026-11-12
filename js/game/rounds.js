@@ -2,7 +2,7 @@
  * Match and round setup: players, word selection, roles, quests, director turns.
  */
 
-import { DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
+import { BUILT_IN_CATEGORIES, DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { displayHint, getCustomWords, loadRecentWords, rememberRecentWord } from '../core/storage.js';
@@ -97,7 +97,7 @@ export function startNextRound() {
     // records it and a restore switches back to it (RESTORE_GAME in app/actions.js).
     gameState.match.lang = lang;
     let pool = [];
-    const activeCats = (gameState.settings.cats && gameState.settings.cats.length > 0) ? gameState.settings.cats : ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+    const activeCats = (gameState.settings.cats && gameState.settings.cats.length > 0) ? gameState.settings.cats : BUILT_IN_CATEGORIES;
     
     activeCats.forEach(catKey => {
         if (catKey === 'custom') {
@@ -267,6 +267,7 @@ const CATEGORY_LABEL_KEYS = {
     animals: 'setup.cat.animals',
     sports: 'setup.cat.sports',
     events: 'setup.cat.events',
+    concepts: 'setup.cat.concepts',
     custom: 'setup.cat.custom'
 };
 

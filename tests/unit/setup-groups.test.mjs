@@ -141,7 +141,7 @@ describe('the groups in index.html', () => {
         const found = [...elements(core)].filter((el) => ['input', 'select', 'textarea'].includes(el.tag)).map((el) => el.attrs.id || `name:${el.attrs.name}`);
         const unique = found.filter((key, i) => found.indexOf(key) === i);
         assert.deepEqual(unique, [CORE_FIELDS[0], CORE_FIELDS[1], ...CORE_CHIP_NAMES.map((name) => `name:${name}`), CORE_FIELDS[2]]);
-        assert.equal(found.filter((key) => key === 'name:setup-cat').length, 9);
+        assert.equal(found.filter((key) => key === 'name:setup-cat').length, 10);
         assert.equal(found.filter((key) => key === 'name:setup-diff').length, 3);
         // Nothing the groups hold leaked up into the core block.
         for (const id of Object.keys(GROUP_OF_CONTROL)) assert.ok(!inside(withId(id)[0], core), id);
@@ -193,7 +193,7 @@ describe('the groups in index.html', () => {
     it('the defaults are unchanged: three on, everything else off, the select on tap', () => {
         const on = all.filter((el) => el.tag === 'input' && 'checked' in el.attrs).map((el) => el.attrs.id || `${el.attrs.name}=${el.attrs.value}`);
         assert.deepEqual(on.sort(), [
-            'setup-cat=animals', 'setup-cat=events', 'setup-cat=foods', 'setup-cat=jobs', 'setup-cat=objects', 'setup-cat=places', 'setup-cat=sports', 'setup-cat=vehicles',
+            'setup-cat=animals', 'setup-cat=concepts', 'setup-cat=events', 'setup-cat=foods', 'setup-cat=jobs', 'setup-cat=objects', 'setup-cat=places', 'setup-cat=sports', 'setup-cat=vehicles',
             'setup-diff=easy', 'setup-diff=hard', 'setup-diff=medium',
             'setup-hint=related_word',
             'toggle-last-chance', 'toggle-role-reveal-confirm'

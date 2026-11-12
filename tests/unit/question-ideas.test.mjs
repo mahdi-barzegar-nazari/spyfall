@@ -175,7 +175,7 @@ describe('the question banks: a mix of open and yes/no questions', () => {
 
 describe('the question banks: nothing about the word or its category', () => {
     /** Words that name a category, a "word" or a "spy": what a player must never be told by a public question. */
-    const CATEGORY_KEYS = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+    const CATEGORY_KEYS = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events', 'concepts'];
     const EXTRA_FORBIDDEN = {
         en: ['place', 'places', 'job', 'jobs', 'food', 'foods', 'snack', 'snacks', 'object', 'objects', 'tech', 'technology', 'vehicle', 'vehicles', 'animal', 'animals', 'nature', 'sport', 'sports', 'game', 'games', 'event', 'events', 'category', 'categories', 'topic', 'topics', 'word', 'words', 'spy', 'spies', 'secret', 'custom'],
         fa: ['مکان', 'مکان‌ها', 'اماکن', 'شغل', 'مشاغل', 'حرفه', 'غذا', 'غذاها', 'خوراکی', 'شیء', 'شی', 'اشیاء', 'وسیله', 'وسایل', 'نقلیه', 'حیوان', 'حیوانات', 'طبیعت', 'ورزش', 'بازی', 'رویداد', 'رویدادها', 'پدیده', 'دسته', 'موضوع', 'کلمه', 'کلمات', 'جاسوس', 'مخفی', 'رمز', 'سفارشی']

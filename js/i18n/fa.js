@@ -117,6 +117,7 @@ export const fa = {
     'setup.cat.animals': 'حیوانات و طبیعت',
     'setup.cat.sports': 'ورزش و بازی‌ها',
     'setup.cat.events': 'رویدادها و پدیده‌ها',
+    'setup.cat.concepts': 'مفاهیم و علوم',
     'setup.cat.custom': 'کلمات سفارشی',
     'setup.cat.unknown': 'موضوعات بازی',
     'setup.difficulty.label': 'سطح دشواری:',

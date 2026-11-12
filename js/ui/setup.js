@@ -3,7 +3,7 @@
  * setup of the last match back into the form.
  */
 
-import { RULES, getMaxSpiesAllowed, normalizeDifficulties, sanitizeSetupSettings } from '../core/config.js';
+import { BUILT_IN_CATEGORIES, RULES, getMaxSpiesAllowed, normalizeDifficulties, sanitizeSetupSettings } from '../core/config.js';
 import { isMatchInProgress } from '../core/phase.js';
 import { gameState } from '../core/state.js';
 import { isDefaultPlayerNameOfOtherLanguage, loadSavedNames, loadSetupSettings, saveCurrentNames, saveSetupSettings } from '../core/storage.js';
@@ -55,7 +55,7 @@ export function validateAndSaveSettings() {
 
     let selectedCats = Array.from(document.querySelectorAll('input[name="setup-cat"]:checked')).map(el => el.value);
     if (selectedCats.length === 0) {
-        selectedCats = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+        selectedCats = [...BUILT_IN_CATEGORIES];
         document.querySelectorAll('input[name="setup-cat"]').forEach(el => {
             if (el.value !== 'custom') el.checked = true;
         });

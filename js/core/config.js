@@ -73,7 +73,7 @@ export function normalizeDifficulties(value) {
 }
 
 /** The built-in word categories, in the order of the category chips on the setup screen. */
-export const BUILT_IN_CATEGORIES = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+export const BUILT_IN_CATEGORIES = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events', 'concepts'];
 
 /** Every category id a setup can hold: the built-in ones, then the player's own words. */
 export const CATEGORY_IDS = [...BUILT_IN_CATEGORIES, 'custom'];

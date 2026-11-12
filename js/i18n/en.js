@@ -144,6 +144,7 @@ export const en = {
     'setup.cat.animals': 'Animals & nature',
     'setup.cat.sports': 'Sports & games',
     'setup.cat.events': 'Events',
+    'setup.cat.concepts': 'Concepts & science',
     'setup.cat.custom': 'Custom words',
     'setup.cat.unknown': 'Game topic',
     'setup.difficulty.label': 'Difficulty:',

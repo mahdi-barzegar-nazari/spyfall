@@ -528,16 +528,16 @@ describe('startNextRound: word selection', () => {
         assert.equal(getDifficultyMultiplier(gameState.round.wordDifficulty), 1);
     });
 
-    it('gives each of the eight built-in categories and the custom one its own label', () => {
+    it('gives each of the nine built-in categories and the custom one its own label', () => {
         const labels = [];
         for (const key of [...Object.keys(WORD_PACKS), 'custom']) {
             arrange({ settings: { cats: [key] } });
             startNextRound();
             labels.push(gameState.round.category);
         }
-        assert.equal(labels.length, 9);
+        assert.equal(labels.length, 10);
         assert.ok(labels.every((label) => typeof label === 'string' && label));
-        assert.equal(new Set(labels).size, 9);
+        assert.equal(new Set(labels).size, 10);
     });
 });
 

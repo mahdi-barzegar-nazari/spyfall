@@ -201,7 +201,7 @@ describe('defaultSetupSettings', () => {
             playersCount: 4,
             spiesCount: 1,
             timerMin: 4,
-            cats: ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'],
+            cats: ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events', 'concepts'],
             diff: ['easy', 'medium', 'hard'],
             revealHold: false,
             hints: ['related_word'],
@@ -233,7 +233,7 @@ describe('defaultSetupSettings', () => {
         first.hints.push('none');
         first.playersCount = 20;
         assert.deepEqual(defaultSetupSettings(), settingsWith({}));
-        assert.equal(defaultSetupSettings().cats.length, 8);
+        assert.equal(defaultSetupSettings().cats.length, 9);
         assert.deepEqual(defaultSetupSettings().diff, ['easy', 'medium', 'hard']);
         assert.deepEqual(defaultSetupSettings().hints, ['related_word']);
     });
