@@ -485,7 +485,8 @@ describe('startNextRound with a small pool', () => {
             setLang(lang);
             const packs = lang === 'fa' ? WORD_PACKS : WORD_PACKS_EN;
             const expected = packs.vehicles.filter((w) => w.diff === 'hard').map((w) => w.word).sort();
-            assert.ok(expected.length >= 16 && expected.length <= 18, `${expected.length} words`);
+            // the smallest pool of the bank: 16 words in Persian, 32 in English (both far fewer than the 300 remembered)
+            assert.ok(expected.length >= 16 && expected.length <= 40, `${expected.length} words`);
             env.seedRandom(950);
             arrange({ settings: { cats: ['vehicles'], diff: ['hard'] } });
             for (let match = 1; match <= 3; match++) {

@@ -65,5 +65,19 @@ export const questionIdeasPoolEn = [
     'Do you know anyone with a funny story about it?',
     'Could you draw it in under a minute?',
     'Is it a bit scary for some people?',
-    'Does it feel more like a treat or a chore?'
+    'Does it feel more like a treat or a chore?',
+    'Does it have a smell people notice?',
+    'Does it change with the seasons?',
+    'Is it more useful or more fun?',
+    'Could you explain it to someone who has never seen it?',
+    'Would you miss it if it disappeared tomorrow?',
+    'What do people usually do right before it?',
+    'How many people does it usually involve?',
+    'Is it something people collect?',
+    'Is it quieter or louder than people expect?',
+    'What color comes to mind first?',
+    'Is it more of a weekday or a weekend thing?',
+    'What would your best friend say about it?',
+    'Is it something you learn about in a class?',
+    'Would you share it with a neighbor?'
 ];

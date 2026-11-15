@@ -135,7 +135,7 @@ export const en = {
     'setup.players.label': 'Total players:',
     'setup.spies.label': 'Number of spies:',
     'setup.categories.label': 'Word categories:',
-    'setup.categories.all': 'All categories',
+    'setup.categories.all': 'All categories (1800+ words)',
     'setup.cat.places': 'Places',
     'setup.cat.jobs': 'Jobs',
     'setup.cat.foods': 'Food & snacks',

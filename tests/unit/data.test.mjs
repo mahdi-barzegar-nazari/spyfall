@@ -91,8 +91,7 @@ const EN_MIN_WORDS_BY_CATEGORY = {
     animals: EN_FINISHED_MIN_WORDS,
     sports: EN_FINISHED_MIN_WORDS,
     events: EN_FINISHED_MIN_WORDS,
-    // Seed (a category added later, not yet written in full):
-    concepts: EN_SEED_MIN_WORDS
+    concepts: EN_FINISHED_MIN_WORDS
 };
 /** Per difficulty, for a finished category. */
 const EN_MIN_BY_DIFFICULTY = { easy: 20, medium: 16, hard: 16 };
