@@ -206,6 +206,10 @@
                             <div class="toggle-label-wrap"><span id="lbl-fool" data-i18n="setup.toggle.fool">ساده‌لوح</span><button class="info-btn" data-info="fool" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
                             <label class="switch"><input type="checkbox" id="toggle-fool" aria-labelledby="lbl-fool"><span class="slider"></span></label>
                         </div>
+                        <div class="toggle-item">
+                            <div class="toggle-label-wrap"><span id="lbl-all-spies" data-i18n="setup.toggle.allSpies">دور سورپرایز: همه جاسوس‌اند</span><button class="info-btn" data-info="allSpies" aria-label="راهنمای این گزینه" data-i18n-attr="aria-label:a11y.infoButton" type="button">ℹ️</button></div>
+                            <label class="switch"><input type="checkbox" id="toggle-all-spies" aria-labelledby="lbl-all-spies"><span class="slider"></span></label>
+                        </div>
                     </div>
                 </div>
             </details>
@@ -326,6 +330,8 @@
         <div class="timer-card">
             <div id="timer-text" class="timer-display" aria-live="off">00:00</div>
             <div id="votes-remaining-badge" class="color-secondary mt-6 u-fs-078">زنگ: نامحدود</div>
+            <div id="timer-paused-note" class="timer-paused-note hidden" role="status" data-i18n="timer.paused">⏸ بازی متوقف است</div>
+            <button type="button" id="btn-pause-timer" class="btn btn-ghost btn-sm mt-6 u-inline-block">⏸ توقف موقت (2 بار مانده)</button>
         </div>
         <div id="question-idea" class="question-idea">
             <button type="button" id="btn-question-idea" class="btn btn-ghost btn-sm question-idea-btn" data-i18n="timer.idea.button">ایده‌ی سؤال</button>

@@ -30,7 +30,8 @@ const TOGGLES = {
     roleRevealConfirm: 'toggle-role-reveal-confirm',
     voteConfirm: 'toggle-vote-confirm',
     quickVoting: 'toggle-quick-voting',
-    spyLastChance: 'toggle-last-chance'
+    spyLastChance: 'toggle-last-chance',
+    allSpies: 'toggle-all-spies'
 };
 const KEYS = Object.keys(defaultSetupSettings());
 

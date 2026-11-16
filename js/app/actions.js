@@ -6,7 +6,7 @@
  * only through that port, which is what keeps `core/`, `game/` and `ui/` free of import cycles.
  */
 
-import { VALID_PHASES } from '../core/config.js';
+import { TIMER_PAUSES_PER_ROUND, VALID_PHASES } from '../core/config.js';
 import { dispatch } from '../core/dispatch.js';
 import { commitState, isMatchInProgress, setPhase } from '../core/phase.js';
 import { SAVE_VERSION, gameState, hostSecretState, replaceGameState, replaceHostSecrets, restoreSecrets, session } from '../core/state.js';
@@ -149,8 +149,25 @@ export function handleAction(action) {
             showQuestionIdea();
             break;
 
+        case 'PAUSE_TIMER':
+            // Only a running countdown can be paused, and only a few times a round, so a pause cannot be used to stall.
+            if (gameState.phase !== 'timer' || !gameState.timer.running) return;
+            if ((gameState.timer.pausesUsed || 0) >= TIMER_PAUSES_PER_ROUND) return;
+            pauseTimer(true);
+            gameState.timer.manualPause = true;
+            gameState.timer.pausesUsed = (gameState.timer.pausesUsed || 0) + 1;
+            commitState();
+            break;
+        case 'RESUME_TIMER':
+            if (gameState.phase !== 'timer' || !gameState.timer.manualPause) return;
+            // resumeTimer() clears the pause flag and redraws the screen.
+            resumeTimer();
+            break;
+
         case 'REQUEST_VOTE':
             if (gameState.phase !== 'timer') return;
+            // The alarm waits until the countdown is running again, so a ballot never starts from a paused match.
+            if (gameState.timer.manualPause) return;
             if (gameState.settings.voteLimitEnabled) {
                 if (gameState.vote.limit <= 0) {
                     showToast(t('toast.emergencyExhausted'));
@@ -205,7 +222,7 @@ export function handleAction(action) {
             dispatch({type: 'CLOSE_MODAL', payload: 'vote-confirm-modal'});
             gameState.vote.targetId = gameState.vote.pendingId;
 
-            if (gameState.settings.wager && gameState.players.some(p => p.isAlive && !p.isSpectator && p.id !== gameState.vote.targetId && p.score > 0)) {
+            if (gameState.settings.wager && !gameState.round.allSpies && gameState.players.some(p => p.isAlive && !p.isSpectator && p.id !== gameState.vote.targetId && p.score > 0)) {
                 gameState.localWagerIndex = 0;
                 session.wagerHandoffDoneIndex = -1;
                 hostSecretState.wagersCast = {};

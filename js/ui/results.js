@@ -36,14 +36,19 @@ export function renderRoundNumber() {
  *   spy:     'spy_guess' (the caught spy named the word), 'sudden_death' (an innocent was voted out with the
  *            sudden-death rule on), 'citizens_exhausted' (too few citizens left)
  *   citizen: 'spies_eliminated'
+ *   all_spies: 'everyone_spy' (the all-spies surprise round: nobody won, nobody scored)
  */
 const ROUND_ENDINGS = {
     spy: ['spy_guess', 'sudden_death', 'citizens_exhausted'],
-    citizen: ['spies_eliminated']
+    citizen: ['spies_eliminated'],
+    all_spies: ['everyone_spy']
 };
 
 /** The colour of the winner title, by winner. Theme variables, so every theme keeps its own shade. */
-const WINNER_COLOR = { spy: 'var(--brand-rose)', citizen: 'var(--brand-emerald)' };
+const WINNER_COLOR = { spy: 'var(--brand-rose)', citizen: 'var(--brand-emerald)', all_spies: 'var(--brand-amber)' };
+
+/** The catalog key of the title, by winner. */
+const WINNER_TITLE_KEY = { spy: 'result.title.spy', citizen: 'result.title.citizen', all_spies: 'result.title.allSpies' };
 
 /**
  * True when `outcome` is a stored round outcome this module can draw: an object whose winner is one of the two
@@ -68,7 +73,9 @@ export function formatRoundResultHtml(data) {
     const suspectName = data.suspectName || t('common.spy');
     const wordHtml = rawHtml(`<span class="color-amber">${escapeHtml(secretWord)}</span>`);
 
-    if (data.winner === 'spy') {
+    if (data.winner === 'all_spies') {
+        htm = tHtml('result.allSpies', { word: wordHtml });
+    } else if (data.winner === 'spy') {
         if (data.reason === 'spy_guess') {
             htm = tHtml('result.spyGuessed', { suspect: rawHtml(`<strong>${escapeHtml(suspectName)}</strong>`), word: wordHtml });
         } else if (data.reason === 'sudden_death') {
@@ -93,8 +100,8 @@ export function formatRoundResultHtml(data) {
  */
 export function describeRoundResult(data) {
     return {
-        title: data.winner === 'spy' ? t('result.title.spy') : t('result.title.citizen'),
-        color: WINNER_COLOR[data.winner === 'spy' ? 'spy' : 'citizen'],
+        title: t(WINNER_TITLE_KEY[data.winner] || WINNER_TITLE_KEY.citizen),
+        color: WINNER_COLOR[data.winner] || WINNER_COLOR.citizen,
         html: formatRoundResultHtml(data)
     };
 }

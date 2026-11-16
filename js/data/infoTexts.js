@@ -9,6 +9,7 @@ export const INFO_KEYS = Object.freeze([
     'detective',
     'knownSpies',
     'fool',
+    'allSpies',
     'director',
     'oneword',
     'quests',

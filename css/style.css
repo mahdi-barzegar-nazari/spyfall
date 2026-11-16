@@ -493,6 +493,8 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 .timer-display { font-size: 3.8rem; font-weight: 900; letter-spacing: 2px; color: var(--brand-primary); font-variant-numeric: tabular-nums; transition: color 0.3s; }
 .timer-warning { color: var(--brand-amber); animation: pulse 1s infinite; }
 .timer-danger { color: var(--brand-rose); animation: pulse 0.5s infinite; }
+.timer-display.timer-paused { opacity: 0.4; animation: none; }
+.timer-paused-note { margin-top: 6px; font-size: 0.85rem; font-weight: 700; color: var(--brand-amber); }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
 /* "Question idea" (discussion screen): a small ghost pill under the timer card and, below it, the suggested question,
    a polite live region. 44px is the usual touch target. The region takes no room while it is empty (and stays in the

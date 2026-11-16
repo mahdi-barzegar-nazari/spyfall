@@ -23,6 +23,7 @@
  *   side quests ...... a secret funny challenge handed out with the role  (info.quests.title)
  *   wager ............ points bet that the suspect is a spy; "balance" is a player's points (info.wager.title, wager.turn)
  *   sudden death ..... voting out an innocent citizen ends the round, spies win (info.sudden.title)
+ *   surprise round ... a round in which every player is a spy and nobody scores (info.allSpies.title)
  *   last chance ...... a caught spy may still say the secret word out loud (info.spyLastChance.title)
  *   alarm ............ stops the discussion timer and forces an early vote ("emergency alarm") (info.voteLimit.title)
  *   hand-over gate ... the screen that asks the next player to take the phone before anything secret shows (info.roleRevealConfirm.title)
@@ -171,6 +172,7 @@ export const en = {
     'setup.toggle.quests': 'Side quests',
     'setup.toggle.wager': 'Wagers',
     'setup.toggle.sudden': 'Sudden death',
+    'setup.toggle.allSpies': 'Surprise round: everyone is a spy',
     'setup.toggle.lastChance': 'Spy’s last chance',
     'setup.toggle.limit': 'Alarm limit',
     'setup.toggle.roleRevealConfirm': 'Role hand-over gate',
@@ -214,6 +216,10 @@ export const en = {
     'timer.director.title': '🎯 Who asks whom:',
     'timer.director.next': 'Next turn 🔄',
     'timer.emergency': '🚨 Sound the alarm & vote',
+    'timer.pause': '⏸ Pause ({left} left)',
+    'timer.pause.none': '⏸ Pause (none left)',
+    'timer.resume': '▶️ Resume',
+    'timer.paused': '⏸ Game paused',
     'timer.end': 'End match & scorecard 🏆',
     'timer.idea.button': 'Question idea',
     'timer.director.turn': '{asker}, ask {target} a question',
@@ -257,11 +263,13 @@ export const en = {
     'result.end': 'End match & final scorecard 🏆',
     'result.title.spy': '😈 Spies win!',
     'result.title.citizen': '🎉 Citizens win!',
+    'result.title.allSpies': '🎭 Everyone was a spy!',
     'result.round': 'Round {count}',
     'result.defaultWord': 'the secret word',
     'result.spyGuessed': '🎯 {suspect} guessed the secret word ({word})!',
     'result.suddenDeath': 'An innocent citizen was voted out!{br}Sudden death is on, so the spies win.{br}The secret word was: {word}',
     'result.citizensExhausted': 'Too few citizens are left, so the spies win!{br}The secret word was: {word}',
+    'result.allSpies': 'Every one of you was a spy this round, and nobody knew the word!{br}The secret word was: {word}{br}No points this round.',
     'result.spiesEliminated': '🎉 Every spy has been caught. You win!{br}The secret word was: {word}',
 
     // ---- Final scorecard screen
@@ -386,6 +394,7 @@ export const en = {
     'elim.badge.citizen': '😇 An innocent citizen!',
     'elim.note.spyGuess': 'Now it’s time to guess the secret word...',
     'elim.note.wrong': 'Wrong vote!',
+    'elim.note.allSpies': 'But wait... the story is not over!',
     'elim.note.wrongSurvive.one': 'Wrong vote! Every spy still in the game gets +{count} survival point.',
     'elim.note.wrongSurvive.other': 'Wrong vote! Every spy still in the game gets +{count} survival points.',
     'elim.note.noLastChance': 'This game has no last chance for the spy.',
@@ -412,6 +421,8 @@ export const en = {
     'info.director.text': 'While you talk, the game decides who should ask whom, so the conversation keeps flowing with no awkward silences.',
     'info.oneword.title': '⚡ One-word rule',
     'info.oneword.text': 'Players may answer every question with exactly one word. Talking in long sentences counts as a foul.',
+    'info.allSpies.title': '🎭 Surprise round: everyone is a spy',
+    'info.allSpies.text': 'Now and then (about once in 6 rounds; never the first round, never two in a row, and only with 4 or more players) every player becomes a spy and nobody knows the word. Every card looks like a spy card, so nobody can tell: each player thinks they are the only spy. The round goes on as usual until the alarm or the end of the time, and the vote shows that everyone was a spy. Nobody scores in this round.',
     'info.quests.title': '🎯 Side quests',
     'info.quests.text': 'On top of their main role, each player gets a secret, funny challenge to act out. Pulling it off can make them look suspicious to the others.',
     'info.wager.title': '🎲 Wagers & scoring',

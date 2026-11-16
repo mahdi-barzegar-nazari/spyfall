@@ -31,7 +31,7 @@ import { formatNumber, t } from '../i18n/index.js';
  * same groups, and tests/unit/setup-groups.test.mjs checks that the two agree.
  */
 export const SETUP_GROUPS = [
-    { id: 'roles', controls: [{ chips: 'setup-hint' }, { id: 'toggle-detective' }, { id: 'toggle-known' }, { id: 'toggle-fool' }] },
+    { id: 'roles', controls: [{ chips: 'setup-hint' }, { id: 'toggle-detective' }, { id: 'toggle-known' }, { id: 'toggle-fool' }, { id: 'toggle-all-spies' }] },
     { id: 'discussion', controls: [{ id: 'toggle-director' }, { id: 'toggle-oneword' }, { id: 'toggle-quests' }, { id: 'toggle-limit' }] },
     { id: 'stakes', controls: [{ id: 'toggle-wager' }, { id: 'toggle-sudden' }, { id: 'toggle-last-chance' }] },
     { id: 'speed', controls: [{ select: 'setup-reveal-mode', on: 'hold' }, { id: 'toggle-role-reveal-confirm' }, { id: 'toggle-vote-confirm' }, { id: 'toggle-quick-voting' }] }

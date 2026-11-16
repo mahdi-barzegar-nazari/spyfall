@@ -2,6 +2,7 @@
  * Screen rendering driven by gameState.phase, plus the role card content.
  */
 
+import { TIMER_PAUSES_PER_ROUND } from '../core/config.js';
 import { dispatch } from '../core/dispatch.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { comparePlayersForRank, getRankedStandings } from '../game/ranking.js';
@@ -91,7 +92,13 @@ export function renderUI() {
         document.getElementById('director-box').classList.toggle('hidden', !gameState.settings.director);
 
         const btnEmergency = document.getElementById('btn-emergency-vote');
-        btnEmergency.disabled = gameState.settings.voteLimitEnabled && gameState.vote.limit <= 0;
+        const paused = gameState.timer.manualPause === true;
+        btnEmergency.disabled = (gameState.settings.voteLimitEnabled && gameState.vote.limit <= 0) || paused;
+        const pausesLeft = Math.max(0, TIMER_PAUSES_PER_ROUND - (gameState.timer.pausesUsed || 0));
+        const btnPause = document.getElementById('btn-pause-timer');
+        btnPause.textContent = paused ? t('timer.resume') : (pausesLeft > 0 ? t('timer.pause', { left: pausesLeft }) : t('timer.pause.none'));
+        btnPause.disabled = !paused && pausesLeft <= 0;
+        document.getElementById('timer-paused-note').classList.toggle('hidden', !paused);
 
         if (gameState.settings.director && gameState.round.history.length > 0) {
             let last = gameState.round.history[gameState.round.history.length - 1];
@@ -101,6 +108,7 @@ export function renderUI() {
             }
         }
         renderTimer(gameState.timer.pausedSec);
+        document.getElementById('timer-text').classList.toggle('timer-paused', paused);
         let v = document.getElementById('votes-remaining-badge');
         v.textContent = !gameState.settings.voteLimitEnabled ? t('timer.votes.unlimited') : t('timer.votes.remaining', { limit: gameState.vote.limit });
     }
@@ -259,7 +267,8 @@ export function renderRoleModalContent(id) {
             : (sec.role === 'fool' ? hostSecretState.foolWord : hostSecretState.secretWord);
         quest = p.quest;
         storedDetectiveInquiry = hostSecretState.detectiveInquiryResult;
-        if (gameState.settings.knownSpies && role === 'spy') {
+        // Not in an all-spies round: naming the other spies would give the surprise away.
+        if (gameState.settings.knownSpies && role === 'spy' && !gameState.round.allSpies) {
             fellowSpies = gameState.players.filter(x => x.role === 'spy' && x.id !== id).map(x => x.name);
         }
     }

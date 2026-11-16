@@ -330,7 +330,7 @@ describe('the rest of the project writes no theme colour of its own', () => {
 
     it('the JS that sets a colour on an element only uses the semantic tokens', () => {
         const source = readFileSync(`${jsRoot}/ui/results.js`, 'utf8');
-        assert.match(source, /const WINNER_COLOR = \{ spy: 'var\(--brand-rose\)', citizen: 'var\(--brand-emerald\)' \};/);
+        assert.match(source, /const WINNER_COLOR = \{ spy: 'var\(--brand-rose\)', citizen: 'var\(--brand-emerald\)', all_spies: 'var\(--brand-amber\)' \};/);
         for (const file of jsFiles(jsRoot)) {
             const text = readFileSync(file, 'utf8');
             for (const m of text.matchAll(/\.style\.(color|background\w*|borderColor|fill|stroke)\s*=\s*([^;]+);/g)) {

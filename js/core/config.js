@@ -6,6 +6,17 @@ export const VALID_PHASES = new Set([
     'welcome', 'setup', 'reveal', 'timer', 'vote', 'wager', 'guess', 'result', 'leaderboard'
 ]);
 
+/** How many times the discussion countdown of one round may be paused by hand (the pause button on the timer screen). */
+export const TIMER_PAUSES_PER_ROUND = 2;
+
+/**
+ * The all-spies surprise round (the `allSpies` setting): when it is on, a round turns into one in which every
+ * player is a spy about once in ALL_SPIES_ONE_IN rounds, never the first round, never two rounds in a row, and
+ * only with at least ALL_SPIES_MIN_PLAYERS players (with fewer, the vote that ends the round is too small to be fun).
+ */
+export const ALL_SPIES_ONE_IN = 6;
+export const ALL_SPIES_MIN_PLAYERS = 4;
+
 export const RULES = {
     players: { min: 3, max: 20 },
     spies: { min: 1, max: 5 },
@@ -94,14 +105,14 @@ export function defaultSetupSettings() {
         knownSpies: false, director: false, oneword: false, quests: false,
         wager: false, sudden: false, voteLimitEnabled: false, maxVotes: 2,
         roleRevealConfirm: true, voteConfirm: false, quickVoting: false,
-        spyLastChance: true
+        spyLastChance: true, allSpies: false
     };
 }
 
 /** The settings that are on/off switches. */
 const BOOLEAN_SETTINGS = [
     'revealHold', 'fool', 'detective', 'knownSpies', 'director', 'oneword', 'quests', 'wager', 'sudden',
-    'voteLimitEnabled', 'roleRevealConfirm', 'voteConfirm', 'quickVoting', 'spyLastChance'
+    'voteLimitEnabled', 'roleRevealConfirm', 'voteConfirm', 'quickVoting', 'spyLastChance', 'allSpies'
 ];
 
 const hasOwnKey = (object, key) => Object.prototype.hasOwnProperty.call(object, key);

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **A pause button for the discussion countdown.** The timer screen has a button that stops the clock and, tapped again, continues it from the same second (twice per round, `TIMER_PAUSES_PER_ROUND` in `core/config.js`, so it cannot be used to stall; the button shows how many are left). While the clock is paused it is dimmed and says so, and the alarm is locked until the game goes on. The pause is saved with the match, so a reload shows it, and a match saved before this change opens as if no pause had been used. New actions `PAUSE_TIMER` and `RESUME_TIMER`, new `timer.manualPause` and `timer.pausesUsed` (reset by `startTimer` and each new round). The tab coming back to the front no longer arms a loop for a countdown that is not running. Tests in `tests/unit/timer-pause.test.mjs`.
+- **A surprise round in which everyone is a spy.** A new option in the roles group of the setup, off by default. When it is on, about one round in six (never the first, never two in a row, only with 4 or more players) gives every player a spy card with a hint, so each player thinks they are the only spy. The round runs as usual until the alarm or the end of the time; the vote reads out the chosen name as a spy, and then the screen says everybody was one. Nobody scores, nobody is removed, no statistic changes, and there is no wager or last guess in that round. The role card does not list fellow spies in it, whatever the "fellow spies" option says. New setting `allSpies` (saved with the setup), flag `round.allSpies`, outcome `all_spies`, and texts in both languages. Tests in `tests/unit/all-spies.test.mjs`; the tests that list the setup switches (unit and end-to-end) include the new one.
+
 ## 2.1.0
 
 ### Changed

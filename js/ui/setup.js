@@ -97,6 +97,7 @@ export function validateAndSaveSettings() {
         voteConfirm: document.getElementById('toggle-vote-confirm').checked,
         quickVoting: document.getElementById('toggle-quick-voting').checked,
         spyLastChance: document.getElementById('toggle-last-chance').checked,
+        allSpies: document.getElementById('toggle-all-spies').checked,
         detectiveUsed: false
     };
 
@@ -127,7 +128,8 @@ const SETUP_TOGGLE_IDS = {
     roleRevealConfirm: 'toggle-role-reveal-confirm',
     voteConfirm: 'toggle-vote-confirm',
     quickVoting: 'toggle-quick-voting',
-    spyLastChance: 'toggle-last-chance'
+    spyLastChance: 'toggle-last-chance',
+    allSpies: 'toggle-all-spies'
 };
 
 /** Tick exactly the chips of `name` whose value is in `values`. */

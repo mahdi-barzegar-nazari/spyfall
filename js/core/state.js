@@ -16,7 +16,7 @@ export const gameState = {
     settings: { ...defaultSetupSettings(), detectiveUsed: false },
     players: [],
     round: { num: 0, category: null, currentHintType: 'related_word', pointsMap: {}, history: [], roundId: null },
-    timer: { running: false, pausedSec: 0, reason: 'emergency', wasRunningBeforePanic: false },
+    timer: { running: false, pausedSec: 0, reason: 'emergency', wasRunningBeforePanic: false, manualPause: false, pausesUsed: 0 },
     vote: { limit: Infinity, targetId: null, pendingId: null, tieNote: '' },
     localVoteIndex: 0,
     localWagerIndex: 0,

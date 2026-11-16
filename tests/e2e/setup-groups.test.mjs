@@ -159,7 +159,7 @@ async function chooseSetup(page, want) {
     if (want.revealHold) await page.selectOption('#setup-reveal-mode', 'hold');
     for (const hint of want.hints) if (hint !== 'related_word') await tapHint(page, hint);
     if (!want.hints.includes('related_word')) await tapHint(page, 'related_word');
-    const ids = { fool: 'toggle-fool', detective: 'toggle-detective', knownSpies: 'toggle-known', director: 'toggle-director', oneword: 'toggle-oneword', quests: 'toggle-quests', wager: 'toggle-wager', sudden: 'toggle-sudden', voteLimitEnabled: 'toggle-limit', roleRevealConfirm: 'toggle-role-reveal-confirm', voteConfirm: 'toggle-vote-confirm', quickVoting: 'toggle-quick-voting', spyLastChance: 'toggle-last-chance' };
+    const ids = { fool: 'toggle-fool', detective: 'toggle-detective', knownSpies: 'toggle-known', director: 'toggle-director', oneword: 'toggle-oneword', quests: 'toggle-quests', wager: 'toggle-wager', sudden: 'toggle-sudden', voteLimitEnabled: 'toggle-limit', roleRevealConfirm: 'toggle-role-reveal-confirm', voteConfirm: 'toggle-vote-confirm', quickVoting: 'toggle-quick-voting', spyLastChance: 'toggle-last-chance', allSpies: 'toggle-all-spies' };
     for (const [key, id] of Object.entries(ids)) if (want[key] !== DEFAULTS[key]) await tapSwitch(page, id);
     if (want.voteLimitEnabled) await typeNumber(page, 'setup-max-votes', want.maxVotes);
 }

@@ -2,7 +2,7 @@
  * Match and round setup: players, word selection, roles, quests, director turns.
  */
 
-import { BUILT_IN_CATEGORIES, DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
+import { ALL_SPIES_MIN_PLAYERS, ALL_SPIES_ONE_IN, BUILT_IN_CATEGORIES, DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
 import { displayHint, getCustomWords, loadRecentWords, rememberRecentWord } from '../core/storage.js';
@@ -130,6 +130,15 @@ export function startNextRound() {
     const activeHints = (gameState.settings.hints && gameState.settings.hints.length > 0) ? gameState.settings.hints : ['related_word'];
     gameState.round.currentHintType = activeHints[getRandomCryptoInt(activeHints.length)];
 
+    // The all-spies surprise round (see ALL_SPIES_ONE_IN in core/config.js). The chance is only drawn when the round
+    // could be one, so a match without the option never touches the random source for it.
+    const allSpiesRound = gameState.settings.allSpies === true
+        && gameState.round.num >= 1
+        && gameState.round.allSpies !== true
+        && gameState.players.length >= ALL_SPIES_MIN_PLAYERS
+        && getRandomCryptoInt(ALL_SPIES_ONE_IN) === 0;
+    gameState.round.allSpies = allSpiesRound;
+
     gameState.round.num++;
     gameState.round.roundId = generateId();
     gameState.round.pointsMap = {};
@@ -162,7 +171,9 @@ export function startNextRound() {
         running: false,
         pausedSec: gameState.settings.timerMin * 60,
         reason: 'emergency',
-        wasRunningBeforePanic: false
+        wasRunningBeforePanic: false,
+        manualPause: false,
+        pausesUsed: 0
     };
 
     gameState.players.forEach(p => {
@@ -184,12 +195,14 @@ export function startNextRound() {
 
     let activePlayers = gameState.players.filter(p => !p.isSpectator);
     let shuff = shuffle(activePlayers);
-    // Only as many spies as were really assigned: the fool and the detective take the seats after them.
-    const spyCount = Math.min(gameState.settings.spiesCount, shuff.length - 1);
+    // Only as many spies as were really assigned: the fool and the detective take the seats after them. In an
+    // all-spies round every player is a spy, so there is no seat left for them, and the round counts for nobody's
+    // statistics (nobody scores in it either: see resolveAllSpiesRound in game/resolution.js).
+    const spyCount = allSpiesRound ? shuff.length : Math.min(gameState.settings.spiesCount, shuff.length - 1);
     for (let i = 0; i < spyCount; i++) {
         shuff[i].role = 'spy';
         shuff[i].team = 'spy';
-        shuff[i].stats.timesSpy = (shuff[i].stats.timesSpy || 0) + 1;
+        if (!allSpiesRound) shuff[i].stats.timesSpy = (shuff[i].stats.timesSpy || 0) + 1;
     }
     let cIdx = spyCount;
     if (gameState.settings.fool && shuff.length > cIdx) {

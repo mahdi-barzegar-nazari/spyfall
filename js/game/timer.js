@@ -47,6 +47,8 @@ export function startTimer() {
     lastSoundSecond = null;
     gameState.timer.pausedSec = gameState.settings.timerMin * 60;
     gameState.timer.running = true;
+    gameState.timer.manualPause = false;
+    gameState.timer.pausesUsed = 0;
     if (gameState.settings.director) calcDirectorTurn();
     setPhase('timer');
     runTick();
@@ -110,6 +112,8 @@ export function resumeTimer() {
     keepAudioAlive();
     lastSoundSecond = null;
     gameState.timer.running = true;
+    // Whatever resumes the countdown (the resume button, the panic shield, a cancelled ballot) ends a pause by hand.
+    gameState.timer.manualPause = false;
     // No endAt re-arming here: pausedSec already holds the exact
     // discrete seconds remaining (frozen the moment the countdown was
     // last paused/persisted), so the interval below simply keeps

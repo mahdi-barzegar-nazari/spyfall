@@ -77,7 +77,8 @@ const NON_DEFAULT = {
     roleRevealConfirm: false,
     voteConfirm: true,
     quickVoting: true,
-    spyLastChance: false
+    spyLastChance: false,
+    allSpies: true
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -97,7 +98,8 @@ const TOGGLE_IDS = {
     roleRevealConfirm: 'toggle-role-reveal-confirm',
     voteConfirm: 'toggle-vote-confirm',
     quickVoting: 'toggle-quick-voting',
-    spyLastChance: 'toggle-last-chance'
+    spyLastChance: 'toggle-last-chance',
+    allSpies: 'toggle-all-spies'
 };
 const FIELD_IDS = ['setup-players-count', 'setup-spies-count', 'setup-timer', 'setup-max-votes', 'setup-reveal-mode'];
 const CHIP_GROUPS = [
@@ -218,7 +220,8 @@ describe('defaultSetupSettings', () => {
             roleRevealConfirm: true,
             voteConfirm: false,
             quickVoting: false,
-            spyLastChance: true
+            spyLastChance: true,
+            allSpies: false
         });
     });
 

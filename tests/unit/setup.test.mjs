@@ -27,7 +27,8 @@ const TOGGLES = [
     'toggle-role-reveal-confirm',
     'toggle-vote-confirm',
     'toggle-quick-voting',
-    'toggle-last-chance'
+    'toggle-last-chance',
+    'toggle-all-spies'
 ];
 
 /** The three difficulty chips as the form has them: `checked` is the levels that are ticked. */

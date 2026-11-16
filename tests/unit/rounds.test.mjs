@@ -143,7 +143,7 @@ describe('startNextRound: basics', () => {
         session.voteHandoffDoneIndex = 3;
         session.wagerHandoffDoneIndex = 2;
         gameState.vote = { limit: 1, targetId: 'p3', pendingId: 'p4', tieNote: 'old' };
-        gameState.timer = { running: true, pausedSec: 5, reason: 'timeout', wasRunningBeforePanic: true };
+        gameState.timer = { running: true, pausedSec: 5, reason: 'timeout', wasRunningBeforePanic: true, manualPause: true, pausesUsed: 2 };
 
         startNextRound();
 
@@ -166,7 +166,9 @@ describe('startNextRound: basics', () => {
             running: false,
             pausedSec: 180,
             reason: 'emergency',
-            wasRunningBeforePanic: false
+            wasRunningBeforePanic: false,
+            manualPause: false,
+            pausesUsed: 0
         });
         assert.ok(!('stale' in hostSecretState.roles));
     });

@@ -14,6 +14,10 @@ import { showEliminationReveal } from '../ui/wheel.js';
 export function processElimination(wagers) {
     let sus = gameState.players.find(p => p.id === gameState.vote.targetId);
     if (!sus) return;
+    if (gameState.round.allSpies) {
+        resolveAllSpiesRound(sus);
+        return;
+    }
     sus.isAlive = false;
     const wasSpy = sus.role === 'spy';
     const diffMultiplier = getDifficultyMultiplier(gameState.round.wordDifficulty);
@@ -106,6 +110,25 @@ export function processElimination(wagers) {
         } else {
             finalizeRound(false);
         }
+    });
+}
+
+/**
+ * The end of an all-spies round (see `allSpies` in core/config.js). The vote runs like any other, and the name that
+ * comes out of it is read out as a spy, which is true; then the screen says that everybody was one. Nobody scores
+ * and no statistic changes: nobody was a citizen, so nobody can have caught a spy or been fooled, and the voted
+ * player stays in the game (no one is removed, so the next round needs no repair). The wagers, the spy's last
+ * guess and the "no spy left" check do not apply.
+ */
+function resolveAllSpiesRound(sus) {
+    commitState();
+    showEliminationReveal(sus, true, t('elim.note.allSpies'), () => {
+        stopTimerLoop();
+        stopAudioKeepAlive();
+        gameState.round.result = { winner: 'all_spies', reason: 'everyone_spy' };
+        renderRoundResult();
+        setPhase('result');
+        playVictoryFanfare();
     });
 }
 

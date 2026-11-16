@@ -57,6 +57,7 @@ const SWITCHES = {
     'toggle-detective': ['lbl-detective', 'setup.toggle.detective', 'detective'],
     'toggle-known': ['lbl-known', 'setup.toggle.known', 'knownSpies'],
     'toggle-fool': ['lbl-fool', 'setup.toggle.fool', 'fool'],
+    'toggle-all-spies': ['lbl-all-spies', 'setup.toggle.allSpies', 'allSpies'],
     'toggle-director': ['lbl-director', 'setup.toggle.director', 'director'],
     'toggle-oneword': ['lbl-oneword', 'setup.toggle.oneword', 'oneword'],
     'toggle-quests': ['lbl-quests', 'setup.toggle.quests', 'quests'],
@@ -70,9 +71,9 @@ const SWITCHES = {
 };
 
 describe('the groups in index.html', () => {
-    it('the table in the tests is complete: 13 switches and the card-reveal select are the 14 controls', () => {
+    it('the table in the tests is complete: 14 switches and the card-reveal select are the 15 controls', () => {
         const switches = Object.keys(GROUP_OF_CONTROL).filter((id) => id.startsWith('toggle-'));
-        assert.equal(switches.length, 13);
+        assert.equal(switches.length, 14);
         assert.deepEqual([...switches].sort(), Object.keys(SWITCHES).sort());
         assert.equal(Object.keys(GROUP_OF_CONTROL).filter((id) => id === 'setup-reveal-mode').length, 1);
     });

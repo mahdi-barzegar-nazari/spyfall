@@ -15,6 +15,7 @@ export const GROUP_OF_CONTROL = {
     'toggle-detective': 'roles',
     'toggle-known': 'roles',
     'toggle-fool': 'roles',
+    'toggle-all-spies': 'roles',
     'toggle-director': 'discussion',
     'toggle-oneword': 'discussion',
     'toggle-quests': 'discussion',

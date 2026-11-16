@@ -20,7 +20,8 @@ export function bindEvents() {
             await requestWakeLock();
             resumeAudioIfSuspended();
 
-            if (gameState.phase === 'timer') {
+            // A countdown that is paused (by hand, or behind the panic shield) stays without a loop until it is resumed.
+            if (gameState.phase === 'timer' && gameState.timer.running) {
                 runTick();
             }
         } else {
@@ -180,6 +181,8 @@ export function bindEvents() {
     document.getElementById('btn-next-director').onclick = () => dispatch({type: 'NEXT_DIRECTOR'});
 
     document.getElementById('btn-question-idea').onclick = () => dispatch({type: 'SHOW_QUESTION_IDEA'});
+
+    document.getElementById('btn-pause-timer').onclick = () => dispatch({type: gameState.timer.manualPause ? 'RESUME_TIMER' : 'PAUSE_TIMER'});
 
     document.getElementById('btn-emergency-vote').onclick = () => dispatch({type: 'REQUEST_VOTE'});
 
