@@ -422,7 +422,7 @@ export const en = {
     'info.oneword.title': '⚡ One-word rule',
     'info.oneword.text': 'Players may answer every question with exactly one word. Talking in long sentences counts as a foul.',
     'info.allSpies.title': '🎭 Surprise round: everyone is a spy',
-    'info.allSpies.text': 'Now and then (about once in 6 rounds; never the first round, never two in a row, and only with 4 or more players) every player becomes a spy and nobody knows the word. Every card looks like a spy card, so nobody can tell: each player thinks they are the only spy. The round goes on as usual until the alarm or the end of the time, and the vote shows that everyone was a spy. Nobody scores in this round.',
+    'info.allSpies.text': 'Now and then every player becomes a spy and nobody knows the word. It is meant to be rare: at least 7 ordinary rounds come between two of them (usually 8 to 14 rounds; the count goes on from one match to the next on this device), never in the first round of a match, and only with 4 or more players. Every card looks like a spy card, so nobody can tell: each player thinks they are the only spy. The round goes on as usual until the alarm or the end of the time, and the vote shows that everyone was a spy. Nobody scores in this round.',
     'info.quests.title': '🎯 Side quests',
     'info.quests.text': 'On top of their main role, each player gets a secret, funny challenge to act out. Pulling it off can make them look suspicious to the others.',
     'info.wager.title': '🎲 Wagers & scoring',

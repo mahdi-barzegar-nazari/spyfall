@@ -2,10 +2,15 @@
  * Match and round setup: players, word selection, roles, quests, director turns.
  */
 
-import { ALL_SPIES_MIN_PLAYERS, ALL_SPIES_ONE_IN, BUILT_IN_CATEGORIES, DIFFICULTY_LEVELS, normalizeDifficulties } from '../core/config.js';
+import {
+    ALL_SPIES_FIRST_GAP_MAX, ALL_SPIES_FIRST_GAP_MIN, ALL_SPIES_GAP_MAX, ALL_SPIES_GAP_MIN, ALL_SPIES_MIN_PLAYERS,
+    BUILT_IN_CATEGORIES, DIFFICULTY_LEVELS, normalizeDifficulties
+} from '../core/config.js';
 import { setPhase } from '../core/phase.js';
 import { gameState, hostSecretState, session } from '../core/state.js';
-import { displayHint, getCustomWords, loadRecentWords, rememberRecentWord } from '../core/storage.js';
+import {
+    displayHint, getCustomWords, loadAllSpiesCountdown, loadRecentWords, rememberRecentWord, saveAllSpiesCountdown
+} from '../core/storage.js';
 import { getSideQuests, getWordPacks } from '../data/banks.js';
 import { getLang, t } from '../i18n/index.js';
 import { generateId, getRandomCryptoInt, shuffle } from '../utils/random.js';
@@ -89,6 +94,30 @@ export function selectableWords(pool, usedKeys, recentKeys) {
     return { words: fresh.length * 2 >= pool.length ? fresh : unused, startOver: false };
 }
 
+/** A new countdown to the all-spies round: a random number of rounds in the range (the very first one on a device is shorter). */
+function newAllSpiesCountdown(first) {
+    const min = first ? ALL_SPIES_FIRST_GAP_MIN : ALL_SPIES_GAP_MIN;
+    const max = first ? ALL_SPIES_FIRST_GAP_MAX : ALL_SPIES_GAP_MAX;
+    return min + getRandomCryptoInt(max - min + 1);
+}
+
+/**
+ * Counts the round that is being set up on the device's countdown (see ALL_SPIES_GAP_MIN in core/config.js) and says
+ * whether it is the all-spies surprise round. Without the option nothing is read, written or drawn, so a match
+ * without it behaves exactly as it always did. The first round of a match, and a table of fewer than
+ * ALL_SPIES_MIN_PLAYERS, only wait: the countdown stays at 0 and the next round that may be one is the one.
+ */
+function drawAllSpiesRound() {
+    if (gameState.settings.allSpies !== true) return false;
+    const stored = loadAllSpiesCountdown();
+    let left = Math.max(0, (stored === null ? newAllSpiesCountdown(true) : stored) - 1);
+    const mayBe = gameState.round.num >= 1 && gameState.players.length >= ALL_SPIES_MIN_PLAYERS;
+    const isAllSpies = left === 0 && mayBe;
+    if (isAllSpies) left = newAllSpiesCountdown(false);
+    saveAllSpiesCountdown(left);
+    return isAllSpies;
+}
+
 export function startNextRound() {
     // The word, the hint, the category label and the quests all come from the language that is active now.
     const lang = getLang();
@@ -130,13 +159,8 @@ export function startNextRound() {
     const activeHints = (gameState.settings.hints && gameState.settings.hints.length > 0) ? gameState.settings.hints : ['related_word'];
     gameState.round.currentHintType = activeHints[getRandomCryptoInt(activeHints.length)];
 
-    // The all-spies surprise round (see ALL_SPIES_ONE_IN in core/config.js). The chance is only drawn when the round
-    // could be one, so a match without the option never touches the random source for it.
-    const allSpiesRound = gameState.settings.allSpies === true
-        && gameState.round.num >= 1
-        && gameState.round.allSpies !== true
-        && gameState.players.length >= ALL_SPIES_MIN_PLAYERS
-        && getRandomCryptoInt(ALL_SPIES_ONE_IN) === 0;
+    // The all-spies surprise round: rare, and counted on the device across matches (drawAllSpiesRound above).
+    const allSpiesRound = drawAllSpiesRound();
     gameState.round.allSpies = allSpiesRound;
 
     gameState.round.num++;

@@ -3,7 +3,7 @@
  * words chosen most recently.
  */
 
-import { sanitizeSetupSettings } from './config.js';
+import { ALL_SPIES_GAP_MAX, sanitizeSetupSettings } from './config.js';
 import { SAVE_VERSION, gameState, serializeSecrets } from './state.js';
 import { getLang, t, translationsOf } from '../i18n/index.js';
 
@@ -169,6 +169,33 @@ export function rememberRecentWord(key) {
         const list = loadRecentWords().filter((kept) => kept !== key);
         list.push(key);
         localStorage.setItem(RECENT_WORDS_KEY, JSON.stringify(list.slice(-RECENT_WORDS_LIMIT)));
+    } catch(e) {
+        console.warn("Storage write restricted:", e);
+    }
+}
+
+/**
+ * The key under which the countdown to the next all-spies round is kept (a JSON whole number of rounds left, see
+ * ALL_SPIES_GAP_MIN in core/config.js and drawAllSpiesRound in game/rounds.js).
+ */
+export const ALL_SPIES_COUNTDOWN_KEY = 'spy_all_spies_countdown';
+
+/**
+ * The rounds left until the next all-spies round, or null when nothing usable is stored: a first visit, a value that
+ * is not a whole number from 0 to ALL_SPIES_GAP_MAX, or a storage that throws (what is stored is never trusted).
+ */
+export function loadAllSpiesCountdown() {
+    try {
+        const value = JSON.parse(localStorage.getItem(ALL_SPIES_COUNTDOWN_KEY));
+        return Number.isInteger(value) && value >= 0 && value <= ALL_SPIES_GAP_MAX ? value : null;
+    } catch(e) { return null; }
+}
+
+/** Store the rounds left. Anything that is not a whole number from 0 to ALL_SPIES_GAP_MAX, and a storage that throws, change nothing. */
+export function saveAllSpiesCountdown(rounds) {
+    if (!Number.isInteger(rounds) || rounds < 0 || rounds > ALL_SPIES_GAP_MAX) return;
+    try {
+        localStorage.setItem(ALL_SPIES_COUNTDOWN_KEY, JSON.stringify(rounds));
     } catch(e) {
         console.warn("Storage write restricted:", e);
     }

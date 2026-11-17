@@ -10,11 +10,19 @@ export const VALID_PHASES = new Set([
 export const TIMER_PAUSES_PER_ROUND = 2;
 
 /**
- * The all-spies surprise round (the `allSpies` setting): when it is on, a round turns into one in which every
- * player is a spy about once in ALL_SPIES_ONE_IN rounds, never the first round, never two rounds in a row, and
- * only with at least ALL_SPIES_MIN_PLAYERS players (with fewer, the vote that ends the round is too small to be fun).
+ * The all-spies surprise round (the `allSpies` setting) is meant to be rare, so a surprise stays one. The device keeps
+ * a countdown of rounds (`spy_all_spies_countdown`, see core/storage.js), across matches and visits: every round of a
+ * match with the option on counts it down by one, the round that takes it to 0 is the all-spies round, and then a new
+ * countdown of ALL_SPIES_GAP_MIN to ALL_SPIES_GAP_MAX rounds starts (so at least 7 ordinary rounds come between two
+ * of them). The first countdown on a device is shorter (ALL_SPIES_FIRST_GAP_MIN to ALL_SPIES_FIRST_GAP_MAX), so
+ * whoever has just switched the option on meets it soon. The countdown waits at 0 while the round cannot be an
+ * all-spies round: the first round of a match, or fewer than ALL_SPIES_MIN_PLAYERS players (with fewer, the vote
+ * that ends the round is too small to be fun).
  */
-export const ALL_SPIES_ONE_IN = 6;
+export const ALL_SPIES_GAP_MIN = 8;
+export const ALL_SPIES_GAP_MAX = 14;
+export const ALL_SPIES_FIRST_GAP_MIN = 3;
+export const ALL_SPIES_FIRST_GAP_MAX = 8;
 export const ALL_SPIES_MIN_PLAYERS = 4;
 
 export const RULES = {

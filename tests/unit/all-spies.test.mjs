@@ -1,12 +1,15 @@
 /**
- * The all-spies surprise round (the `allSpies` setting): when a round turns into one (game/rounds.js), what the
- * players are given in it, and how it ends (game/resolution.js, ui/results.js). Randomness is seeded
- * (env.seedRandom), so every run replays the same sequences.
+ * The all-spies surprise round (the `allSpies` setting): when a round turns into one (the countdown kept on the
+ * device, see drawAllSpiesRound in game/rounds.js), what the players are given in it, and how it ends
+ * (game/resolution.js, ui/results.js). Randomness is seeded (env.seedRandom), so every run replays the same sequences.
  */
 import assert from 'node:assert/strict';
 import { after, afterEach, describe, it } from 'node:test';
-import { ALL_SPIES_MIN_PLAYERS, ALL_SPIES_ONE_IN } from '../../js/core/config.js';
+import {
+    ALL_SPIES_FIRST_GAP_MAX, ALL_SPIES_FIRST_GAP_MIN, ALL_SPIES_GAP_MAX, ALL_SPIES_GAP_MIN, ALL_SPIES_MIN_PLAYERS
+} from '../../js/core/config.js';
 import { gameState, hostSecretState } from '../../js/core/state.js';
+import { ALL_SPIES_COUNTDOWN_KEY, loadAllSpiesCountdown, saveAllSpiesCountdown } from '../../js/core/storage.js';
 import { setLang } from '../../js/i18n/index.js';
 import { installFakeEnv } from './helpers/fakeEnv.mjs';
 import { makePlayer, makePlayers, useGameHarness } from './helpers/harness.mjs';
@@ -42,6 +45,15 @@ function arrange({ players = 5, allSpies = true, settings = {} } = {}) {
     Object.assign(gameState.settings, { cats: ['custom'], allSpies, fool: true, detective: true }, settings);
 }
 
+/** The countdown as it is stored on the device (undefined before anything was stored). */
+const stored = () => (env.storage.has(ALL_SPIES_COUNTDOWN_KEY) ? JSON.parse(env.storage.get(ALL_SPIES_COUNTDOWN_KEY)) : undefined);
+
+/** Start a new match on the same device: the round counter starts again, the countdown stays. */
+function newMatch() {
+    gameState.round.num = 0;
+    gameState.round.allSpies = false;
+}
+
 /** Play `rounds` rounds in a row and list, for each one, whether it was an all-spies round. */
 function playRounds(rounds) {
     const flags = [];
@@ -52,60 +64,131 @@ function playRounds(rounds) {
     return flags;
 }
 
+/** The 1-based numbers of the rounds that were all-spies rounds. */
+const positions = (flags) => flags.flatMap((flag, i) => (flag ? [i + 1] : []));
+
 describe('when a round is an all-spies round', () => {
-    it('never without the option, however many rounds are played', () => {
+    it('never without the option, and the device memory is not even touched', () => {
         env.seedRandom(7);
         arrange({ allSpies: false });
         assert.ok(playRounds(120).every((flag) => flag === false));
+        assert.equal(stored(), undefined);
     });
 
-    it('with the option, about once in ALL_SPIES_ONE_IN rounds', () => {
-        env.seedRandom(7);
-        arrange();
-        const flags = playRounds(240);
-        const count = flags.filter(Boolean).length;
-        assert.ok(count >= 240 / ALL_SPIES_ONE_IN / 3, `${count} all-spies rounds in 240`);
-        assert.ok(count <= (240 / ALL_SPIES_ONE_IN) * 2, `${count} all-spies rounds in 240`);
-    });
-
-    it('never the first round, and never two rounds in a row', () => {
-        for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+    it('the first one comes after a short countdown, then they are spread out: never closer than ALL_SPIES_GAP_MIN rounds', () => {
+        for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+            env.storage.delete(ALL_SPIES_COUNTDOWN_KEY);
             env.seedRandom(seed);
             arrange();
-            const flags = playRounds(80);
-            assert.equal(flags[0], false, `seed ${seed}`);
-            for (let i = 1; i < flags.length; i++) assert.ok(!(flags[i] && flags[i - 1]), `seed ${seed}: rounds ${i} and ${i + 1}`);
+            newMatch();
+            const at = positions(playRounds(120));
+            assert.ok(at.length >= 120 / ALL_SPIES_GAP_MAX - 1, `seed ${seed}: ${at.length} all-spies rounds in 120`);
+            assert.ok(at[0] >= ALL_SPIES_FIRST_GAP_MIN && at[0] <= ALL_SPIES_FIRST_GAP_MAX, `seed ${seed}: first at ${at[0]}`);
+            for (let i = 1; i < at.length; i++) {
+                const gap = at[i] - at[i - 1];
+                assert.ok(gap >= ALL_SPIES_GAP_MIN && gap <= ALL_SPIES_GAP_MAX, `seed ${seed}: gap ${gap}`);
+            }
         }
     });
 
-    it('not with fewer than ALL_SPIES_MIN_PLAYERS players', () => {
-        env.seedRandom(7);
-        arrange({ players: ALL_SPIES_MIN_PLAYERS - 1 });
-        assert.ok(playRounds(120).every((flag) => flag === false));
+    it('stores the rounds left, and starts the countdown anew after an all-spies round', () => {
+        env.storage.set(ALL_SPIES_COUNTDOWN_KEY, '2');
+        arrange();
+        gameState.round.num = 1;
+        startNextRound();
+        assert.equal(gameState.round.allSpies, false);
+        assert.equal(stored(), 1);
+        startNextRound();
+        assert.equal(gameState.round.allSpies, true);
+        assert.ok(stored() >= ALL_SPIES_GAP_MIN && stored() <= ALL_SPIES_GAP_MAX, `${stored()} rounds to the next`);
+        startNextRound();
+        assert.equal(gameState.round.allSpies, false);
     });
 
-    it('a first round draws the same random numbers with the option on and off (the chance is only drawn when it could matter)', () => {
+    it('is counted across matches: a new match goes on with the countdown of the last one', () => {
+        env.storage.set(ALL_SPIES_COUNTDOWN_KEY, '5');
+        arrange();
+        gameState.round.num = 0;
+        playRounds(2);
+        assert.equal(stored(), 3);
+        newMatch();
+        playRounds(1);
+        assert.equal(stored(), 2);
+    });
+
+    it('never the first round of a match: a countdown that ends there waits for the second', () => {
+        env.storage.set(ALL_SPIES_COUNTDOWN_KEY, '1');
+        arrange();
+        newMatch();
+        startNextRound();
+        assert.equal(gameState.round.allSpies, false);
+        assert.equal(stored(), 0);
+        startNextRound();
+        assert.equal(gameState.round.allSpies, true);
+    });
+
+    it('not with fewer than ALL_SPIES_MIN_PLAYERS players: the countdown waits until there are enough', () => {
+        env.storage.set(ALL_SPIES_COUNTDOWN_KEY, '1');
+        arrange({ players: ALL_SPIES_MIN_PLAYERS - 1 });
+        gameState.round.num = 3;
+        assert.ok(playRounds(30).every((flag) => flag === false));
+        assert.equal(stored(), 0);
+        gameState.players = makePlayers(ALL_SPIES_MIN_PLAYERS);
+        startNextRound();
+        assert.equal(gameState.round.allSpies, true);
+    });
+
+    it('a stored value that cannot be a countdown is ignored, and a first one is drawn', () => {
+        for (const bad of ['-1', '99', '2.5', '"7"', 'null', 'abc', '[]', '{"left":3}']) {
+            env.storage.set(ALL_SPIES_COUNTDOWN_KEY, bad);
+            env.seedRandom(5);
+            arrange();
+            gameState.round.num = 1;
+            startNextRound();
+            assert.ok(stored() >= ALL_SPIES_FIRST_GAP_MIN - 1 && stored() <= ALL_SPIES_FIRST_GAP_MAX - 1, `${bad} -> ${stored()}`);
+        }
+    });
+
+    it('a first round draws the same random numbers with the option off as it always did (nothing is drawn for it)', () => {
         const drawsInFirstRound = (allSpies) => {
+            env.storage.delete(ALL_SPIES_COUNTDOWN_KEY);
             let calls = 0;
             env.stubCrypto(() => {
                 calls++;
                 return 12345;
             });
             arrange({ allSpies });
-            gameState.round.num = 0;
-            gameState.round.allSpies = false;
+            newMatch();
             startNextRound();
             return calls;
         };
         const off = drawsInFirstRound(false);
         assert.ok(off > 0);
-        assert.equal(drawsInFirstRound(true), off);
+        assert.equal(drawsInFirstRound(true), off + 1, 'the option adds only the draw of the first countdown');
     });
 });
 
-/** The second round of a match, with the chance of an all-spies round forced to come up (every random draw is 0). */
+describe('the countdown in the device memory', () => {
+    it('reads back what was saved, and nothing else', () => {
+        assert.equal(loadAllSpiesCountdown(), null);
+        for (const n of [0, 1, ALL_SPIES_GAP_MAX]) {
+            saveAllSpiesCountdown(n);
+            assert.equal(loadAllSpiesCountdown(), n);
+        }
+    });
+
+    it('refuses to save a number that cannot be a countdown', () => {
+        saveAllSpiesCountdown(4);
+        for (const bad of [-1, ALL_SPIES_GAP_MAX + 1, 2.5, '3', NaN, null, undefined]) {
+            saveAllSpiesCountdown(bad);
+            assert.equal(loadAllSpiesCountdown(), 4, String(bad));
+        }
+    });
+});
+
+/** The second round of a match, with the countdown at its last round, so that the round is an all-spies round. */
 function forcedAllSpiesRound(options) {
-    env.stubCrypto(() => 0);
+    env.storage.set(ALL_SPIES_COUNTDOWN_KEY, '1');
     arrange(options);
     gameState.round.num = 1;
     gameState.round.allSpies = false;
@@ -132,7 +215,6 @@ describe('what the players get in an all-spies round', () => {
     it('the round after it is an ordinary one again, with the usual number of spies', () => {
         forcedAllSpiesRound({ players: 6, settings: { spiesCount: 2 } });
         assert.equal(gameState.round.allSpies, true);
-        env.stubCrypto(() => 0);
         startNextRound();
         assert.equal(gameState.round.allSpies, false);
         assert.equal(gameState.players.filter((p) => p.role === 'spy').length, 2);
