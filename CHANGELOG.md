@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **The start button of the setup screen stays on the screen while the page scrolls.** The setup screen is long (the topics, four groups and a name box for every player, up to 20), and the button was at the very end, below all of them. It now sits in a bar (`#setup-actions`, class `.sticky-actions`) that sticks to the bottom of the screen, floating just above the two round floating buttons (cover mode and install) so that it never lies under them, and settles in its old place at the end of the page, above "Back". The button itself (`#btn-start-match`) is the same, so nothing that starts a match changed. `:root { scroll-padding-bottom }` keeps a name field that gets the focus out from behind the bar. Tests: the order of the screen in `tests/unit/setup-groups.test.mjs` names the bar, and three CSS checks pin the sticky position, the clearance above the floating buttons and the scroll padding. The end-to-end tests were not run.
+
 ### Added
 
 - **A pause button for the discussion countdown.** The timer screen has a button that stops the clock and, tapped again, continues it from the same second (twice per round, `TIMER_PAUSES_PER_ROUND` in `core/config.js`, so it cannot be used to stall; the button shows how many are left). While the clock is paused it is dimmed and says so, and the alarm is locked until the game goes on. The pause is saved with the match, so a reload shows it, and a match saved before this change opens as if no pause had been used. New actions `PAUSE_TIMER` and `RESUME_TIMER`, new `timer.manualPause` and `timer.pausesUsed` (reset by `startTimer` and each new round). The tab coming back to the front no longer arms a loop for a countdown that is not running. Tests in `tests/unit/timer-pause.test.mjs`.

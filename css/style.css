@@ -673,6 +673,23 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     cursor: pointer; z-index: 2000; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
+/* The start button of the setup screen: the screen is long (the topics, the groups and a name box for every player),
+   so the button stays on the screen while the page scrolls, and settles at its place in the flow at the end of the
+   page. It floats just above the two round floating buttons (cover mode, install: 16px from the bottom, about
+   38px tall) so that it never lies under them. scroll-padding-bottom keeps a field that gets the focus from ending up
+   behind it. */
+.sticky-actions {
+    position: sticky;
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 48px);
+    z-index: 20;
+    margin-top: 14px;
+    padding: 6px 0 8px;
+    background: linear-gradient(to top, var(--bg-body) 60%, transparent);
+    background: linear-gradient(to top, color-mix(in srgb, var(--bg-body) 94%, transparent) 60%, transparent);
+}
+.sticky-actions .btn { margin-top: 0; }
+:root { scroll-padding-bottom: 150px; }
+
 /* Custom native-like PWA install banner. Sits opposite the panic
    button (inline-end vs inline-start) so the two floating controls
    never collide, and stays hidden until `beforeinstallprompt` fires. */

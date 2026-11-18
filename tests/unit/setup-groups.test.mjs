@@ -148,9 +148,12 @@ describe('the groups in index.html', () => {
         for (const id of Object.keys(GROUP_OF_CONTROL)) assert.ok(!inside(withId(id)[0], core), id);
     });
 
-    it('the screen is: title, core block, the groups, the player names, start, back; the last three unchanged', () => {
+    it('the screen is: title, core block, the groups, the player names, the start bar, back', () => {
         const parts = elementChildren(screen).map((el) => `${el.tag}${el.attrs.id ? '#' + el.attrs.id : ''}`);
-        assert.deepEqual(parts, ['h2', 'div#setup-core', 'div#setup-groups', 'fieldset#names-section-container', 'button#btn-start-match', 'button#btn-back-welcome-2']);
+        assert.deepEqual(parts, ['h2', 'div#setup-core', 'div#setup-groups', 'fieldset#names-section-container', 'div#setup-actions', 'button#btn-back-welcome-2']);
+        // The start button is the only thing in the bar that sticks to the bottom of the screen (css: .sticky-actions).
+        assert.deepEqual(elementChildren(byId('setup-actions')).map((el) => el.attrs.id), ['btn-start-match']);
+        assert.ok(classes(byId('setup-actions')).includes('sticky-actions'));
         assert.ok(inside(byId('name-inputs-container'), byId('names-section-container')));
         assert.ok(inside(byId('btn-reset-names'), byId('names-section-container')));
     });
@@ -201,6 +204,34 @@ describe('the groups in index.html', () => {
         ].sort());
         assert.equal(byId('setup-max-votes').attrs.value, '2');
         assert.ok(!elementChildren(byId('setup-reveal-mode')).some((o) => 'selected' in o.attrs));
+    });
+});
+
+describe('the start bar (css/style.css: .sticky-actions)', () => {
+    const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
+    const rule = (selector) => {
+        const start = css.indexOf(`${selector} {`);
+        assert.ok(start >= 0, `${selector} has a rule`);
+        return css.slice(start, css.indexOf('}', start));
+    };
+
+    it('sticks to the bottom of the screen', () => {
+        assert.match(rule('.sticky-actions'), /position: sticky;/);
+        assert.match(rule('.sticky-actions'), /bottom: /);
+    });
+
+    it('floats above the two floating buttons (cover mode, install), which sit 16px from the bottom and are 38px or less tall', () => {
+        const bottom = /bottom: calc\(max\(16px, env\(safe-area-inset-bottom\)\) \+ (\d+)px\);/.exec(rule('.sticky-actions'));
+        assert.ok(bottom, 'the offset is the same safe-area offset as the floating buttons, plus a clearance');
+        assert.ok(Number(bottom[1]) >= 16 + 38 - 16, `${bottom[1]}px of clearance`);
+        assert.match(rule('.panic-btn-floating'), /position: fixed;/);
+        assert.match(rule('.panic-btn-floating'), /bottom: calc\(max\(16px, env\(safe-area-inset-bottom\)\)\);|bottom: max\(16px, env\(safe-area-inset-bottom\)\);/);
+    });
+
+    it('keeps a field that gets the focus out from behind it (scroll-padding-bottom is at least the bar and the buttons)', () => {
+        const padding = /:root \{ scroll-padding-bottom: (\d+)px; \}/.exec(css);
+        assert.ok(padding);
+        assert.ok(Number(padding[1]) >= 48 + 16 + 60, `${padding[1]}px`);
     });
 });
 
