@@ -235,6 +235,24 @@ describe('the start bar (css/style.css: .sticky-actions)', () => {
     });
 });
 
+describe('the name boxes (css/style.css: #name-inputs-container)', () => {
+    const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
+
+    it('are laid out in a grid of columns at least 130px wide, so a phone shows two to a row', () => {
+        const start = css.indexOf('#name-inputs-container {');
+        assert.ok(start >= 0);
+        const block = css.slice(start, css.indexOf('}', start));
+        assert.match(block, /display: grid;/);
+        assert.match(block, /grid-template-columns: repeat\(auto-fill, minmax\(130px, 1fr\)\);/);
+    });
+
+    it('are drawn as plain inputs in the one container, in the order of the players (nothing reorders them)', () => {
+        const container = byId('name-inputs-container');
+        assert.ok(container);
+        assert.ok(!/order:|grid-row|grid-column/.test(css.slice(css.indexOf('#name-inputs-container {'), css.indexOf('}', css.indexOf('#name-inputs-container {')))));
+    });
+});
+
 describe('the catalogs', () => {
     it('every group has a title and the badge has a text, in both languages', () => {
         for (const [lang, catalog] of Object.entries({ fa, en })) {

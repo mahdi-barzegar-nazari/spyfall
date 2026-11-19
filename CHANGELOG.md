@@ -5,6 +5,7 @@
 ### Changed
 
 - **The start button of the setup screen stays on the screen while the page scrolls.** The setup screen is long (the topics, four groups and a name box for every player, up to 20), and the button was at the very end, below all of them. It now sits in a bar (`#setup-actions`, class `.sticky-actions`) that sticks to the bottom of the screen, floating just above the two round floating buttons (cover mode and install) so that it never lies under them, and settles in its old place at the end of the page, above "Back". The button itself (`#btn-start-match`) is the same, so nothing that starts a match changed. `:root { scroll-padding-bottom }` keeps a name field that gets the focus out from behind the bar. Tests: the order of the screen in `tests/unit/setup-groups.test.mjs` names the bar, and three CSS checks pin the sticky position, the clearance above the floating buttons and the scroll padding. The end-to-end tests were not run.
+- **The name boxes of the setup screen go two to a row.** With 20 players the list of names was the longest part of the screen. `#name-inputs-container` is now a grid of columns at least 130px wide, so a phone shows two names per row (one per row on a very narrow screen), and a 20-player match has 10 rows of names instead of 20. Only the layout changed: the boxes are the same inputs in the same order, so the tab order, the order of the players, the saved names and every test that fills or reads them are untouched. Two CSS checks in `tests/unit/setup-groups.test.mjs`.
 
 ### Added
 

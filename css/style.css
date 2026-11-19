@@ -688,6 +688,15 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     background: linear-gradient(to top, color-mix(in srgb, var(--bg-body) 94%, transparent) 60%, transparent);
 }
 .sticky-actions .btn { margin-top: 0; }
+
+/* The name boxes of the setup screen go two to a row (one on a very narrow phone): with 20 players the list was the
+   longest part of the screen. The boxes keep their order in the document, so the tab order and the order of the
+   players do not change; each box keeps its own bottom margin (.mb-6) as the row gap. */
+#name-inputs-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    column-gap: 8px;
+}
 :root { scroll-padding-bottom: 150px; }
 
 /* Custom native-like PWA install banner. Sits opposite the panic
