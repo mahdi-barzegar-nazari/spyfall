@@ -10,8 +10,11 @@ import { resumeAudioIfSuspended } from '../platform/audio.js';
 import { t } from '../i18n/index.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
 import { renderPlayerDetails } from './results.js';
+import { showToast } from './feedback.js';
+import { getQuickCount, prepareQuickStart, stepQuickCount } from './quickStart.js';
 import { keepOneDifficultyChecked, renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
 import { refreshSetupGroupBadges } from './setupGroups.js';
+import { applySetupPreset, refreshSetupPresets } from './setupPresets.js';
 
 /** Attach every listener. Call once at start-up. */
 export function bindEvents() {
@@ -55,7 +58,16 @@ export function bindEvents() {
     });
 
     // The "N on" badge on each setup group header follows every change of a control inside the groups.
-    document.getElementById('setup-groups').addEventListener('change', refreshSetupGroupBadges);
+    document.getElementById('setup-groups').addEventListener('change', () => {
+        refreshSetupGroupBadges();
+        refreshSetupPresets();
+    });
+    // A tap on a preset chip sets the switches of the groups; the chip of a preset that is on stays lit.
+    document.querySelectorAll('#setup-presets [data-preset]').forEach((chip) => {
+        chip.onclick = () => {
+            if (applySetupPreset(chip.dataset.preset)) showToast(t('toast.presetApplied', { name: t(`setup.preset.${chip.dataset.preset}`) }));
+        };
+    });
 
     document.getElementById('btn-toggle-all-cats').onclick = () => {
         const boxes = document.querySelectorAll('input[name="setup-cat"]');
@@ -165,6 +177,15 @@ export function bindEvents() {
     };
 
     document.getElementById('btn-nav-setup').onclick = () => dispatch({type: 'NAVIGATE', payload: 'setup'});
+
+    document.getElementById('btn-quick-start').onclick = () => {
+        prepareQuickStart();
+        dispatch({type: 'OPEN_MODAL', payload: 'quick-start-modal'});
+    };
+    document.getElementById('btn-quick-less').onclick = () => stepQuickCount(-1);
+    document.getElementById('btn-quick-more').onclick = () => stepQuickCount(1);
+    document.getElementById('btn-quick-go').onclick = () => dispatch({type: 'QUICK_START', payload: getQuickCount()});
+    document.getElementById('btn-quick-cancel').onclick = () => dispatch({type: 'CLOSE_MODAL', payload: 'quick-start-modal'});
 
     document.getElementById('btn-open-words').onclick = () => dispatch({type: 'OPEN_MODAL', payload: 'custom-words-modal'});
 

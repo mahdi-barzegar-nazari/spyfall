@@ -18,6 +18,7 @@ import { syncLangSwitch } from './ui/langSwitch.js';
 import { clearQuestionIdea } from './ui/questionIdea.js';
 import { renderNameInputs, restoreSavedSetup, syncCheckboxChipVisuals, updateSetupLimitHints } from './ui/setup.js';
 import { refreshSetupGroupBadges } from './ui/setupGroups.js';
+import { refreshSetupPresets } from './ui/setupPresets.js';
 import { initTheme } from './ui/theme.js';
 
 /** Initial render and saved-game detection. */
@@ -37,6 +38,7 @@ function start() {
 
     // The badges of the setup groups: right for the restored setup, or for the defaults when nothing was saved.
     refreshSetupGroupBadges();
+    refreshSetupPresets();
 
     renderCustomWordsList();
 
@@ -79,6 +81,7 @@ function refreshLanguageDependentUi() {
     clearToasts();
     updateSetupLimitHints();
     refreshSetupGroupBadges();
+    refreshSetupPresets();
     renderNameInputs(false, true);
     renderCustomWordsList();
     clearQuestionIdea();

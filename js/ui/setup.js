@@ -12,6 +12,7 @@ import { formatNumber, t, tn } from '../i18n/index.js';
 import { generateId } from '../utils/random.js';
 import { normalizeWord, toLatinDigits } from '../utils/text.js';
 import { refreshSetupGroupBadges } from './setupGroups.js';
+import { refreshSetupPresets } from './setupPresets.js';
 
 export function validateAndSaveSettings() {
     let c = parseInt(toLatinDigits(document.getElementById('setup-players-count').value), 10);
@@ -170,6 +171,7 @@ export function applySetupSettingsToForm(settings) {
     syncCheckboxChipVisuals('hint-chips-container', 'hint-chip');
     // The badges of the setup groups count these controls (see setupGroups.js); a change by code fires no event.
     refreshSetupGroupBadges();
+    refreshSetupPresets();
 }
 
 /**
@@ -195,6 +197,25 @@ export function restoreSavedSetup() {
 // Keeps the small hint text under players/spies/timer/max-votes fields
 // in sync with the actual RULES so the limits are visible before an
 // error ever needs to fire.
+/**
+ * Put `count` players in the setup form, as if the person had typed it: the count, the number of spies if it no longer
+ * fits (never more than getMaxSpiesAllowed(count), never fewer than 1; a number that still fits is left alone), the
+ * name boxes, the limit hints and the badges. Used by the welcome screen's quick start (ui/quickStart.js).
+ */
+export function setSetupPlayersCount(count) {
+    const n = Math.max(RULES.players.min, Math.min(RULES.players.max, Math.round(Number(count)) || RULES.players.min));
+    document.getElementById('setup-players-count').value = String(n);
+    const spiesField = document.getElementById('setup-spies-count');
+    const spies = parseInt(toLatinDigits(spiesField.value), 10);
+    const maxSpies = getMaxSpiesAllowed(n);
+    if (Number.isNaN(spies) || spies < RULES.spies.min || spies > maxSpies) {
+        spiesField.value = String(Math.max(RULES.spies.min, Math.min(maxSpies, Number.isNaN(spies) ? RULES.spies.min : spies)));
+    }
+    renderNameInputs();
+    updateSetupLimitHints();
+    refreshSetupGroupBadges();
+}
+
 export function updateSetupLimitHints() {
     const playersHint = document.getElementById('players-limit-hint');
     if (playersHint) playersHint.textContent = t('setup.limit.players', { min: formatNumber(RULES.players.min), max: formatNumber(RULES.players.max) });

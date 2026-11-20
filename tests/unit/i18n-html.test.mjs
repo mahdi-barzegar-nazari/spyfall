@@ -39,6 +39,7 @@ const JS_WRITTEN = {
     'handoff-action': { keys: ['handoff.reveal.action.hold', 'handoff.reveal.action.tap', 'handoff.vote.action', 'handoff.wager.action'] }, // ui/handoff.js, text from ui/render.js
     'reveal-instruction-text': { keys: ['reveal.instruction.immediate', 'reveal.instruction.hold', 'reveal.instruction.tap'] }, // ui/render.js
     'votes-remaining-badge': { keys: ['timer.votes.unlimited', 'timer.votes.remaining'], same: { key: 'timer.votes.unlimited' } }, // ui/render.js
+    'setup-presets-hint': { keys: ['setup.presets.hint', 'setup.preset.classic.desc', 'setup.preset.party.desc', 'setup.preset.competitive.desc'], same: { key: 'setup.presets.hint' } }, // ui/setupPresets.js
     'btn-pause-timer': { keys: ['timer.pause', 'timer.pause.none', 'timer.resume'], same: { key: 'timer.pause', params: { left: '2' } } }, // ui/render.js
     'vote-instruction-text': { keys: ['vote.instruction'] }, // ui/render.js
     'btn-submit-wagers': { keys: ['wager.submit.final', 'wager.submit.next'] }, // ui/render.js

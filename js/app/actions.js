@@ -23,7 +23,7 @@ import { hideHandoffGate } from '../ui/handoff.js';
 import { clearQuestionIdea, showQuestionIdea } from '../ui/questionIdea.js';
 import { renderRoleModalContent } from '../ui/render.js';
 import { exportScorecardImage } from '../ui/scorecard.js';
-import { renderNameInputs, restoreSavedSetup, validateAndSaveSettings } from '../ui/setup.js';
+import { renderNameInputs, restoreSavedSetup, setSetupPlayersCount, validateAndSaveSettings } from '../ui/setup.js';
 import { updateThemeMeta } from '../ui/theme.js';
 
 let lastPanicTap = 0;
@@ -99,6 +99,17 @@ export function handleAction(action) {
                 document.body.style.overflow = 'hidden';
                 trapFocus(modal);
             }
+            break;
+        }
+        case 'QUICK_START': {
+            // The welcome screen's quick start: the count goes into the setup form, and the match is started by the very
+            // action the Start button uses. If the setup cannot start, the person is left on the setup screen with the
+            // field that is wrong shown, as after a tap on Start.
+            if (gameState.phase !== 'welcome') return;
+            dispatch({type: 'CLOSE_MODAL', payload: 'quick-start-modal'});
+            setSetupPlayersCount(action.payload);
+            setPhase('setup');
+            handleAction({type: 'START_MATCH'});
             break;
         }
         case 'CLOSE_MODAL': {

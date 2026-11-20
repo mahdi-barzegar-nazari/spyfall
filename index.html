@@ -91,7 +91,10 @@
             </button>
             <span class="play-button-label" data-i18n="welcome.start.label">شروع بازی</span>
             <span class="play-button-caption" data-i18n="welcome.start.caption">دست‌به‌دست کردن یک گوشی در جمع دورهمی</span>
-            <button type="button" id="btn-how-to-play" class="btn btn-ghost btn-sm how-to-play-btn" data-info="howToPlay" aria-haspopup="dialog" data-i18n="welcome.howToPlay">چطور بازی کنیم؟</button>
+            <div class="play-hero-links">
+                <button type="button" id="btn-how-to-play" class="btn btn-ghost btn-sm how-to-play-btn" data-info="howToPlay" aria-haspopup="dialog" data-i18n="welcome.howToPlay">چطور بازی کنیم؟</button>
+                <button type="button" id="btn-quick-start" class="btn btn-ghost btn-sm how-to-play-btn" aria-haspopup="dialog" data-i18n="welcome.quickStart">⚡ شروع سریع</button>
+            </div>
         </div>
         <button type="button" id="btn-open-words" class="btn btn-ghost" data-i18n="welcome.words">✏️ بانک کلمات سفارشی</button>
         <div class="lang-switch-wrap" dir="ltr">
@@ -155,6 +158,15 @@
             </div>
         </div>
 
+        <div class="setup-presets" id="setup-presets">
+            <div class="setup-presets-title" data-i18n="setup.presets.title">الگوی آماده</div>
+            <div class="setup-presets-row" role="group" aria-label="الگوی آماده" data-i18n-attr="aria-label:setup.presets.title">
+                <button type="button" class="preset-chip" data-preset="classic" aria-pressed="false" data-i18n="setup.preset.classic">کلاسیک</button>
+                <button type="button" class="preset-chip" data-preset="party" aria-pressed="false" data-i18n="setup.preset.party">شلوغ و باحال</button>
+                <button type="button" class="preset-chip" data-preset="competitive" aria-pressed="false" data-i18n="setup.preset.competitive">رقابتی</button>
+            </div>
+            <div class="setup-presets-hint" id="setup-presets-hint" aria-live="polite">با یک لمس، گزینه‌های پیشرفته‌ی پایین تنظیم می‌شوند. بعداً می‌توانید تک‌تکشان را عوض کنید.</div>
+        </div>
         <div class="setup-groups" id="setup-groups">
             <details class="setup-group" id="setup-group-roles">
                 <summary class="setup-group-summary">
@@ -404,6 +416,20 @@
         <h3 id="info-modal-title" class="color-primary mb-8 text-center">راهنما</h3>
         <p id="info-modal-desc" class="text-start u-text-090"></p>
         <button type="button" id="btn-info-modal-close" class="btn btn-primary mt-14" data-i18n="modal.info.close">متوجه شدم</button>
+    </div>
+</div>
+
+<div id="quick-start-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quick-start-title">
+    <div class="modal-card text-center">
+        <h3 id="quick-start-title" class="color-primary mb-8" data-i18n="quick.title">⚡ شروع سریع</h3>
+        <p class="u-text-090" data-i18n="quick.text">چند نفرید؟ بازی همین الان با آخرین تنظیمات شما شروع می‌شود (بار اول: تنظیمات پیش‌فرض).</p>
+        <div class="quick-count">
+            <button type="button" id="btn-quick-less" class="btn btn-ghost" data-i18n="quick.less">کمتر</button>
+            <output id="quick-count" class="quick-count-value" data-count="4" aria-live="polite" aria-label="تعداد بازیکنان" data-i18n-attr="aria-label:quick.count.label">4</output>
+            <button type="button" id="btn-quick-more" class="btn btn-ghost" data-i18n="quick.more">بیشتر</button>
+        </div>
+        <button type="button" id="btn-quick-go" class="btn btn-primary mt-14" data-i18n="quick.go">شروع بازی 🚀</button>
+        <button type="button" id="btn-quick-cancel" class="btn btn-ghost mt-8" data-i18n="quick.cancel">انصراف</button>
     </div>
 </div>
 

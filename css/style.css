@@ -689,6 +689,19 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 }
 .sticky-actions .btn { margin-top: 0; }
 
+/* The presets of the setup screen: three chips in one row, the active one lit like the other chips, and one line of
+   description under them. */
+.setup-presets { margin-bottom: 12px; }
+.setup-presets-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary); }
+.setup-presets-row { display: flex; gap: 8px; }
+.preset-chip {
+    flex: 1; min-height: 44px; padding: 8px 6px; border-radius: 14px; font-size: 0.82rem; font-weight: 700;
+    background: var(--surface-input); border: 1px solid var(--border-glow); color: var(--text-primary); cursor: pointer;
+}
+.preset-chip:hover { border-color: var(--brand-primary); }
+.preset-chip.active { border-color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 22%, transparent); }
+.setup-presets-hint { margin-top: 8px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; min-height: 2.4em; }
+
 /* The name boxes of the setup screen go two to a row (one on a very narrow phone): with 20 players the list was the
    longest part of the screen. The boxes keep their order in the document, so the tab order and the order of the
    players do not change; each box keeps its own bottom margin (.mb-6) as the row gap. */
@@ -982,6 +995,14 @@ body::after {
 /* "How to play" (welcome screen): a small ghost pill under the caption, so the round play button stays the one big
    action. It opens the same help modal as the (i) buttons (data-info="howToPlay"). 44px is the usual touch target. */
 .how-to-play-btn { min-height: 44px; padding-inline: 20px; font-size: 0.86rem; }
+/* The two small pills under the caption ("How to play" and "Quick start"): one row, wrapping on a very narrow phone,
+   so the welcome screen is not made taller by the second one. */
+.play-hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.play-hero-links .btn { width: auto; margin-top: 0; }
+/* The quick start dialog: the number of players between two step buttons. */
+.quick-count { display: flex; align-items: center; gap: 12px; margin: 14px 0 4px; }
+.quick-count .btn { flex: 1; margin-top: 0; min-height: 48px; }
+.quick-count-value { min-width: 4ch; text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-primary); }
 /* Language switch (welcome screen only). The wrapper in index.html is dir="ltr", so the two buttons keep the
    same visual order ("فارسی  English") in both UI languages and a person can find his own language without
    reading the current one. The selected state is drawn from aria-pressed, so what is shown and what a screen

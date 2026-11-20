@@ -148,9 +148,9 @@ describe('the groups in index.html', () => {
         for (const id of Object.keys(GROUP_OF_CONTROL)) assert.ok(!inside(withId(id)[0], core), id);
     });
 
-    it('the screen is: title, core block, the groups, the player names, the start bar, back', () => {
+    it('the screen is: title, core block, the presets, the groups, the player names, the start bar, back', () => {
         const parts = elementChildren(screen).map((el) => `${el.tag}${el.attrs.id ? '#' + el.attrs.id : ''}`);
-        assert.deepEqual(parts, ['h2', 'div#setup-core', 'div#setup-groups', 'fieldset#names-section-container', 'div#setup-actions', 'button#btn-back-welcome-2']);
+        assert.deepEqual(parts, ['h2', 'div#setup-core', 'div#setup-presets', 'div#setup-groups', 'fieldset#names-section-container', 'div#setup-actions', 'button#btn-back-welcome-2']);
         // The start button is the only thing in the bar that sticks to the bottom of the screen (css: .sticky-actions).
         assert.deepEqual(elementChildren(byId('setup-actions')).map((el) => el.attrs.id), ['btn-start-match']);
         assert.ok(classes(byId('setup-actions')).includes('sticky-actions'));

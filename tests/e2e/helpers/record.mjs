@@ -19,6 +19,15 @@ import { fa } from '../../../js/i18n/fa.js';
  * which is a modal that `recordModal` records on request) is the one thing that is new. It is left out in English as
  * well; tests/e2e/how-to-play.test.mjs checks the button and its texts in both languages.
  *
+ * The welcome screen's "Quick start" button (`#btn-quick-start`) and its dialog (`#quick-start-modal`) are always left out
+ * too, the same way and for the same reason (the Persian text of the screens is compared with a recording made before they
+ * existed): the button's label, and the dialog's one text attribute (the accessible name of the count). The dialog is
+ * outside `main`, so its text is not in `innerText` anyway; tests/e2e/quick-start.test.mjs checks the button and the dialog
+ * in both languages.
+ *
+ * The setup screen's presets block (`#setup-presets`: the title, the three chips and the line under them, and the
+ * attributes of the chips and of the row) is left out for the same reason; tests/e2e/setup-presets.test.mjs checks it.
+ *
  * The discussion screen's "Question idea" block (`#question-idea`: the button `#btn-question-idea` and the suggested question
  * in `#question-idea-text`) is always left out too, in the text, the text attributes and the lines: the Persian text of the
  * screens is compared with a recording made before the button existed, and the suggested question is a text that changes with
@@ -52,18 +61,20 @@ export async function recordScreen(page, { includeSwitch = false, openGroups = t
         headers.forEach((header) => { header.style.display = 'none'; });
 
         try {
-            const outside = (el) => !el.closest('.install-hint') && !el.closest('#btn-how-to-play') && !el.closest('#question-idea') && (withSwitch || !el.closest('.lang-switch-wrap'));
+            const outside = (el) => !el.closest('.install-hint') && !el.closest('#setup-presets') && !el.closest('#btn-how-to-play') && !el.closest('#btn-quick-start') && !el.closest('#quick-start-modal') && !el.closest('#question-idea') && (withSwitch || !el.closest('.lang-switch-wrap'));
             const labels = withSwitch ? [] : [...document.querySelectorAll('.lang-btn')].map((b) => norm(b.textContent));
             const hintLines = [...document.querySelectorAll('.install-hint span, .install-hint button')].map((el) => norm(el.textContent));
             const buildLine = norm(document.getElementById('build-info')?.textContent ?? '');
             const howToLine = norm(document.getElementById('btn-how-to-play')?.textContent ?? '');
+            const quickLine = norm(document.getElementById('btn-quick-start')?.textContent ?? '');
+            const presetLines = Array.from(document.querySelectorAll('#setup-presets, #setup-presets *')).flatMap((el) => (el.children.length === 0 ? [norm(el.textContent)] : [])).filter(Boolean);
             const ideaLines = ['btn-question-idea', 'question-idea-text'].map((id) => norm(document.getElementById(id)?.textContent ?? ''));
             const main = document.getElementById('main-content-root');
 
             const text = main.innerText
                 .split('\n')
                 .map(norm)
-                .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine && line !== howToLine && !ideaLines.includes(line));
+                .filter((line) => line && !labels.includes(line) && !hintLines.includes(line) && line !== buildLine && line !== howToLine && line !== quickLine && !presetLines.includes(line) && !ideaLines.includes(line));
 
             const attrs = [];
             for (const el of document.querySelectorAll('[aria-label], [placeholder], [title]')) {
