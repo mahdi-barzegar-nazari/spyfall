@@ -90,7 +90,9 @@ describe('the welcome screen "How to play" button (360x740)', () => {
                 assert.ok(m.how.top >= m.play.bottom, `${where} the button is below the play button`);
                 assert.ok(m.how.bottom <= m.words.top, `${where} and above the custom words button`);
                 assert.ok(m.how.height >= 40, `${where} a finger can hit it (${m.how.height}px high)`);
-                assert.ok(m.how.width < m.words.width / 2, `${where} it is a small pill, not a second full-width button (${m.how.width}px)`);
+                assert.ok(m.how.width < m.innerWidth / 2, `${where} it is a small pill, not a second full-width button (${m.how.width}px)`);
+                assert.ok(m.words.width < m.innerWidth / 2, `${where} the custom words button is a quiet small link, not a button as wide as the screen (${m.words.width}px)`);
+                assert.ok(m.words.height >= 40, `${where} but a finger can still hit it (${m.words.height}px high)`);
                 assert.ok(m.play.width * m.play.height > 2 * m.how.width * m.how.height, `${where} the play button is still the main action`);
                 assert.ok(m.how.left >= 0 && m.how.right <= m.innerWidth, `${where} nothing sticks out of the phone`);
                 assert.ok(m.scrollWidth <= m.innerWidth, `${where} no sideways scroll`);

@@ -264,6 +264,17 @@ html.i18n-pending body { visibility: hidden; animation: i18nPendingReveal 0s lin
 .btn-ghost:hover { background: color-mix(in srgb, var(--text-primary) 10%, transparent); color: var(--text-primary); }
 .btn-sm { padding: 6px 12px; min-height: 40px; font-size: 0.78rem; border-radius: 10px; width: auto; margin: 0; }
 
+/* A quiet button: no box, no shadow, a small underlined label in the secondary colour, centred under the main
+   actions. Used for the welcome screen's "custom words" button: with more than 2000 words in the bank most people
+   never need it, so it must not compete with the play button. It is still a real button, with a 44px-high target. */
+.btn-quiet {
+    width: fit-content; min-height: 44px; margin: 6px auto 0; padding: 6px 14px;
+    background: none; border: none; box-shadow: none;
+    font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+    text-decoration: underline; text-underline-offset: 3px;
+}
+.btn-quiet:hover { background: none; color: var(--text-primary); }
+
 .card-menu {
     display: block;
     width: 100%;
