@@ -1011,6 +1011,10 @@ body::after {
 .play-hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .play-hero-links .btn { width: auto; margin-top: 0; }
 /* The quick start dialog: the number of players between two step buttons. */
+.intro-steps { list-style: none; margin: 12px 0 4px; padding: 0; display: grid; gap: 12px; }
+.intro-steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 0.9rem; line-height: 1.7; }
+.intro-step-icon { font-size: 1.6rem; line-height: 1.2; flex: none; }
+.intro-note { margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); text-align: center; }
 .quick-count { display: flex; align-items: center; gap: 12px; margin: 14px 0 4px; }
 .quick-count .btn { flex: 1; margin-top: 0; min-height: 48px; }
 .quick-count-value { min-width: 4ch; text-align: center; font-size: 2rem; font-weight: 800; color: var(--text-primary); }

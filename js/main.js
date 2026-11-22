@@ -4,6 +4,7 @@
 
 import { wireApp } from './app/wire.js';
 import { SAVE_VERSION } from './core/state.js';
+import { maybeShowIntro } from './ui/intro.js';
 import { initI18n, onLangChange } from './i18n/index.js';
 import { initAntiZoom } from './platform/antiZoom.js';
 import { setupAudio } from './platform/audio.js';
@@ -65,6 +66,9 @@ function start() {
             }
         }
     } catch(e){}
+
+    // A person who looks new gets the "game in 3 steps" dialog (it does nothing for anyone who has played here).
+    maybeShowIntro();
 }
 
 /**

@@ -10,6 +10,7 @@ import { resumeAudioIfSuspended } from '../platform/audio.js';
 import { t } from '../i18n/index.js';
 import { requestWakeLock } from '../platform/wakeLock.js';
 import { renderPlayerDetails } from './results.js';
+import { markIntroDone } from '../core/intro.js';
 import { showToast } from './feedback.js';
 import { getQuickCount, prepareQuickStart, stepQuickCount } from './quickStart.js';
 import { keepOneDifficultyChecked, renderNameInputs, syncCheckboxChipVisuals, updateSetupLimitHints } from './setup.js';
@@ -177,6 +178,19 @@ export function bindEvents() {
     };
 
     document.getElementById('btn-nav-setup').onclick = () => dispatch({type: 'NAVIGATE', payload: 'setup'});
+
+    // The intro: "Got it" and the full guide both end it for good; the full guide then opens the same dialog as "How to play".
+    document.getElementById('btn-intro-ok').onclick = () => {
+        markIntroDone();
+        dispatch({type: 'CLOSE_MODAL', payload: 'intro-modal'});
+    };
+    document.getElementById('btn-intro-full').onclick = () => {
+        markIntroDone();
+        dispatch({type: 'CLOSE_MODAL', payload: 'intro-modal'});
+        const how = document.getElementById('btn-how-to-play');
+        how.focus();
+        how.click();
+    };
 
     document.getElementById('btn-quick-start').onclick = () => {
         prepareQuickStart();

@@ -8,6 +8,7 @@
 
 import { TIMER_PAUSES_PER_ROUND, VALID_PHASES } from '../core/config.js';
 import { dispatch } from '../core/dispatch.js';
+import { recordMatchStarted } from '../core/intro.js';
 import { commitState, isMatchInProgress, setPhase } from '../core/phase.js';
 import { SAVE_VERSION, gameState, hostSecretState, replaceGameState, replaceHostSecrets, restoreSecrets, session } from '../core/state.js';
 import { handleDetectiveQueryInternal, handleSpyGuessVerdict, processElimination } from '../game/resolution.js';
@@ -138,6 +139,7 @@ export function handleAction(action) {
             gameState.round.num = 0;
             initMatchPlayers();
             if (!startNextRound()) return;
+            recordMatchStarted();
             clearQuestionIdea();
             break;
         case 'NEXT_ROUND':
