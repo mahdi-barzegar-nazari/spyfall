@@ -6,6 +6,9 @@
  * It is written for English, not translated word for word: placeholders move where English needs them,
  * and emoji stay exactly as they are in `fa.js`.
  *
+ * The labels of the advanced switches in the setup screen (`setup.toggle.*`) carry a short plain-language
+ * clarification in brackets after the glossary term, because a first-time player does not know the terms.
+ *
  * Glossary: one English term per game idea, used everywhere. The brackets name the `fa.js` key that shows
  * the Persian original, so the two catalogs can be compared.
  *
@@ -188,20 +191,20 @@ export const en = {
     'setup.preset.competitive': 'Competitive',
     'setup.preset.competitive.desc': 'More serious: a detective, wagers, sudden death, confirmed votes and a limit on the alarms.',
     'toast.presetApplied': 'Style “{name}” applied.',
-    'setup.toggle.detective': 'Detective',
-    'setup.toggle.known': 'Fellow spies',
-    'setup.toggle.fool': 'Decoy',
-    'setup.toggle.director': 'Turn director',
-    'setup.toggle.oneword': 'One-word rule',
-    'setup.toggle.quests': 'Side quests',
-    'setup.toggle.wager': 'Wagers',
-    'setup.toggle.sudden': 'Sudden death',
+    'setup.toggle.detective': 'Detective (secret check)',
+    'setup.toggle.known': 'Fellow spies (they know each other)',
+    'setup.toggle.fool': 'Decoy (a slightly different word)',
+    'setup.toggle.director': 'Turn director (who asks whom)',
+    'setup.toggle.oneword': 'One-word rule (answer in one word)',
+    'setup.toggle.quests': 'Side quests (secret funny tasks)',
+    'setup.toggle.wager': 'Wagers (bet your points)',
+    'setup.toggle.sudden': 'Sudden death (a wrong vote loses)',
     'setup.toggle.allSpies': 'Surprise round: everyone is a spy',
-    'setup.toggle.lastChance': 'Spy’s last chance',
-    'setup.toggle.limit': 'Alarm limit',
-    'setup.toggle.roleRevealConfirm': 'Role hand-over gate',
-    'setup.toggle.voteConfirm': 'Vote confirmation',
-    'setup.toggle.quickVoting': 'Quick voting',
+    'setup.toggle.lastChance': 'Spy’s last chance (guess the word)',
+    'setup.toggle.limit': 'Alarm limit (cap on alarms)',
+    'setup.toggle.roleRevealConfirm': 'Role hand-over gate (confirm before a card)',
+    'setup.toggle.voteConfirm': 'Vote confirmation (double-check each vote)',
+    'setup.toggle.quickVoting': 'Quick voting (skip the ready screen)',
     'setup.group.roles': 'Roles',
     'setup.group.discussion': 'Discussion',
     'setup.group.stakes': 'Stakes and ending',
@@ -456,7 +459,7 @@ export const en = {
     'info.spyLastChance.title': '🎯 Spy’s last chance',
     'info.spyLastChance.text': 'When on (default), a spy who gets caught by a vote has one last chance: say the secret word out loud to the group. If it’s right, the spies win the round. If it’s wrong, or the spy passes, the game goes on as usual (in a one-spy game, the citizens win). When off, classic rules apply: a caught spy gets no final guess.',
     'info.voteLimit.title': '🚨 Alarm limit',
-    'info.voteLimit.text': 'Caps how many times players can sound the alarm, which stops the discussion timer and forces an early vote.',
+    'info.voteLimit.text': 'Sounding the alarm stops the discussion timer and starts an early vote. This option limits how many times it can be sounded in each round.',
     'info.roleRevealConfirm.title': '🔒 Role hand-over gate',
     'info.roleRevealConfirm.text': 'When on (default), a hand-over screen appears before each player’s role card, so you know the phone is really in that player’s hands. When off, tapping a player’s name shows their role card right away, with no extra step. That’s faster, but it’s easier for someone else to catch a glimpse of the card.',
     'info.voteConfirm.title': '🗳️ Vote confirmation',
