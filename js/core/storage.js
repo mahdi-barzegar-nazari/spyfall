@@ -3,7 +3,7 @@
  * words chosen most recently.
  */
 
-import { ALL_SPIES_GAP_MAX, sanitizeSetupSettings } from './config.js';
+import { ALL_SPIES_GAP_MAX, BUILT_IN_CATEGORIES, sanitizeSetupSettings } from './config.js';
 import { SAVE_VERSION, gameState, serializeSecrets } from './state.js';
 import { getLang, t, translationsOf } from '../i18n/index.js';
 
@@ -83,13 +83,32 @@ export function saveCurrentNames(names) {
 /** The key under which the setup options of the last match that was started are kept. */
 export const SETUP_SETTINGS_KEY = 'spy_setup_settings';
 
-/** The format of what is kept under `SETUP_SETTINGS_KEY`: `{ version, settings }`. A record of any other version is ignored. */
-export const SETUP_SETTINGS_VERSION = 1;
+/**
+ * The format of what is kept under `SETUP_SETTINGS_KEY`: `{ version, settings }`. Version 2 is the current one; a
+ * version 1 record (written before the ninth category, "concepts", existed) is read through `migrateFromVersion1`;
+ * a record of any other version is ignored.
+ */
+export const SETUP_SETTINGS_VERSION = 2;
+
+/** The built-in categories a version 1 record can know about: the ones that existed when it was written. */
+const CATEGORIES_OF_VERSION_1 = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+
+/**
+ * A version 1 record knows only the first eight categories, so the ones added since (the ninth) are absent from it
+ * whether or not the person would have wanted them. A person who had every topic of the time on was on "all topics",
+ * and gets the new ones on as well, the way a new device does; anyone who had picked a set of their own keeps exactly
+ * that set. (The record is written again, as version 2, the next time a match starts.)
+ */
+function migrateFromVersion1(settings) {
+    if (!CATEGORIES_OF_VERSION_1.every((id) => settings.cats.includes(id))) return settings;
+    const added = BUILT_IN_CATEGORIES.filter((id) => !CATEGORIES_OF_VERSION_1.includes(id) && !settings.cats.includes(id));
+    return added.length ? { ...settings, cats: [...settings.cats, ...added] } : settings;
+}
 
 /**
  * The plain setup options of the match that was last started, as `sanitizeSetupSettings` returns them, or
- * `null` when there is nothing usable to restore: nothing saved, text that is not JSON, not a record of this
- * version, or a storage that throws. `null` means the setup screen is left exactly as it is. A usable record is
+ * `null` when there is nothing usable to restore: nothing saved, text that is not JSON, not a record of a version that is
+ * read, or a storage that throws. `null` means the setup screen is left exactly as it is. A usable record is
  * never trusted: every field that is wrong in it (type, range, unknown id, spies that do not fit the players)
  * has the default of that field, and the other fields are kept.
  */
@@ -97,8 +116,9 @@ export function loadSetupSettings() {
     try {
         const parsed = JSON.parse(localStorage.getItem(SETUP_SETTINGS_KEY));
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
-        if (parsed.version !== SETUP_SETTINGS_VERSION) return null;
-        return sanitizeSetupSettings(parsed.settings);
+        if (parsed.version !== SETUP_SETTINGS_VERSION && parsed.version !== 1) return null;
+        const settings = sanitizeSetupSettings(parsed.settings);
+        return parsed.version === 1 ? migrateFromVersion1(settings) : settings;
     } catch(e) { return null; }
 }
 

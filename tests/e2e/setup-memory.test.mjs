@@ -203,7 +203,7 @@ describe('remembering the match settings (production build)', () => {
             await page.waitForSelector('#screen-reveal:not(.hidden)');
 
             const raw = await storedRecord(page);
-            assert.deepEqual(JSON.parse(raw), { version: 1, settings: CHOSEN });
+            assert.deepEqual(JSON.parse(raw), { version: 2, settings: CHOSEN });
             assert.ok(!raw.includes('Zahra'), 'the player names are not part of the record');
             assert.deepEqual(
                 (await page.evaluate(() => JSON.parse(localStorage.getItem('spy_saved_player_names'))))[0],
@@ -266,7 +266,7 @@ describe('remembering the match settings (production build)', () => {
             await endMatchAndStartNew(page);
             await openSetup(page);
             assert.deepEqual(await readSetup(page), saved);
-            assert.equal(await storedRecord(page), JSON.stringify({ version: 1, settings: saved }), 'and nothing was rewritten');
+            assert.equal(await storedRecord(page), JSON.stringify({ version: 2, settings: saved }), 'and nothing was rewritten');
         });
     });
 
@@ -282,7 +282,7 @@ describe('remembering the match settings (production build)', () => {
 
             // Another setup is saved for the next match (as if an earlier visit had left it), then the page is reloaded.
             const next = { ...defaultSetupSettings(), playersCount: 8, spiesCount: 3, timerMin: 2, cats: ['events'], diff: ['easy'], director: true };
-            await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, JSON.stringify({ version: 1, settings: next })]);
+            await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, JSON.stringify({ version: 2, settings: next })]);
             const rawNext = await storedRecord(page);
             await page.reload();
             await page.waitForSelector('#recovery-banner:not(.hidden)');
@@ -311,7 +311,7 @@ describe('remembering the match settings (production build)', () => {
     it('a damaged saved setup falls back field by field and keeps the good fields', async () => {
         await withApp(async (page) => {
             const damaged = {
-                version: 1,
+                version: 2,
                 settings: {
                     playersCount: 99,
                     spiesCount: 9,
@@ -343,7 +343,7 @@ describe('remembering the match settings (production build)', () => {
     });
 
     it('a saved setup that is not usable at all (not JSON, another version, not a record) leaves the defaults', async () => {
-        for (const bad of ['{oops', 'null', '[]', JSON.stringify({ version: 2, settings: CHOSEN }), JSON.stringify(CHOSEN)]) {
+        for (const bad of ['{oops', 'null', '[]', JSON.stringify({ version: 3, settings: CHOSEN }), JSON.stringify(CHOSEN)]) {
             await withApp(async (page) => {
                 await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, bad]);
                 await page.reload();
@@ -353,7 +353,7 @@ describe('remembering the match settings (production build)', () => {
                 assert.deepEqual((await readSetupLooks(page)).litCats, BUILT_IN_CATEGORIES, bad);
                 await page.click('#btn-start-match');
                 await page.waitForSelector('#screen-reveal:not(.hidden)');
-                assert.deepEqual(JSON.parse(await storedRecord(page)), { version: 1, settings: defaultSetupSettings() }, `${bad}: the next start writes a good record`);
+                assert.deepEqual(JSON.parse(await storedRecord(page)), { version: 2, settings: defaultSetupSettings() }, `${bad}: the next start writes a good record`);
             });
         }
     });

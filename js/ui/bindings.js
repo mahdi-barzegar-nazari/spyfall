@@ -59,6 +59,19 @@ export function bindEvents() {
     });
 
     // The "N on" badge on each setup group header follows every change of a control inside the groups.
+    // When a group is opened by a tap, bring it fully into view (smoothly, unless the person asked for less motion): on a
+    // long screen the options that appear below the header would otherwise be out of sight. The `open` attribute
+    // changes after the click, so it is read on the next frame.
+    document.getElementById('setup-groups').addEventListener('click', (event) => {
+        const summary = event.target?.closest?.('.setup-group-summary');
+        if (!summary) return;
+        const group = summary.parentElement;
+        requestAnimationFrame(() => {
+            if (!group.open) return;
+            const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            group.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
+        });
+    });
     document.getElementById('setup-groups').addEventListener('change', () => {
         refreshSetupGroupBadges();
         refreshSetupPresets();

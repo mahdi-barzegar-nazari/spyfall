@@ -62,7 +62,9 @@ With the setting `allSpies` on (the switch `#toggle-all-spies`, group `roles`), 
 
 ### The saved setup
 
-The plain setup options of the last match that was started are kept under `spy_setup_settings` as `{ version: 1, settings }` (`saveSetupSettings` / `loadSetupSettings` in `core/storage.js`), so the next visit starts from them instead of the defaults.
+The plain setup options of the last match that was started are kept under `spy_setup_settings` as `{ version: 2, settings }` (`saveSetupSettings` / `loadSetupSettings` in `core/storage.js`), so the next visit starts from them instead of the defaults.
+
+- **Version 1 records.** A record written before the ninth category ("concepts") existed is version 1 and is still read (`migrateFromVersion1`): a person who had every topic of that time on (the first eight) is on "all topics" and gets the topics added since on too, the way a new device does; anyone who had picked a set of their own keeps exactly that set. The record is written again, as version 2, the next time a match starts, and a version 2 record is the person's own choice (a topic turned off stays off). Any other version is ignored. When a new category is added later, add it to the list of version 2 in the same way (a new version, and a migration for the one before).
 
 - **What is saved.** Exactly the keys of `defaultSetupSettings()` (`core/config.js`): players, spies, timer, categories, difficulty (an array of levels, as `settings.diff` holds it), reveal mode, hint types, the switches and the emergency-vote limit. Not saved: player names (`spy_saved_player_names`), custom words, language, theme, sound, `detectiveUsed`. `gameState.settings` itself starts from the same `defaultSetupSettings()`, so there is one list of defaults.
 - **When.** At the end of `validateAndSaveSettings` (`ui/setup.js`), after the names are validated and saved, so a refused start writes nothing.

@@ -468,14 +468,14 @@ describe('sanitizeSetupSettings: keys that are not setup options', () => {
 // ---------------------------------------------------------------------------------------------------------------
 
 describe('saveSetupSettings: what is written', () => {
-    it('is one record under spy_setup_settings: { version: 1, settings }, with exactly the setup options', () => {
+    it('is one record under spy_setup_settings: { version: 2, settings }, with exactly the setup options', () => {
         assert.equal(SETUP_SETTINGS_KEY, 'spy_setup_settings');
-        assert.equal(SETUP_SETTINGS_VERSION, 1);
+        assert.equal(SETUP_SETTINGS_VERSION, 2);
         saveSetupSettings(NON_DEFAULT);
         assert.deepEqual([...env.storage.keys()], [SETUP_SETTINGS_KEY], 'and no other key');
         const written = storedRecord();
         assert.deepEqual(Object.keys(written), ['version', 'settings']);
-        assert.equal(written.version, 1);
+        assert.equal(written.version, 2);
         assert.deepEqual(Object.keys(written.settings), KEYS);
         assert.deepEqual(written.settings, NON_DEFAULT);
     });
@@ -583,6 +583,46 @@ describe('loadSetupSettings: a record that is usable', () => {
     });
 });
 
+describe('loadSetupSettings: a version 1 record (written before the ninth category existed)', () => {
+    const LEGACY = ['places', 'jobs', 'foods', 'objects', 'vehicles', 'animals', 'sports', 'events'];
+    const withCats = (cats, version = 1) => ({ version, settings: { ...NON_DEFAULT, cats } });
+
+    it('is still read: the other settings are kept', () => {
+        store(withCats(LEGACY));
+        const loaded = loadSetupSettings();
+        assert.ok(loaded);
+        assert.equal(loaded.timerMin, NON_DEFAULT.timerMin);
+        assert.equal(loaded.playersCount, NON_DEFAULT.playersCount);
+    });
+
+    it('a person who had every topic of the time on gets the new topic on as well', () => {
+        store(withCats(LEGACY));
+        assert.deepEqual(loadSetupSettings().cats, [...LEGACY, 'concepts']);
+    });
+
+    it('and keeps custom words if they were on', () => {
+        store(withCats([...LEGACY, 'custom']));
+        assert.deepEqual([...loadSetupSettings().cats].sort(), [...LEGACY, 'concepts', 'custom'].sort());
+    });
+
+    it('a person who had picked a set of their own keeps exactly that set', () => {
+        for (const own of [['foods'], ['foods', 'jobs', 'animals'], LEGACY.slice(1), ['custom']]) {
+            store(withCats(own));
+            assert.deepEqual([...loadSetupSettings().cats].sort(), [...own].sort(), own.join());
+        }
+    });
+
+    it('does not add the topic twice when it is already there', () => {
+        store(withCats([...LEGACY, 'concepts']));
+        assert.deepEqual(loadSetupSettings().cats, [...LEGACY, 'concepts']);
+    });
+
+    it('a version 2 record is the person\'s own choice: a topic they turned off stays off', () => {
+        store(withCats(LEGACY, 2));
+        assert.deepEqual(loadSetupSettings().cats, LEGACY);
+    });
+});
+
 describe('loadSetupSettings: nothing usable is null', () => {
     it('nothing saved', () => {
         assert.equal(loadSetupSettings(), null);
@@ -595,8 +635,8 @@ describe('loadSetupSettings: nothing usable is null', () => {
         }
     });
 
-    it('a record of another version (older, newer, missing, or not a number) is ignored whole', () => {
-        for (const version of [0, 2, 99, -1, '1', null, true, undefined, [1]]) {
+    it('a record of another version (unknown, newer, missing, or not a number) is ignored whole', () => {
+        for (const version of [0, 3, 99, -1, '1', '2', null, true, undefined, [1], [2]]) {
             store({ version, settings: NON_DEFAULT });
             assert.equal(loadSetupSettings(), null, `version ${JSON.stringify(version)}`);
         }
@@ -636,7 +676,7 @@ describe('validateAndSaveSettings: saving the setup', () => {
     it('saves the validated settings, and only them, when the form is valid', () => {
         assert.equal(fillAndValidate(NON_DEFAULT), true);
         const written = storedRecord();
-        assert.equal(written.version, 1);
+        assert.equal(written.version, 2);
         assert.deepEqual(written.settings, NON_DEFAULT);
         const { detectiveUsed, ...fromState } = gameState.settings;
         assert.equal(detectiveUsed, false);
@@ -803,7 +843,7 @@ describe('restoreSavedSetup: at start-up and after "new match"', () => {
         assert.equal(restoreSavedSetup(), false, 'nothing saved');
         assert.deepEqual(readForm(), typed);
 
-        for (const bad of ['{broken', '[]', 'null', JSON.stringify({ version: 2, settings: NON_DEFAULT })]) {
+        for (const bad of ['{broken', '[]', 'null', JSON.stringify({ version: 3, settings: NON_DEFAULT })]) {
             env.storage.set(SETUP_SETTINGS_KEY, bad);
             arrange();
             assert.equal(restoreSavedSetup(), false, bad);

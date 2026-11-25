@@ -87,7 +87,7 @@ async function withApp(fn, { lang = 'fa', seed, width = PHONE.width, height = PH
     const context = await browser.newContext({ viewport: { width, height }, ...(reducedMotion ? { reducedMotion } : {}) });
     const { page, problems } = await newPage(context);
     try {
-        if (seed) await context.addInitScript(([key, value]) => { if (!localStorage.getItem(key)) localStorage.setItem(key, value); }, [SETUP_KEY, JSON.stringify({ version: 1, settings: seed })]);
+        if (seed) await context.addInitScript(([key, value]) => { if (!localStorage.getItem(key)) localStorage.setItem(key, value); }, [SETUP_KEY, JSON.stringify({ version: 2, settings: seed })]);
         await page.goto(baseUrl);
         await page.waitForSelector('#screen-welcome:not(.hidden)');
         if (lang === 'en') await page.click('#btn-lang-en');
@@ -476,7 +476,7 @@ describe('the groups on the setup screen (production build)', () => {
             await goSetup(page);
             await page.click('#btn-start-match');
             await page.waitForSelector('#screen-reveal:not(.hidden)');
-            assert.equal(await stored(page, SETUP_KEY), JSON.stringify({ version: 1, settings: DEFAULTS }), 'byte for byte the saved setup of the defaults');
+            assert.equal(await stored(page, SETUP_KEY), JSON.stringify({ version: 2, settings: DEFAULTS }), 'byte for byte the saved setup of the defaults');
             const master = JSON.parse(await stored(page, MASTER_KEY));
             assert.equal(JSON.stringify(master.state.settings), JSON.stringify({ ...DEFAULTS, detectiveUsed: false }), 'and the settings of the match');
             assert.equal(await page.locator('#reveal-grid button').count(), 4);
@@ -491,7 +491,7 @@ describe('the groups on the setup screen (production build)', () => {
             assert.deepEqual(await readForm(page), CHOSEN);
             await page.click('#btn-start-match');
             await page.waitForSelector('#screen-reveal:not(.hidden)');
-            assert.equal(await stored(page, SETUP_KEY), JSON.stringify({ version: 1, settings: CHOSEN }));
+            assert.equal(await stored(page, SETUP_KEY), JSON.stringify({ version: 2, settings: CHOSEN }));
             const master = JSON.parse(await stored(page, MASTER_KEY));
             assert.equal(JSON.stringify(master.state.settings), JSON.stringify({ ...CHOSEN, detectiveUsed: false }));
         });

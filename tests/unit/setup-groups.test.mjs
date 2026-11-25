@@ -235,6 +235,51 @@ describe('the start bar (css/style.css: .sticky-actions)', () => {
     });
 });
 
+describe('an open group (css/style.css: .setup-group[open])', () => {
+    const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
+    const rule = (selector) => {
+        // the LAST rule of the selector is the one that wins (an earlier rule of the same weight sets the old look)
+        const start = css.lastIndexOf(`\n${selector} {`) + 1;
+        assert.ok(start >= 1, `${selector} has a rule`);
+        return css.slice(start, css.indexOf('}', start));
+    };
+
+    it('is one lit panel: a brand border, a thicker bar at the start and a light tint, all from theme variables', () => {
+        const block = rule('.setup-group[open]');
+        assert.match(block, /border-color: var\(--brand-primary\);/);
+        assert.match(block, /border-inline-start-width: 4px;/);
+        assert.match(block, /background: color-mix\(in srgb, var\(--brand-primary\) \d+%, transparent\);/);
+    });
+
+    it('does not move the group when it opens: the closed group already has a border of the same width, only transparent', () => {
+        assert.match(rule('.setup-group'), /border: 1px solid transparent;/);
+    });
+
+    it('lights the title and the chevron of its header, and drops the header\'s own box, so there is no box inside the box', () => {
+        assert.match(rule('.setup-group[open] > .setup-group-summary'), /border-color: transparent;/);
+        assert.match(rule('.setup-group[open] > .setup-group-summary .setup-group-title'), /color: var\(--brand-primary\);/);
+        assert.match(rule('.setup-group[open] > .setup-group-summary .setup-group-chevron'), /border-color: var\(--brand-primary\);/);
+    });
+
+    it('slides its options in below a divider, with an animation that exists (and the reduced-motion rule covers it)', () => {
+        const body = rule('.setup-group[open] > .setup-group-body');
+        assert.match(body, /border-top: 1px solid /);
+        assert.match(body, /animation: setupGroupOpen /);
+        assert.ok(css.includes('@keyframes setupGroupOpen'));
+        assert.match(css, /prefers-reduced-motion: reduce\) \{ \*, \*::before, \*::after \{ animation-duration: 0\.01ms !important;/);
+    });
+});
+
+describe('the topic chips on a new device', () => {
+    it('every built-in topic, the new "concepts" one included, starts ticked; custom words does not', () => {
+        const page = [...elements(parseHtml(html))];
+        const chips = page.filter((el) => el.attrs.name === 'setup-cat');
+        const ticked = chips.filter((el) => 'checked' in el.attrs).map((el) => el.attrs.value);
+        assert.deepEqual(ticked.sort(), ['animals', 'concepts', 'events', 'foods', 'jobs', 'objects', 'places', 'sports', 'vehicles']);
+        assert.ok(chips.some((el) => el.attrs.value === 'custom' && !('checked' in el.attrs)));
+    });
+});
+
 describe('the name boxes (css/style.css: #name-inputs-container)', () => {
     const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
 

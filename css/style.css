@@ -449,7 +449,18 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 /* Setup screen: the options below the five core fields sit in four native <details> groups (all closed at first).
    The header is a full-width 44px target: title at the start, the "N on" badge and a chevron at the end. */
 .setup-groups { margin-bottom: 12px; }
-.setup-group { margin-bottom: 8px; }
+.setup-group {
+    margin-bottom: 8px;
+    border: 1px solid transparent; border-radius: 16px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+/* An open group reads as ONE lit panel: the header and the options inside it share a brand-coloured border, a light
+   tint and a thicker bar at the start, and the options slide in below a divider. Before, only the header's border
+   changed, which is easy to miss on a long screen of look-alike rows. */
+.setup-group[open] {
+    border-color: var(--brand-primary); border-inline-start-width: 4px;
+    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
 .setup-group-summary {
     display: flex; align-items: center; gap: 8px;
     min-height: 44px; padding: 6px 14px;
@@ -460,7 +471,7 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
 }
 .setup-group-summary::-webkit-details-marker { display: none; }
 .setup-group-summary::marker { content: ''; }
-.setup-group-summary:hover, .setup-group[open] > .setup-group-summary { border-color: var(--brand-primary); }
+.setup-group-summary:hover { border-color: var(--brand-primary); }
 .setup-group-summary:focus-visible { outline: 3px solid var(--brand-primary); outline-offset: 3px; }
 .setup-group-title { flex: 1 1 auto; min-width: 0; text-align: start; overflow-wrap: anywhere; }
 .setup-group-badge {
@@ -478,7 +489,15 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     transition: transform 0.2s ease;
 }
 .setup-group[open] > .setup-group-summary .setup-group-chevron { transform: rotate(calc(45deg * var(--dir))); }
-.setup-group-body { padding-top: 10px; }
+.setup-group-body { padding: 10px 12px 12px; }
+.setup-group[open] > .setup-group-summary { background: transparent; border-color: transparent; }
+.setup-group[open] > .setup-group-summary .setup-group-title { color: var(--brand-primary); }
+.setup-group[open] > .setup-group-summary .setup-group-chevron { border-color: var(--brand-primary); }
+.setup-group[open] > .setup-group-body {
+    border-top: 1px solid color-mix(in srgb, var(--brand-primary) 30%, transparent);
+    animation: setupGroupOpen 0.22s ease-out;
+}
+@keyframes setupGroupOpen { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 /* Two columns of switches when the screen is wide enough for the labels, else one. */
 .setup-group-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; }
 .setup-group-grid > * { min-width: 0; }
