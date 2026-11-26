@@ -718,6 +718,10 @@ input:checked + .slider:before { transform: translateX(calc(20px * var(--dir)));
     background: linear-gradient(to top, color-mix(in srgb, var(--bg-body) 94%, transparent) 60%, transparent);
 }
 .sticky-actions .btn { margin-top: 0; }
+/* The floating cover-mode button (and the install one) sit over the bottom corner of the page, which at the end of
+   the long setup screen is where "Back" is. This room under "Back" keeps it clear of them: about the height of the
+   buttons (38px) and their distance from the bottom (16px), and a little more. */
+#screen-setup { padding-bottom: 64px; }
 
 /* The presets of the setup screen: three chips in one row, the active one lit like the other chips, and one line of
    description under them. */

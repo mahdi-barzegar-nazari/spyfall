@@ -280,6 +280,24 @@ describe('the topic chips on a new device', () => {
     });
 });
 
+describe('the room under "Back" (css/style.css: #screen-setup)', () => {
+    const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
+
+    it('is at least the height of the floating buttons plus their distance from the bottom, so "Back" is never under them', () => {
+        const start = css.indexOf('#screen-setup {');
+        assert.ok(start >= 0);
+        const padding = /padding-bottom: (\d+)px;/.exec(css.slice(start, css.indexOf('}', start)));
+        assert.ok(padding, 'the screen has a padding at the bottom');
+        assert.ok(Number(padding[1]) >= 38 + 16, `${padding[1]}px`);
+    });
+
+    it('and "Back" is the last thing on the screen, so the room is under it', () => {
+        const screen = [...elements(parseHtml(html))].find((el) => el.attrs.id === 'screen-setup');
+        const children = [...elements(screen)].filter((el) => el.tag === 'button' && el.attrs.id);
+        assert.equal(children[children.length - 1].attrs.id, 'btn-back-welcome-2');
+    });
+});
+
 describe('the name boxes (css/style.css: #name-inputs-container)', () => {
     const css = readFileSync(`${ROOT}css/style.css`, 'utf8');
 

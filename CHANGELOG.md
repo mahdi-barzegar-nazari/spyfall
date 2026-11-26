@@ -14,6 +14,7 @@
 
 ### Fixed
 
+- **"Back" on the setup screen is no longer under the cover-mode button.** At the end of the long setup screen the round floating buttons (cover mode, and the install one when it shows) sat on top of the "Back" button. `#screen-setup` now has 64px of room under "Back" (the height of the buttons, their distance from the bottom, and a little more), so it is clear of them. Only the setup screen: the room is inside its own box, so the welcome screen is no taller. A CSS check in `tests/unit/setup-groups.test.mjs`; not seen in a browser.
 - **The "Concepts & science" topic was off on devices that had played before.** A device with a saved setup restored its own list of topics, which was written before the ninth topic existed, so the new chip came up unticked while everyone else had it on. The saved setup is now version 2, and a version 1 record is migrated when it is read: a person who had every topic on (the first eight) gets the new one on as well, and a person who had picked a set of their own keeps exactly that set; a version 2 record is the person's own choice, so turning the topic off stays. `core/storage.js` (`migrateFromVersion1`), tests in `tests/unit/setup-settings.test.mjs`, and the end-to-end tests that write or seed a saved setup (`setup-memory`, `setup-groups`) now use version 2. It is the same for Persian and English: the saved list is not tied to a language.
 
 ### Added
