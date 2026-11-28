@@ -17,6 +17,7 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import { en } from '../../js/i18n/en.js';
 import { fa } from '../../js/i18n/fa.js';
+import { computeFooterLayout, computeScorecardLayout } from '../../js/ui/scorecard-layout.js';
 import { startApp } from './helpers/app.mjs';
 import { startMatch, withPage } from './helpers/play.mjs';
 
@@ -82,6 +83,12 @@ async function drawScorecard(lang) {
                 window.__drawn.push({ text: String(text), x, y, align: this.textAlign });
                 return fillText.call(this, text, x, y, ...rest);
             };
+            window.__images = [];
+            const drawImage = proto.drawImage;
+            proto.drawImage = function (image, ...rest) {
+                window.__images.push(rest); // only the numbers (where and how big); the image itself is the QR code
+                return drawImage.call(this, image, ...rest);
+            };
             HTMLAnchorElement.prototype.click = function () {}; // no real download
         }, save);
         await page.reload();
@@ -97,6 +104,7 @@ async function drawScorecard(lang) {
         const footer = CATALOG[lang]['welcome.credit.author'];
         await page.waitForFunction((text) => window.__drawn.some((d) => d.text === text), footer);
         result.drawn = await page.evaluate(() => window.__drawn);
+        result.images = await page.evaluate(() => window.__images);
         result.size = await page.evaluate(() => {
             const canvas = document.getElementById('scorecard-canvas');
             return [canvas.width, canvas.height];
@@ -144,6 +152,14 @@ for (const lang of ['en', 'fa']) {
             // the podium names the first player of each slot (and the tie slot says how many others), the list the rest
             const podium = shot.drawn.filter((d) => d.align === 'center').map(plain);
             for (const name of names.slice(0, 3)) assert.ok(podium.some((text) => text.includes(name)), `${name} is on the podium`);
+        });
+
+        it('draws the QR code once, in the end corner of the footer (left in Persian, right in English)', () => {
+            // 3 podium slots and 17 rows under them: the footer makes room for the code (see qrFooterHeight)
+            const { image } = computeFooterLayout(computeScorecardLayout(3, 17, { qr: true }), rtl ? 'rtl' : 'ltr');
+            assert.deepEqual(shot.images, [[image.x, image.y, image.size, image.size]]);
+            assert.ok(image.size >= 100, 'big enough to scan');
+            assert.equal(image.x < 360, rtl, 'the corner at the end of the reading direction');
         });
 
         it('lists all 20 players on the on-screen leaderboard too', () => {

@@ -32,7 +32,7 @@ The game engine runs entirely in the browser with no framework. It ships as nati
 - **Crash-safe.** The match and the exact seconds left on the timer are saved to `localStorage`. Reload or background the app and you can resume.
 - **Remembers your setup.** The players count, spies, timer, categories, difficulty and the other setup options of the last match you started come back the next time you open the app (the player names were already saved). A resumed match keeps its own settings.
 - **Fresh words.** A secret word never comes twice in one match, and the last 300 words are remembered on the device (`localStorage` key `spy_recent_words`), so a new match does not open with last night's word. A small pool (one category with one difficulty) still gets full variety: the memory is only used while at least half of the pool has not been heard lately.
-- **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`.
+- **Shareable results.** A 9:16 scorecard image is drawn client-side on a `<canvas>`. Its footer carries a QR code that opens the game, so a friend who sees the picture can scan it and play (the code is the app's own file, `assets/qr/spyfall-qr.png`; without room or without the file the image is saved without it).
 - **Round counter.** The result screen of every round says which round it was ("Round 3", in Persian the word for round and a Persian digit), also after you resume a saved match, which brings back the winner, the secret word and the score table of that screen exactly as they were, in the language of the match.
 - **Synthesised audio.** Sound cues come from the Web Audio API, so there are no audio files to download.
 - **2,147 Persian and 1,830 English built-in words**, each bank in 9 categories with difficulty ratings (easy, medium and hard: setup lets you play any mix of them, and the mix only narrows the built-in words: your custom words are always in the pool; the English bank is written for English, not translated from the Persian one, and comes with 28 English side quests), plus a custom word bank you can import and export as JSON.
@@ -68,9 +68,9 @@ npm run preview        # serves ./dist to test real offline caching
 
 ```bash
 npm install            # dev tooling only: ESLint, Prettier, Playwright
-npm test               # 1227 unit tests (built-in node:test, no dependencies)
+npm test               # 1448 unit tests (built-in node:test, no dependencies)
 npx playwright install chromium
-npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, the discussion screen's Question idea button, first paint, build line and its long-press reveal, round-result screen after a reload, the setup screen's folding groups and their badges, scorecard image of a 20-player match
+npm run test:e2e       # real-browser tests of the production build: smoke test (incl. offline mode), language switch, the welcome screen's How to play button, the discussion screen's Question idea button, first paint, build line and its long-press reveal, round-result screen after a reload, the setup screen's folding groups and their badges, scorecard image of a 20-player match (with its QR code)
 npm run lint
 ```
 
@@ -94,6 +94,7 @@ npm run lint
 ├── sw.js                      # service worker (versioned app-shell precache)
 ├── manifest.json              # PWA manifest
 ├── assets/icons/              # 192, 512 and padded maskable icons
+├── assets/qr/                 # the QR code drawn on the scorecard image
 ├── scripts/                   # build.mjs (dist + SW and build-info stamping), serve.mjs (dev server)
 ├── tests/                     # unit (node:test) and e2e (Playwright)
 └── .github/workflows/         # CI workflows

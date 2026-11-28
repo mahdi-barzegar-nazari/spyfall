@@ -302,6 +302,8 @@ export const fa = {
     'scorecard.others': 'سایر بازیکنان',
     'scorecard.tied': '{name} (مشترک)',
     'scorecard.closing': '🎉 امیدوارم از بازی لذت برده باشید',
+    'scorecard.qr.cta': 'اسکن کنید و بازی کنید',
+    'scorecard.qr.url': 'jasoosbazi.vercel.app',
 
     // ---- Modals: info
     'modal.info.close': 'متوجه شدم',

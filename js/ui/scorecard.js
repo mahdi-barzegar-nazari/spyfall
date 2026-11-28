@@ -13,6 +13,7 @@ import { getRankedStandings } from '../game/ranking.js';
 import { formatDate, formatNumber, getDirection, isolate, t, tn } from '../i18n/index.js';
 import {
     computeScorecardLayout,
+    computeFooterLayout,
     computeHeaderLayout,
     computePodiumSlotLayout,
     computeRestRowLayout,
@@ -22,6 +23,7 @@ import {
     buildScorecardRows,
     isolateLine
 } from './scorecard-layout.js';
+import { loadScorecardQr } from './scorecardQr.js';
 
 // The colours of the exported image, one entry per theme of css/style.css (a canvas cannot read the CSS variables
 // in a unit test, so the table mirrors them and tests/unit/theme-colors.test.mjs keeps the two in step):
@@ -41,6 +43,8 @@ export const SCORECARD_THEME_ACCENTS = {
 };
 // The gold, silver and bronze of ranks 1 to 3: the same in every theme on purpose.
 export const SCORECARD_MEDAL_COLORS = ['#f59e0b', '#cbd5e1', '#d97706'];
+// The card under the QR code is white in every theme on purpose: a code only scans as dark marks on a light ground.
+export const SCORECARD_QR_CARD_COLOR = '#ffffff';
 
 export function hexWithAlpha(hex, alpha) {
     let h = hex.replace('#', '');
@@ -330,24 +334,49 @@ function drawClosingLine(ctx, layout, accent, fontFam) {
     ctx.fillText(t('scorecard.closing'), layout.width / 2, layout.blockBottom + layout.bottomGap / 2);
 }
 
-// Footer credit — subtle divider + small, low-opacity, non-bold signature,
-// always pinned to the very bottom of the fixed canvas.
-function drawFooter(ctx, layout, accent, fontFam) {
+// Footer. Without a QR code: a subtle divider + small, low-opacity, non-bold signature, pinned to the very
+// bottom of the fixed canvas. With one (`qrImage`, only when the layout found room for it): the white card with
+// the code in the end corner, and beside it the call to action, the web address and the signature. Where
+// everything sits comes from computeFooterLayout.
+function drawFooter(ctx, layout, accent, fontFam, direction, qrImage) {
+    const f = computeFooterLayout(layout, direction);
     ctx.strokeStyle = hexWithAlpha(accent.text, 0.06);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(layout.width / 2 - 60, layout.height - layout.footerH + 16);
-    ctx.lineTo(layout.width / 2 + 60, layout.height - layout.footerH + 16);
+    ctx.moveTo(f.dividerFrom, f.dividerY);
+    ctx.lineTo(f.dividerTo, f.dividerY);
     ctx.stroke();
 
-    ctx.textAlign = 'center';
+    if (f.hasQr && qrImage) {
+        ctx.fillStyle = SCORECARD_QR_CARD_COLOR;
+        drawRoundedRectPath(ctx, f.card.x, f.card.y, f.card.size, f.card.size, f.card.radius);
+        ctx.fill();
+        ctx.strokeStyle = hexWithAlpha(accent.primary, 0.6);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(qrImage, f.image.x, f.image.y, f.image.size, f.image.size);
+
+        ctx.textAlign = f.textAlign;
+        ctx.font = `800 18px ${fontFam}`;
+        ctx.fillStyle = accent.text;
+        ctx.fillText(truncateCanvasText(ctx, t('scorecard.qr.cta'), f.textMaxWidth), f.textX, f.ctaY);
+        ctx.font = `600 13px ${fontFam}`;
+        ctx.fillStyle = accent.primary;
+        ctx.fillText(t('scorecard.qr.url'), f.textX, f.urlY);
+    }
+
+    ctx.textAlign = f.textAlign;
     ctx.font = `400 10px ${fontFam}`;
     ctx.fillStyle = hexWithAlpha(accent.muted, 0.45);
-    ctx.fillText(t('welcome.credit.author'), layout.width / 2, layout.height - 20);
+    ctx.fillText(t('welcome.credit.author'), f.textX, f.creditY);
 }
 
-export function exportScorecardImage() {
-    const renderCanvas = () => {
+// `loadQr` is a parameter only so that a test can stand in for the browser's image loading.
+export function exportScorecardImage({ loadQr = loadScorecardQr } = {}) {
+    // qrImage: the loaded QR picture, or null (not loadable here, or it did not load: the image has no code).
+    const renderCanvas = (qrImage) => {
         const canvas = document.getElementById('scorecard-canvas');
         const ctx = canvas.getContext('2d');
         // The text direction of the canvas follows the active language (names are isolated one by one).
@@ -362,7 +391,7 @@ export function exportScorecardImage() {
         const { podiumGroups, restRows } = buildScorecardRows(getRankedStandings(gameState.players));
         const totalPlayers = gameState.players.length;
 
-        const layout = computeScorecardLayout(podiumGroups.length, restRows.length);
+        const layout = computeScorecardLayout(podiumGroups.length, restRows.length, { qr: Boolean(qrImage) });
 
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         canvas.width = layout.width * dpr;
@@ -383,7 +412,7 @@ export function exportScorecardImage() {
         drawPodium(ctx, layout, podiumGroups, accent, fontFam, direction);
         drawRestRows(ctx, layout, restRows, accent, fontFam, direction);
         drawClosingLine(ctx, layout, accent, fontFam);
-        drawFooter(ctx, layout, accent, fontFam);
+        drawFooter(ctx, layout, accent, fontFam, direction, layout.hasQr ? qrImage : null);
 
         const link = document.createElement('a');
         link.download = `SpyGame-Scorecard-${Date.now()}.png`;
@@ -393,9 +422,12 @@ export function exportScorecardImage() {
         document.body.removeChild(link);
     };
 
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(renderCanvas);
-    } else {
-        renderCanvas();
+    // Wait for the fonts and for the QR picture (a null from loadQr means there is nothing to wait for).
+    const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : null;
+    const qrReady = loadQr();
+    if (!fontsReady && !qrReady) {
+        renderCanvas(null);
+        return;
     }
+    Promise.all([fontsReady, qrReady]).then(([, qrImage]) => renderCanvas(qrImage || null));
 }

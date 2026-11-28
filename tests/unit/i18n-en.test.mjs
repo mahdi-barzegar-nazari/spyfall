@@ -27,11 +27,13 @@ const emoji = (text) => (text.match(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu)
 const baseKey = (key) => key.replace(/\.(zero|one|two|few|many|other)$/, '');
 
 /**
- * English values allowed to equal the Persian one, each with the reason. Empty today: even the emoji-only
- * and brand-name texts carry some other character that differs. Add a key here only for a text that is
- * the same in both languages on purpose (an emoji alone, a brand name).
+ * English values allowed to equal the Persian one, each with the reason. Even the emoji-only and brand-name
+ * texts carry some other character that differs, so the only entry is a web address. Add a key here only for a
+ * text that is the same in both languages on purpose (an emoji alone, a brand name, an address).
  */
-const SAME_AS_PERSIAN = {};
+const SAME_AS_PERSIAN = {
+    'scorecard.qr.url': 'the web address printed beside the QR code on the scorecard image is the same in every language'
+};
 
 beforeEach(() => {
     document.documentElement = { lang: 'sentinel', dir: 'sentinel' };

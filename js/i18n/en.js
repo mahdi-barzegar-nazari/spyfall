@@ -333,6 +333,8 @@ export const en = {
     'scorecard.others': 'Other players',
     'scorecard.tied': '{name} (tied)',
     'scorecard.closing': '🎉 Hope you enjoyed the game',
+    'scorecard.qr.cta': 'Scan to play',
+    'scorecard.qr.url': 'jasoosbazi.vercel.app',
 
     // ---- Modals: info
     'modal.info.close': 'Got it',

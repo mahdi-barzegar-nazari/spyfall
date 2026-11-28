@@ -15,6 +15,20 @@ export const CANVAS_WIDTH = 720;
 export const CANVAS_HEIGHT = Math.round((CANVAS_WIDTH * 16) / 9); // 1280 — exact 9:16
 export const FOOTER_H = 54;
 
+// ---- The QR code in the footer ----------------------------------------------------------------------
+// A footer with a code is taller (a white card with the code in the end corner, a line of text on the other
+// side). It takes what the list can spare without squeezing it below QR_MIN_BLOCK_SCALE, the scale at which the
+// smallest names of the worst cases are still drawn at 11px, and never more than QR_FOOTER_MAX_H. So the code is
+// big for a small game, smaller for a crowded one, and below QR_FOOTER_MIN_H (about 100px of code, the least that
+// still scans) the image has no code at all and the footer is the old FOOTER_H one, so nothing in the list changes.
+export const QR_FOOTER_MAX_H = 180;
+export const QR_FOOTER_MIN_H = 132;
+export const QR_MIN_BLOCK_SCALE = 0.705;
+const QR_CARD_MARGIN = 10; // white card to the footer's line above it and to the bottom edge
+const QR_CARD_PAD = 6; // white card to the code (the code's own picture has a margin of about two modules besides)
+const QR_TEXT_GAP = 16; // white card to the text beside it
+const EDGE = 40; // the outer margin the list rows use as well
+
 // ---- Who goes where: podium slots and the "other players" list ---------------------------------------
 // A podium slot has room for the names of at most two players ("A and B (tied)"). A bigger tie is written as
 // "A and N others (tied)", which names only the first player, so the other N players must be listed by name
@@ -69,14 +83,20 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 //  • many players → scale < 1 (never below a safe floor), so the list
 //    always fits without ever clipping.
 // Nothing is ever stretched non-uniformly, so nothing distorts.
-export function computeScorecardLayout(podiumCount, restRowCount) {
+//   options.qr: true when the image has a QR code to draw. The footer then grows to make room for it if the list
+//   can spare the height (see qrFooterHeight); `hasQr` in the result says whether it did. Without the option the
+//   layout is exactly the one of an image with no code.
+export function computeScorecardLayout(podiumCount, restRowCount, { qr = false } = {}) {
     const naturalListH = restRowCount > 0 ? IDEAL_REST_HEADER_H + restRowCount * IDEAL_ROW_STEP : 0;
     const naturalBlockH = (podiumCount > 0 ? IDEAL_PODIUM_H : 0) + naturalListH;
+    const qrFooterH = qr ? qrFooterHeight(naturalBlockH) : 0;
+    const hasQr = qrFooterH > 0;
+    const footerH = hasQr ? qrFooterH : FOOTER_H;
 
     // Pass 1: estimate the scale using the base header height.
     let scale =
         naturalBlockH > 0
-            ? clamp((CANVAS_HEIGHT - HEADER_BASE - FOOTER_H) / naturalBlockH, MIN_SCALE, MAX_SCALE)
+            ? clamp((CANVAS_HEIGHT - HEADER_BASE - footerH) / naturalBlockH, MIN_SCALE, MAX_SCALE)
             : 1;
     // When there's slack (scale > 1), let the header claim a modest share
     // of it too, so the title/badge grow a bit and the whole card reads as
@@ -84,7 +104,7 @@ export function computeScorecardLayout(podiumCount, restRowCount) {
     const headerBonus = scale > 1 ? Math.min(34, (scale - 1) * 60) : 0;
     const headerH = HEADER_BASE + headerBonus;
     const contentTop = headerH;
-    const contentBottom = CANVAS_HEIGHT - FOOTER_H;
+    const contentBottom = CANVAS_HEIGHT - footerH;
     const contentAvailableH = Math.max(0, contentBottom - contentTop);
     // Pass 2: settle the final scale against the (possibly taller) header.
     scale = naturalBlockH > 0 ? clamp(contentAvailableH / naturalBlockH, MIN_SCALE, MAX_SCALE) : 1;
@@ -105,7 +125,8 @@ export function computeScorecardLayout(podiumCount, restRowCount) {
     return {
         width: CANVAS_WIDTH,
         height: CANVAS_HEIGHT,
-        footerH: FOOTER_H,
+        footerH,
+        hasQr,
         scale,
         headerBonus,
         headerH,
@@ -119,6 +140,57 @@ export function computeScorecardLayout(podiumCount, restRowCount) {
         blockTop,
         blockBottom,
         bottomGap: contentBottom - blockBottom
+    };
+}
+
+/**
+ * The footer height for an image with a QR code, given the natural (scale 1) height of the podium and the list:
+ * what is left of the canvas when the block is drawn at QR_MIN_BLOCK_SCALE, at most QR_FOOTER_MAX_H. 0 means there
+ * is no room: the code would be too small, so the image goes without one.
+ */
+export function qrFooterHeight(naturalBlockH) {
+    const spare = Math.floor(CANVAS_HEIGHT - HEADER_BASE - naturalBlockH * QR_MIN_BLOCK_SCALE);
+    const height = Math.min(QR_FOOTER_MAX_H, spare);
+    return height >= QR_FOOTER_MIN_H ? height : 0;
+}
+
+// The footer's geometry. Without a code it is the old one: a short divider and the creator's signature in the
+// middle. With a code (layout.hasQr) the divider runs across the image and the white card sits in the corner at
+// the end of the reading direction, under the scores' side (bottom left in Persian, bottom right in English); the
+// call to action, the web address and the signature are written beside it, starting at the other edge.
+// `direction` is passed in (the layout stays pure); anything but an explicit 'ltr' keeps the right-to-left placement.
+export function computeFooterLayout(layout, direction) {
+    const { width, height, footerH } = layout;
+    const top = height - footerH;
+    if (!layout.hasQr) {
+        return {
+            hasQr: false,
+            dividerY: top + 16,
+            dividerFrom: width / 2 - 60,
+            dividerTo: width / 2 + 60,
+            textX: width / 2,
+            textAlign: 'center',
+            creditY: height - 20
+        };
+    }
+    const ltr = direction === 'ltr';
+    const cardSize = footerH - 2 * QR_CARD_MARGIN;
+    const cardX = ltr ? width - EDGE - cardSize : EDGE;
+    const cardY = top + QR_CARD_MARGIN;
+    const middleY = top + footerH / 2;
+    return {
+        hasQr: true,
+        dividerY: top + 6,
+        dividerFrom: 50,
+        dividerTo: width - 50,
+        card: { x: cardX, y: cardY, size: cardSize, radius: Math.round(cardSize * 0.1) },
+        image: { x: cardX + QR_CARD_PAD, y: cardY + QR_CARD_PAD, size: cardSize - 2 * QR_CARD_PAD },
+        textX: ltr ? EDGE : width - EDGE,
+        textAlign: ltr ? 'left' : 'right',
+        textMaxWidth: width - 2 * EDGE - cardSize - QR_TEXT_GAP,
+        ctaY: middleY - 14,
+        urlY: middleY + 10,
+        creditY: middleY + 36
     };
 }
 
